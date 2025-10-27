@@ -1,4 +1,5 @@
-import { Package, Building2, Users, AlertTriangle, TrendingDown, TrendingUp } from "lucide-react";
+import { useState } from "react";
+import { Package, Building2, Users, AlertTriangle, TrendingDown, TrendingUp, Upload } from "lucide-react";
 import { MetricCard } from "@/components/MetricCard";
 import { DashboardSidebar } from "@/components/DashboardSidebar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,8 +12,21 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { toast } from "@/hooks/use-toast";
+import * as XLSX from "xlsx";
+
+interface ExcelProduct {
+  "שם מוצר": string;
+  "מק״ט": string;
+  "כמות במלאי": number;
+  "ספק": string;
+}
 
 const Index = () => {
+  const [uploadedData, setUploadedData] = useState<ExcelProduct[]>([]);
+  const [isFileUploaded, setIsFileUploaded] = useState(false);
   const lowStockItems = [
     { id: 1, name: "מוצר A", currentStock: 5, minStock: 20 },
     { id: 2, name: "מוצר B", currentStock: 3, minStock: 15 },
@@ -27,6 +41,42 @@ const Index = () => {
     { id: 5, date: "2025-01-13", product: "מוצר B", type: "כניסה", quantity: 25 },
   ];
 
+  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const data = e.target?.result;
+        const workbook = XLSX.read(data, { type: "binary" });
+        const sheetName = workbook.SheetNames[0];
+        const worksheet = workbook.Sheets[sheetName];
+        const jsonData = XLSX.utils.sheet_to_json<ExcelProduct>(worksheet);
+        
+        // Sort alphabetically by product name
+        const sortedData = jsonData.sort((a, b) => 
+          a["שם מוצר"].localeCompare(b["שם מוצר"], "he")
+        );
+        
+        setUploadedData(sortedData);
+        setIsFileUploaded(true);
+        
+        toast({
+          title: "הקובץ נטען בהצלחה!",
+          description: `${sortedData.length} מוצרים נטענו מהקובץ`,
+        });
+      } catch (error) {
+        toast({
+          title: "שגיאה בטעינת הקובץ",
+          description: "אנא ודא שהקובץ בפורמט Excel תקין",
+          variant: "destructive",
+        });
+      }
+    };
+    reader.readAsBinaryString(file);
+  };
+
   return (
     <div className="flex h-screen w-full">
       <DashboardSidebar />
@@ -40,6 +90,43 @@ const Index = () => {
         {/* Main Content */}
         <main className="flex-1 overflow-y-auto p-4 lg:p-6">
           <div className="mx-auto max-w-7xl space-y-6">
+            {/* Excel Upload Section */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Upload className="h-5 w-5 text-primary" />
+                  ייבוא מלאי מאקסל
+                </CardTitle>
+                <p className="text-sm text-muted-foreground">
+                  העלה קובץ Excel עם רשימת המוצרים שלך, והמערכת תעדכן את המלאי בהתאם.
+                </p>
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-center gap-4">
+                  <Input
+                    id="excel-upload"
+                    type="file"
+                    accept=".xlsx,.xls"
+                    onChange={handleFileUpload}
+                    className="hidden"
+                  />
+                  <Button
+                    onClick={() => document.getElementById("excel-upload")?.click()}
+                    size="lg"
+                    className="gap-2"
+                  >
+                    <Upload className="h-4 w-4" />
+                    בחר קובץ
+                  </Button>
+                  {isFileUploaded && (
+                    <Badge variant="outline" className="bg-success/10 text-success border-success/20">
+                      הקובץ נטען בהצלחה!
+                    </Badge>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
             {/* Metrics Grid */}
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
               <MetricCard
@@ -100,6 +187,39 @@ const Index = () => {
                 </div>
               </CardContent>
             </Card>
+
+            {/* Uploaded Excel Data Table */}
+            {uploadedData.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>מוצרים שנטענו מהקובץ</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="overflow-x-auto">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead className="text-right">שם מוצר</TableHead>
+                          <TableHead className="text-right">מק״ט</TableHead>
+                          <TableHead className="text-right">כמות במלאי</TableHead>
+                          <TableHead className="text-right">ספק</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {uploadedData.map((product, index) => (
+                          <TableRow key={index}>
+                            <TableCell className="font-medium">{product["שם מוצר"]}</TableCell>
+                            <TableCell>{product["מק״ט"]}</TableCell>
+                            <TableCell className="font-semibold">{product["כמות במלאי"]}</TableCell>
+                            <TableCell>{product["ספק"]}</TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
 
             {/* Recent Movements Table */}
             <Card>
