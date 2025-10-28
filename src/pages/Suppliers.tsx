@@ -151,27 +151,27 @@ const Suppliers = () => {
   };
 
   return (
-    <div className="flex h-screen w-full">
+    <div className="flex min-h-screen w-full">
       <DashboardSidebar />
       
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <header className="flex h-14 items-center gap-4 border-b bg-card px-4 lg:h-[60px] lg:px-6">
-          <h1 className="text-xl font-bold">ניהול ספקים / לקוחות עסקיים</h1>
+      <div className="flex-1 flex flex-col">
+        <header className="flex h-14 items-center gap-2 border-b bg-card px-3 lg:h-[60px] lg:px-6 sticky top-0 z-10">
+          <h1 className="text-base lg:text-xl font-bold truncate">ניהול ספקים / לקוחות עסקיים</h1>
         </header>
 
-        <main className="flex-1 overflow-y-auto p-4 lg:p-6">
-          <div className="mx-auto max-w-7xl space-y-6">
+        <main className="flex-1 overflow-y-auto p-3 lg:p-6">
+          <div className="mx-auto max-w-7xl space-y-4 lg:space-y-6">
             {/* Add New Business Partner Form */}
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
+                <CardTitle className="flex items-center gap-2 text-lg lg:text-2xl">
                   <Building2 className="h-5 w-5 text-primary" />
                   הוספת עסק / ספק חדש
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <form onSubmit={handleAddPartner} className="space-y-4">
-                  <div className="grid gap-4 md:grid-cols-2">
+                <form onSubmit={handleAddPartner} className="space-y-3 lg:space-y-4">
+                  <div className="grid gap-3 lg:gap-4 md:grid-cols-2">
                     <div className="space-y-2">
                       <label htmlFor="business-name" className="text-sm font-medium">
                         שם עסק / ספק
@@ -183,6 +183,7 @@ const Suppliers = () => {
                           setNewPartner({ ...newPartner, name: e.target.value })
                         }
                         placeholder="הכנס שם עסק"
+                        className="h-11"
                         required
                       />
                     </div>
@@ -197,6 +198,7 @@ const Suppliers = () => {
                           setNewPartner({ ...newPartner, phone: e.target.value })
                         }
                         placeholder="050-1234567"
+                        className="h-11"
                         required
                       />
                     </div>
@@ -212,6 +214,7 @@ const Suppliers = () => {
                           setNewPartner({ ...newPartner, email: e.target.value })
                         }
                         placeholder="email@example.com"
+                        className="h-11"
                         required
                       />
                     </div>
@@ -247,6 +250,7 @@ const Suppliers = () => {
                           setNewPartner({ ...newPartner, balance: parseFloat(e.target.value) || 0 })
                         }
                         placeholder="0"
+                        className="h-11"
                       />
                     </div>
                     <div className="space-y-2 md:col-span-2">
@@ -264,7 +268,7 @@ const Suppliers = () => {
                       />
                     </div>
                   </div>
-                  <Button type="submit" size="lg" className="w-full md:w-auto">
+                  <Button type="submit" size="lg" className="w-full">
                     הוסף עסק חדש
                   </Button>
                 </form>
@@ -274,10 +278,11 @@ const Suppliers = () => {
             {/* Business Partners Table */}
             <Card>
               <CardHeader>
-                <CardTitle>רשימת עסקים</CardTitle>
+                <CardTitle className="text-lg lg:text-2xl">רשימת עסקים</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="overflow-x-auto">
+                {/* Desktop Table */}
+                <div className="hidden md:block overflow-x-auto">
                   <Table>
                     <TableHeader>
                       <TableRow>
@@ -343,6 +348,62 @@ const Suppliers = () => {
                       ))}
                     </TableBody>
                   </Table>
+                </div>
+
+                {/* Mobile Cards */}
+                <div className="md:hidden space-y-3">
+                  {partners.map((partner) => (
+                    <div key={partner.id} className="p-4 rounded-lg border bg-card">
+                      <div className="flex items-start justify-between mb-3">
+                        <div className="flex-1">
+                          <h3 className="font-semibold text-base mb-1">{partner.name}</h3>
+                          {getStatusBadge(partner.status)}
+                        </div>
+                        <span className={`text-lg font-bold ${partner.balance > 0 ? "text-warning" : "text-success"}`}>
+                          ₪{partner.balance.toLocaleString()}
+                        </span>
+                      </div>
+                      <div className="space-y-2 text-sm mb-3">
+                        <div className="flex items-center gap-2">
+                          <Phone className="h-4 w-4 text-muted-foreground" />
+                          <span>{partner.phone}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Mail className="h-4 w-4 text-muted-foreground" />
+                          <span className="truncate">{partner.email}</span>
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-3 gap-2">
+                        <Button
+                          variant="outline"
+                          size="lg"
+                          onClick={() => handleEdit(partner)}
+                          className="gap-1"
+                        >
+                          <Edit className="h-4 w-4" />
+                          <span className="text-xs">ערוך</span>
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="lg"
+                          onClick={() => handleViewDetails(partner)}
+                          className="gap-1"
+                        >
+                          <Eye className="h-4 w-4" />
+                          <span className="text-xs">פרטים</span>
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="lg"
+                          onClick={() => handlePaymentReminder(partner)}
+                          className="gap-1"
+                        >
+                          <Bell className="h-4 w-4" />
+                          <span className="text-xs">תזכורת</span>
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </CardContent>
             </Card>

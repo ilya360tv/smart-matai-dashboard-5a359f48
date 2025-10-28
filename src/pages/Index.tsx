@@ -102,31 +102,31 @@ const Index = () => {
   };
 
   return (
-    <div className="flex h-screen w-full">
+    <div className="flex min-h-screen w-full">
       <DashboardSidebar />
       
-      <div className="flex-1 flex flex-col overflow-hidden">
+      <div className="flex-1 flex flex-col">
         {/* Top Navigation */}
-        <header className="flex h-14 items-center gap-4 border-b bg-card px-4 lg:h-[60px] lg:px-6">
-          <h1 className="text-xl font-bold">מערכת ניהול מלאי חכמה</h1>
+        <header className="flex h-14 items-center gap-2 border-b bg-card px-3 lg:h-[60px] lg:px-6 sticky top-0 z-10">
+          <h1 className="text-base lg:text-xl font-bold truncate">מערכת ניהול מלאי חכמה</h1>
         </header>
 
         {/* Main Content */}
-        <main className="flex-1 overflow-y-auto p-4 lg:p-6">
-          <div className="mx-auto max-w-7xl space-y-6">
+        <main className="flex-1 overflow-y-auto p-3 lg:p-6">
+          <div className="mx-auto max-w-7xl space-y-4 lg:space-y-6">
             {/* Excel Upload Section */}
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
+                <CardTitle className="flex items-center gap-2 text-lg lg:text-2xl">
                   <Upload className="h-5 w-5 text-primary" />
                   ייבוא מלאי מאקסל
                 </CardTitle>
                 <p className="text-sm text-muted-foreground">
-                  העלה קובץ Excel עם רשימת המוצרים שלך, והמערכת תעדכן את המלאי בהתאם.
+                  העלה קובץ Excel עם רשימת המוצרים שלך
                 </p>
               </CardHeader>
               <CardContent>
-                <div className="flex items-center gap-4">
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
                   <Input
                     id="excel-upload"
                     type="file"
@@ -137,13 +137,13 @@ const Index = () => {
                   <Button
                     onClick={() => document.getElementById("excel-upload")?.click()}
                     size="lg"
-                    className="gap-2"
+                    className="gap-2 w-full sm:w-auto"
                   >
                     <Upload className="h-4 w-4" />
                     בחר קובץ
                   </Button>
                   {isFileUploaded && (
-                    <Badge variant="outline" className="bg-success/10 text-success border-success/20">
+                    <Badge variant="outline" className="bg-success/10 text-success border-success/20 text-center py-2">
                       הקובץ נטען בהצלחה!
                     </Badge>
                   )}
@@ -154,14 +154,14 @@ const Index = () => {
             {/* Manual Product Entry */}
             <Card>
               <CardHeader>
-                <CardTitle>הוספת מוצר ידנית</CardTitle>
+                <CardTitle className="text-lg lg:text-2xl">הוספת מוצר ידנית</CardTitle>
                 <p className="text-sm text-muted-foreground">
                   הוסף מוצר חדש למלאי באופן ידני
                 </p>
               </CardHeader>
               <CardContent>
-                <form onSubmit={handleManualAdd} className="space-y-4">
-                  <div className="grid gap-4 md:grid-cols-2">
+                <form onSubmit={handleManualAdd} className="space-y-3 lg:space-y-4">
+                  <div className="grid gap-3 lg:gap-4 md:grid-cols-2">
                     <div className="space-y-2">
                       <label htmlFor="product-name" className="text-sm font-medium">
                         שם מוצר
@@ -173,6 +173,7 @@ const Index = () => {
                           setManualProduct({ ...manualProduct, "שם מוצר": e.target.value })
                         }
                         placeholder="הכנס שם מוצר"
+                        className="h-11"
                         required
                       />
                     </div>
@@ -187,6 +188,7 @@ const Index = () => {
                           setManualProduct({ ...manualProduct, "מק״ט": e.target.value })
                         }
                         placeholder="הכנס מק״ט"
+                        className="h-11"
                         required
                       />
                     </div>
@@ -203,6 +205,7 @@ const Index = () => {
                           setManualProduct({ ...manualProduct, "כמות במלאי": parseInt(e.target.value) || 0 })
                         }
                         placeholder="0"
+                        className="h-11"
                         required
                       />
                     </div>
@@ -219,6 +222,7 @@ const Index = () => {
                           setManualProduct({ ...manualProduct, "כמות מינימלית": parseInt(e.target.value) || 0 })
                         }
                         placeholder="0"
+                        className="h-11"
                         required
                       />
                     </div>
@@ -233,11 +237,12 @@ const Index = () => {
                           setManualProduct({ ...manualProduct, "ספק": e.target.value })
                         }
                         placeholder="הכנס שם ספק"
+                        className="h-11"
                         required
                       />
                     </div>
                   </div>
-                  <Button type="submit" size="lg" className="w-full md:w-auto">
+                  <Button type="submit" size="lg" className="w-full">
                     הוסף למלאי
                   </Button>
                 </form>
@@ -245,7 +250,7 @@ const Index = () => {
             </Card>
 
             {/* Metrics Grid */}
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
               <MetricCard
                 title="סה״כ פריטים במלאי"
                 value="1,234"
@@ -275,28 +280,28 @@ const Index = () => {
             {/* Low Stock Alerts */}
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
+                <CardTitle className="flex items-center gap-2 text-lg lg:text-2xl">
                   <AlertTriangle className="h-5 w-5 text-warning" />
                   התראות מלאי נמוך
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-3">
+                <div className="space-y-2 lg:space-y-3">
                   {lowStockItems.map((item) => (
                     <div
                       key={item.id}
-                      className="flex items-center justify-between rounded-lg border p-3 transition-colors hover:bg-accent"
+                      className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 rounded-lg border p-3 lg:p-4 transition-colors hover:bg-accent"
                     >
-                      <div className="flex items-center gap-3">
-                        <TrendingDown className="h-5 w-5 text-warning" />
-                        <div>
-                          <p className="font-medium">{item.name}</p>
-                          <p className="text-sm text-muted-foreground">
-                            מלאי נוכחי: {item.currentStock} | מינימום נדרש: {item.minStock}
+                      <div className="flex items-center gap-3 flex-1">
+                        <TrendingDown className="h-5 w-5 text-warning flex-shrink-0" />
+                        <div className="min-w-0">
+                          <p className="font-medium text-sm lg:text-base">{item.name}</p>
+                          <p className="text-xs lg:text-sm text-muted-foreground">
+                            נוכחי: {item.currentStock} | מינימום: {item.minStock}
                           </p>
                         </div>
                       </div>
-                      <Badge variant="outline" className="bg-warning/10 text-warning border-warning/20">
+                      <Badge variant="outline" className="bg-warning/10 text-warning border-warning/20 text-xs whitespace-nowrap">
                         דורש תשומת לב
                       </Badge>
                     </div>
