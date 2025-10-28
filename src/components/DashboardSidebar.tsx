@@ -6,8 +6,7 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 const menuItems = [
   { icon: Home, label: "דף הבית", href: "/" },
   { icon: Package, label: "מלאי", href: "/inventory" },
-  { icon: Building2, label: "ספקים", href: "/suppliers" },
-  { icon: Users, label: "לקוחות", href: "/customers" },
+  { icon: Building2, label: "ספקים / לקוחות", href: "/suppliers" },
 ];
 
 export const DashboardSidebar = () => {
@@ -21,7 +20,7 @@ export const DashboardSidebar = () => {
       <nav className="flex-1 space-y-1 px-2 lg:px-4">
         {menuItems.map((item) => {
           const Icon = item.icon;
-          const isActive = location.pathname === item.href;
+          const isActive = location.pathname === item.href || (item.href === "/suppliers" && location.pathname === "/customers");
           return (
             <Link
               key={item.label}
