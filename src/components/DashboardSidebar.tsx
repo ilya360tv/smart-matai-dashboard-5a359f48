@@ -49,7 +49,7 @@ export const DashboardSidebar = () => {
             <Menu className="h-6 w-6" />
           </Button>
         </SheetTrigger>
-        <SheetContent side="right" className="w-64 p-0">
+        <SheetContent side="right" className="w-64 p-0 [&>button]:left-4 [&>button]:right-auto">
           <SidebarContent />
         </SheetContent>
       </Sheet>
