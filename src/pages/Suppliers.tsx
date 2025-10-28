@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { DashboardSidebar } from "@/components/DashboardSidebar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -40,6 +41,7 @@ interface BusinessPartner {
 }
 
 const Suppliers = () => {
+  const navigate = useNavigate();
   const [partners, setPartners] = useState<BusinessPartner[]>([
     {
       id: "1",
@@ -109,8 +111,7 @@ const Suppliers = () => {
   };
 
   const handleViewDetails = (partner: BusinessPartner) => {
-    setSelectedPartner(partner);
-    setIsDetailsOpen(true);
+    navigate(`/suppliers/${partner.id}`);
   };
 
   const handleEdit = (partner: BusinessPartner) => {
