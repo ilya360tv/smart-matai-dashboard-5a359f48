@@ -22,11 +22,19 @@ interface ExcelProduct {
   "מק״ט": string;
   "כמות במלאי": number;
   "ספק": string;
+  "כמות מינימלית"?: number;
 }
 
 const Index = () => {
   const [uploadedData, setUploadedData] = useState<ExcelProduct[]>([]);
   const [isFileUploaded, setIsFileUploaded] = useState(false);
+  const [manualProduct, setManualProduct] = useState({
+    "שם מוצר": "",
+    "מק״ט": "",
+    "כמות במלאי": 0,
+    "כמות מינימלית": 0,
+    "ספק": "",
+  });
   const lowStockItems = [
     { id: 1, name: "מוצר A", currentStock: 5, minStock: 20 },
     { id: 2, name: "מוצר B", currentStock: 3, minStock: 15 },
@@ -77,6 +85,38 @@ const Index = () => {
     reader.readAsBinaryString(file);
   };
 
+  const handleManualAdd = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!manualProduct["שם מוצר"] || !manualProduct["מק״ט"] || !manualProduct["ספק"]) {
+      toast({
+        title: "שגיאה",
+        description: "אנא מלא את כל השדות הנדרשים",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const newData = [...uploadedData, manualProduct].sort((a, b) => 
+      a["שם מוצר"].localeCompare(b["שם מוצר"], "he")
+    );
+    
+    setUploadedData(newData);
+    
+    toast({
+      title: "המוצר נוסף בהצלחה למלאי!",
+    });
+
+    // Reset form
+    setManualProduct({
+      "שם מוצר": "",
+      "מק״ט": "",
+      "כמות במלאי": 0,
+      "כמות מינימלית": 0,
+      "ספק": "",
+    });
+  };
+
   return (
     <div className="flex h-screen w-full">
       <DashboardSidebar />
@@ -124,6 +164,99 @@ const Index = () => {
                     </Badge>
                   )}
                 </div>
+              </CardContent>
+            </Card>
+
+            {/* Manual Product Entry */}
+            <Card>
+              <CardHeader>
+                <CardTitle>הוספת מוצר ידנית</CardTitle>
+                <p className="text-sm text-muted-foreground">
+                  הוסף מוצר חדש למלאי באופן ידני
+                </p>
+              </CardHeader>
+              <CardContent>
+                <form onSubmit={handleManualAdd} className="space-y-4">
+                  <div className="grid gap-4 md:grid-cols-2">
+                    <div className="space-y-2">
+                      <label htmlFor="product-name" className="text-sm font-medium">
+                        שם מוצר
+                      </label>
+                      <Input
+                        id="product-name"
+                        value={manualProduct["שם מוצר"]}
+                        onChange={(e) =>
+                          setManualProduct({ ...manualProduct, "שם מוצר": e.target.value })
+                        }
+                        placeholder="הכנס שם מוצר"
+                        required
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label htmlFor="sku" className="text-sm font-medium">
+                        מק״ט
+                      </label>
+                      <Input
+                        id="sku"
+                        value={manualProduct["מק״ט"]}
+                        onChange={(e) =>
+                          setManualProduct({ ...manualProduct, "מק״ט": e.target.value })
+                        }
+                        placeholder="הכנס מק״ט"
+                        required
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label htmlFor="quantity" className="text-sm font-medium">
+                        כמות במלאי
+                      </label>
+                      <Input
+                        id="quantity"
+                        type="number"
+                        min="0"
+                        value={manualProduct["כמות במלאי"]}
+                        onChange={(e) =>
+                          setManualProduct({ ...manualProduct, "כמות במלאי": parseInt(e.target.value) || 0 })
+                        }
+                        placeholder="0"
+                        required
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label htmlFor="min-stock" className="text-sm font-medium">
+                        כמות מינימלית
+                      </label>
+                      <Input
+                        id="min-stock"
+                        type="number"
+                        min="0"
+                        value={manualProduct["כמות מינימלית"]}
+                        onChange={(e) =>
+                          setManualProduct({ ...manualProduct, "כמות מינימלית": parseInt(e.target.value) || 0 })
+                        }
+                        placeholder="0"
+                        required
+                      />
+                    </div>
+                    <div className="space-y-2 md:col-span-2">
+                      <label htmlFor="supplier" className="text-sm font-medium">
+                        שם ספק
+                      </label>
+                      <Input
+                        id="supplier"
+                        value={manualProduct["ספק"]}
+                        onChange={(e) =>
+                          setManualProduct({ ...manualProduct, "ספק": e.target.value })
+                        }
+                        placeholder="הכנס שם ספק"
+                        required
+                      />
+                    </div>
+                  </div>
+                  <Button type="submit" size="lg" className="w-full md:w-auto">
+                    הוסף למלאי
+                  </Button>
+                </form>
               </CardContent>
             </Card>
 
@@ -202,6 +335,7 @@ const Index = () => {
                           <TableHead className="text-right">שם מוצר</TableHead>
                           <TableHead className="text-right">מק״ט</TableHead>
                           <TableHead className="text-right">כמות במלאי</TableHead>
+                          <TableHead className="text-right">כמות מינימלית</TableHead>
                           <TableHead className="text-right">ספק</TableHead>
                         </TableRow>
                       </TableHeader>
@@ -211,6 +345,7 @@ const Index = () => {
                             <TableCell className="font-medium">{product["שם מוצר"]}</TableCell>
                             <TableCell>{product["מק״ט"]}</TableCell>
                             <TableCell className="font-semibold">{product["כמות במלאי"]}</TableCell>
+                            <TableCell>{product["כמות מינימלית"] || "-"}</TableCell>
                             <TableCell>{product["ספק"]}</TableCell>
                           </TableRow>
                         ))}
