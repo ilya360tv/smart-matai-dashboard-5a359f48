@@ -1,16 +1,8 @@
 import { useState } from "react";
-import { Package, Building2, Users, AlertTriangle, TrendingDown, TrendingUp, Upload } from "lucide-react";
+import { Package, Building2, Users, AlertTriangle, TrendingDown, Upload } from "lucide-react";
 import { MetricCard } from "@/components/MetricCard";
 import { DashboardSidebar } from "@/components/DashboardSidebar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -39,14 +31,6 @@ const Index = () => {
     { id: 1, name: "מוצר A", currentStock: 5, minStock: 20 },
     { id: 2, name: "מוצר B", currentStock: 3, minStock: 15 },
     { id: 3, name: "מוצר C", currentStock: 8, minStock: 25 },
-  ];
-
-  const recentMovements = [
-    { id: 1, date: "2025-01-15", product: "מוצר X", type: "כניסה", quantity: 50 },
-    { id: 2, date: "2025-01-15", product: "מוצר Y", type: "יציאה", quantity: 30 },
-    { id: 3, date: "2025-01-14", product: "מוצר Z", type: "כניסה", quantity: 100 },
-    { id: 4, date: "2025-01-14", product: "מוצר A", type: "יציאה", quantity: 15 },
-    { id: 5, date: "2025-01-13", product: "מוצר B", type: "כניסה", quantity: 25 },
   ];
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -317,90 +301,6 @@ const Index = () => {
                       </Badge>
                     </div>
                   ))}
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Uploaded Excel Data Table */}
-            {uploadedData.length > 0 && (
-              <Card>
-                <CardHeader>
-                  <CardTitle>מוצרים שנטענו מהקובץ</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="overflow-x-auto">
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead className="text-right">שם מוצר</TableHead>
-                          <TableHead className="text-right">מק״ט</TableHead>
-                          <TableHead className="text-right">כמות במלאי</TableHead>
-                          <TableHead className="text-right">כמות מינימלית</TableHead>
-                          <TableHead className="text-right">ספק</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {uploadedData.map((product, index) => (
-                          <TableRow key={index}>
-                            <TableCell className="font-medium">{product["שם מוצר"]}</TableCell>
-                            <TableCell>{product["מק״ט"]}</TableCell>
-                            <TableCell className="font-semibold">{product["כמות במלאי"]}</TableCell>
-                            <TableCell>{product["כמות מינימלית"] || "-"}</TableCell>
-                            <TableCell>{product["ספק"]}</TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Recent Movements Table */}
-            <Card>
-              <CardHeader>
-                <CardTitle>תנועות אחרונות במלאי</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="overflow-x-auto">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead className="text-right">תאריך</TableHead>
-                        <TableHead className="text-right">שם המוצר</TableHead>
-                        <TableHead className="text-right">סוג תנועה</TableHead>
-                        <TableHead className="text-right">כמות</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {recentMovements.map((movement) => (
-                        <TableRow key={movement.id}>
-                          <TableCell className="font-medium">{movement.date}</TableCell>
-                          <TableCell>{movement.product}</TableCell>
-                          <TableCell>
-                            <Badge
-                              variant="outline"
-                              className={
-                                movement.type === "כניסה"
-                                  ? "bg-success/10 text-success border-success/20"
-                                  : "bg-primary/10 text-primary border-primary/20"
-                              }
-                            >
-                              <span className="flex items-center gap-1">
-                                {movement.type === "כניסה" ? (
-                                  <TrendingUp className="h-3 w-3" />
-                                ) : (
-                                  <TrendingDown className="h-3 w-3" />
-                                )}
-                                {movement.type}
-                              </span>
-                            </Badge>
-                          </TableCell>
-                          <TableCell className="font-semibold">{movement.quantity}</TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
                 </div>
               </CardContent>
             </Card>
