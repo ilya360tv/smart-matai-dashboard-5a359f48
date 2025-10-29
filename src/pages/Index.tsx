@@ -1,11 +1,23 @@
-import { useState } from "react";
-import { Package, Building2, Users, AlertTriangle, Calendar, User } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Package, Building2, Users, AlertTriangle, Calendar, User, Clock } from "lucide-react";
+import { format } from "date-fns";
+import { he } from "date-fns/locale";
 import { MetricCard } from "@/components/MetricCard";
 import { DashboardSidebar } from "@/components/DashboardSidebar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
 const Index = () => {
+  const [currentTime, setCurrentTime] = useState(new Date());
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, []);
+
   const recentUpdates = [
     { id: 1, productName: "מוצר A", quantity: 150, supplier: "ספק 1", status: "פעיל", date: "2024-03-15", user: "אדמין" },
     { id: 2, productName: "מוצר B", quantity: 75, supplier: "ספק 2", status: "פעיל", date: "2024-03-14", user: "מנהל" },
@@ -21,7 +33,14 @@ const Index = () => {
       <div className="flex-1 flex flex-col">
         {/* Top Navigation */}
         <header className="flex h-14 items-center gap-2 border-b bg-card px-3 lg:h-[60px] lg:px-6 sticky top-0 z-10">
-          <h1 className="text-base lg:text-xl font-bold truncate">מערכת ניהול מלאי חכמה</h1>
+          <h1 className="text-base lg:text-xl font-bold truncate flex-1">מערכת ניהול מלאי חכמה</h1>
+          <div className="flex items-center gap-2 text-sm lg:text-base text-muted-foreground">
+            <Clock className="h-4 w-4" />
+            <div className="flex flex-col items-end">
+              <span className="font-medium">{format(currentTime, "HH:mm:ss")}</span>
+              <span className="text-xs">{format(currentTime, "d MMMM yyyy", { locale: he })}</span>
+            </div>
+          </div>
         </header>
 
         {/* Main Content */}
