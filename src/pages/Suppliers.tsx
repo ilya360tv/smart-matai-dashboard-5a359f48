@@ -22,14 +22,14 @@ interface Partner {
   phone: string;
   email: string;
   city: string;
-  status: "ספק" | "לקוח";
+  status: "ספק" | "קבלן";
   active: "פעיל" | "לא פעיל";
 }
 
 const Suppliers = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [modalType, setModalType] = useState<"ספק" | "לקוח">("ספק");
+  const [modalType, setModalType] = useState<"ספק" | "קבלן">("ספק");
   const [partners, setPartners] = useState<Partner[]>([]);
   const [activeTab, setActiveTab] = useState("suppliers");
 
@@ -46,13 +46,13 @@ const Suppliers = () => {
     setPartners(partners.filter(p => p.id !== id));
   };
 
-  const handleOpenModal = (type: "ספק" | "לקוח") => {
+  const handleOpenModal = (type: "ספק" | "קבלן") => {
     setModalType(type);
     setIsAddModalOpen(true);
   };
 
   const suppliers = partners.filter(p => p.status === "ספק");
-  const customers = partners.filter(p => p.status === "לקוח");
+  const contractors = partners.filter(p => p.status === "קבלן");
 
   const filteredSuppliers = suppliers.filter(partner =>
     partner.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -60,7 +60,7 @@ const Suppliers = () => {
     partner.email.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const filteredCustomers = customers.filter(partner =>
+  const filteredContractors = contractors.filter(partner =>
     partner.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     partner.city.toLowerCase().includes(searchQuery.toLowerCase()) ||
     partner.email.toLowerCase().includes(searchQuery.toLowerCase())
@@ -201,7 +201,7 @@ const Suppliers = () => {
       <div className="flex-1 flex flex-col">
         {/* Header */}
         <header className="flex h-14 items-center gap-2 border-b bg-card px-3 lg:h-[60px] lg:px-6 sticky top-0 z-10 shadow-sm">
-          <h1 className="text-lg lg:text-2xl font-bold">ניהול ספקים ולקוחות</h1>
+          <h1 className="text-lg lg:text-2xl font-bold">ניהול ספקים וקבלנים</h1>
         </header>
 
         {/* Main Content */}
@@ -210,7 +210,7 @@ const Suppliers = () => {
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
               <TabsList className="grid w-full grid-cols-2 mb-6">
                 <TabsTrigger value="suppliers" className="text-base">ספקים</TabsTrigger>
-                <TabsTrigger value="customers" className="text-base">לקוחות</TabsTrigger>
+                <TabsTrigger value="contractors" className="text-base">קבלנים</TabsTrigger>
               </TabsList>
 
               <TabsContent value="suppliers" className="space-y-4">
@@ -247,7 +247,7 @@ const Suppliers = () => {
                 </Card>
               </TabsContent>
 
-              <TabsContent value="customers" className="space-y-4">
+              <TabsContent value="contractors" className="space-y-4">
                 {/* Toolbar */}
                 <Card className="shadow-sm">
                   <CardContent className="p-4">
@@ -255,28 +255,28 @@ const Suppliers = () => {
                       <div className="relative flex-1">
                         <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                         <Input
-                          placeholder="חיפוש לקוח..."
+                          placeholder="חיפוש קבלן..."
                           value={searchQuery}
                           onChange={(e) => setSearchQuery(e.target.value)}
                           className="pr-10 h-11"
                         />
                       </div>
                       <Button 
-                        onClick={() => handleOpenModal("לקוח")}
+                        onClick={() => handleOpenModal("קבלן")}
                         className="gap-2 h-11 sm:w-auto w-full"
                         size="lg"
                       >
                         <Plus className="h-5 w-5" />
-                        הוסף לקוח חדש
+                        הוסף קבלן חדש
                       </Button>
                     </div>
                   </CardContent>
                 </Card>
 
-                {/* Customers Table */}
+                {/* Contractors Table */}
                 <Card className="shadow-sm">
                   <CardContent className="p-0">
-                    {renderTable(filteredCustomers)}
+                    {renderTable(filteredContractors)}
                   </CardContent>
                 </Card>
               </TabsContent>
