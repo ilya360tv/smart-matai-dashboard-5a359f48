@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Package, Building2, Users, AlertTriangle, TrendingDown, Upload } from "lucide-react";
+import { Package, Building2, Users, AlertTriangle, TrendingDown, Upload, Plus, Calendar, User } from "lucide-react";
 import { MetricCard } from "@/components/MetricCard";
 import { DashboardSidebar } from "@/components/DashboardSidebar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -27,10 +27,12 @@ const Index = () => {
     "כמות מינימלית": 0,
     "ספק": "",
   });
-  const lowStockItems = [
-    { id: 1, name: "מוצר A", currentStock: 5, minStock: 20 },
-    { id: 2, name: "מוצר B", currentStock: 3, minStock: 15 },
-    { id: 3, name: "מוצר C", currentStock: 8, minStock: 25 },
+  const recentUpdates = [
+    { id: 1, productName: "מוצר A", quantity: 150, supplier: "ספק 1", status: "פעיל", date: "2024-03-15", user: "אדמין" },
+    { id: 2, productName: "מוצר B", quantity: 75, supplier: "ספק 2", status: "פעיל", date: "2024-03-14", user: "מנהל" },
+    { id: 3, productName: "מוצר C", quantity: 200, supplier: "ספק 3", status: "פעיל", date: "2024-03-14", user: "אדמין" },
+    { id: 4, productName: "מוצר D", quantity: 50, supplier: "ספק 1", status: "ממתין", date: "2024-03-13", user: "מנהל" },
+    { id: 5, productName: "מוצר E", quantity: 120, supplier: "ספק 4", status: "פעיל", date: "2024-03-13", user: "אדמין" },
   ];
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -114,6 +116,23 @@ const Index = () => {
         {/* Main Content */}
         <main className="flex-1 overflow-y-auto p-3 lg:p-6">
           <div className="mx-auto max-w-7xl space-y-4 lg:space-y-6">
+            {/* Welcome Section */}
+            <div className="animate-fade-in">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
+                <div>
+                  <h2 className="text-2xl lg:text-4xl font-bold bg-gradient-to-l from-primary to-accent-foreground bg-clip-text text-transparent mb-2">
+                    ברוך הבא למערכת ניהול המלאי!
+                  </h2>
+                  <p className="text-sm lg:text-base text-muted-foreground">
+                    ניהול חכם ויעיל של המלאי העסקי שלך
+                  </p>
+                </div>
+                <Button size="lg" className="gap-2 shadow-lg hover:shadow-xl transition-all w-full sm:w-auto">
+                  <Plus className="h-5 w-5" />
+                  הוסף מוצר חדש
+                </Button>
+              </div>
+            </div>
             {/* Excel Upload Section */}
             <Card>
               <CardHeader>
@@ -277,33 +296,90 @@ const Index = () => {
               />
             </div>
 
-            {/* Low Stock Alerts */}
-            <Card>
+            {/* Recent Updates Table */}
+            <Card className="animate-fade-in">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-lg lg:text-2xl">
-                  <AlertTriangle className="h-5 w-5 text-warning" />
-                  התראות מלאי נמוך
+                  <Calendar className="h-5 w-5 text-primary" />
+                  עדכוני מלאי אחרונים
                 </CardTitle>
+                <p className="text-sm text-muted-foreground">
+                  פעולות והוספות אחרונות במערכת
+                </p>
               </CardHeader>
               <CardContent>
-                <div className="space-y-2 lg:space-y-3">
-                  {lowStockItems.map((item) => (
-                    <div
-                      key={item.id}
-                      className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 rounded-lg border p-3 lg:p-4 transition-colors hover:bg-accent"
-                    >
-                      <div className="flex items-center gap-3 flex-1">
-                        <TrendingDown className="h-5 w-5 text-warning flex-shrink-0" />
-                        <div className="min-w-0">
-                          <p className="font-medium text-sm lg:text-base">{item.name}</p>
-                          <p className="text-xs lg:text-sm text-muted-foreground">
-                            נוכחי: {item.currentStock} | מינימום: {item.minStock}
-                          </p>
+                {/* Desktop Table */}
+                <div className="hidden md:block overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="border-b bg-muted/50">
+                        <th className="text-right p-3 font-semibold text-sm">שם מוצר</th>
+                        <th className="text-right p-3 font-semibold text-sm">כמות</th>
+                        <th className="text-right p-3 font-semibold text-sm">ספק</th>
+                        <th className="text-right p-3 font-semibold text-sm">סטטוס</th>
+                        <th className="text-right p-3 font-semibold text-sm">תאריך</th>
+                        <th className="text-right p-3 font-semibold text-sm">משתמש</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {recentUpdates.map((update) => (
+                        <tr key={update.id} className="border-b hover:bg-accent/50 transition-colors">
+                          <td className="p-3 font-medium">{update.productName}</td>
+                          <td className="p-3">{update.quantity}</td>
+                          <td className="p-3 text-muted-foreground">{update.supplier}</td>
+                          <td className="p-3">
+                            <Badge 
+                              variant="outline" 
+                              className={
+                                update.status === "פעיל" 
+                                  ? "bg-success/10 text-success border-success/20" 
+                                  : "bg-warning/10 text-warning border-warning/20"
+                              }
+                            >
+                              {update.status}
+                            </Badge>
+                          </td>
+                          <td className="p-3 text-sm text-muted-foreground">{update.date}</td>
+                          <td className="p-3">
+                            <div className="flex items-center gap-2">
+                              <User className="h-4 w-4 text-muted-foreground" />
+                              <span className="text-sm">{update.user}</span>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Mobile Cards */}
+                <div className="md:hidden space-y-3">
+                  {recentUpdates.map((update) => (
+                    <div key={update.id} className="border rounded-lg p-4 space-y-2 hover:bg-accent/50 transition-colors">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <h4 className="font-semibold text-base">{update.productName}</h4>
+                          <p className="text-sm text-muted-foreground">{update.supplier}</p>
                         </div>
+                        <Badge 
+                          variant="outline" 
+                          className={
+                            update.status === "פעיל" 
+                              ? "bg-success/10 text-success border-success/20" 
+                              : "bg-warning/10 text-warning border-warning/20"
+                          }
+                        >
+                          {update.status}
+                        </Badge>
                       </div>
-                      <Badge variant="outline" className="bg-warning/10 text-warning border-warning/20 text-xs whitespace-nowrap">
-                        דורש תשומת לב
-                      </Badge>
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-muted-foreground">כמות: {update.quantity}</span>
+                        <span className="text-muted-foreground">{update.date}</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-sm">
+                        <User className="h-4 w-4 text-muted-foreground" />
+                        <span className="text-muted-foreground">{update.user}</span>
+                      </div>
                     </div>
                   ))}
                 </div>
