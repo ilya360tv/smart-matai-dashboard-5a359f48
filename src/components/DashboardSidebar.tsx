@@ -1,4 +1,4 @@
-import { Package, Users, Building2, Menu, Home, History, DollarSign } from "lucide-react";
+import { Package, Users, Building2, Menu, Home, History, DollarSign, Receipt } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -7,7 +7,8 @@ const menuItems = [
   { icon: Home, label: "דף הבית", href: "/" },
   { icon: Package, label: "מלאי", href: "/inventory" },
   { icon: History, label: "תנועות מלאי", href: "/stock-movements" },
-  { icon: DollarSign, label: "תשלומים", href: "/payments" },
+  { icon: DollarSign, label: "תשלומי לקוחות", href: "/customer-payments" },
+  { icon: Receipt, label: "תשלומי ספקים", href: "/supplier-payments" },
   { icon: Building2, label: "ספקים", href: "/suppliers" },
   { icon: Users, label: "קבלנים", href: "/contractors" },
 ];

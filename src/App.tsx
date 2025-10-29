@@ -8,7 +8,8 @@ import Inventory from "./pages/Inventory";
 import Suppliers from "./pages/Suppliers";
 import Contractors from "./pages/Contractors";
 import StockMovements from "./pages/StockMovements";
-import Payments from "./pages/Payments";
+import CustomerPayments from "./pages/CustomerPayments";
+import SupplierPayments from "./pages/SupplierPayments";
 import Customers from "./pages/Customers";
 import PartnerProfile from "./pages/PartnerProfile";
 import NotFound from "./pages/NotFound";
@@ -25,7 +26,8 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/inventory" element={<Inventory />} />
           <Route path="/stock-movements" element={<StockMovements />} />
-          <Route path="/payments" element={<Payments />} />
+          <Route path="/customer-payments" element={<CustomerPayments />} />
+          <Route path="/supplier-payments" element={<SupplierPayments />} />
           <Route path="/suppliers" element={<Suppliers />} />
           <Route path="/contractors" element={<Contractors />} />
           <Route path="/suppliers/:id" element={<PartnerProfile />} />
