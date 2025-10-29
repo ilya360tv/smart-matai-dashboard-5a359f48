@@ -1,7 +1,7 @@
 import { useState } from "react";
-import { AlertTriangle, Plus, Minus } from "lucide-react";
+import { Search, Plus, Pencil, Trash2 } from "lucide-react";
 import { DashboardSidebar } from "@/components/DashboardSidebar";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -12,287 +12,228 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { StockMovementModal } from "@/components/StockMovementModal";
+import { Input } from "@/components/ui/input";
+import { AddProductModal } from "@/components/AddProductModal";
 
 interface Product {
   id: number;
   name: string;
-  sku: string;
-  currentStock: number;
-  minStock: number;
+  category: string;
+  quantity: number;
+  price: number;
   supplier: string;
+  status: "זמין" | "אזל מהמלאי" | "מלאי נמוך";
 }
 
 const Inventory = () => {
-  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
-  const [movementType, setMovementType] = useState<"in" | "out" | null>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [products, setProducts] = useState<Product[]>([
+    { id: 1, name: "מחשב נייד Dell XPS", category: "מחשבים", quantity: 15, price: 4500, supplier: "Dell ישראל", status: "זמין" },
+    { id: 2, name: "עכבר אלחוטי Logitech", category: "אביזרים", quantity: 5, price: 120, supplier: "Tech Store", status: "מלאי נמוך" },
+    { id: 3, name: "מקלדת מכנית Razer", category: "אביזרים", quantity: 0, price: 350, supplier: "Gaming Pro", status: "אזל מהמלאי" },
+    { id: 4, name: "מסך 27 אינץ' Samsung", category: "מסכים", quantity: 20, price: 1200, supplier: "Samsung ישראל", status: "זמין" },
+    { id: 5, name: "כונן SSD 1TB", category: "אחסון", quantity: 8, price: 450, supplier: "Tech Supplies", status: "מלאי נמוך" },
+    { id: 6, name: "זיכרון RAM 16GB", category: "רכיבים", quantity: 30, price: 280, supplier: "Computer Parts", status: "זמין" },
+  ]);
 
-  const products: Product[] = [
-    { id: 1, name: "מוצר A", sku: "SKU-001", currentStock: 5, minStock: 20, supplier: "ספק 1" },
-    { id: 2, name: "מוצר B", sku: "SKU-002", currentStock: 3, minStock: 15, supplier: "ספק 2" },
-    { id: 3, name: "מוצר C", sku: "SKU-003", currentStock: 50, minStock: 25, supplier: "ספק 1" },
-    { id: 4, name: "מוצר D", sku: "SKU-004", currentStock: 100, minStock: 30, supplier: "ספק 3" },
-    { id: 5, name: "מוצר E", sku: "SKU-005", currentStock: 8, minStock: 40, supplier: "ספק 2" },
-    { id: 6, name: "מוצר F", sku: "SKU-006", currentStock: 75, minStock: 20, supplier: "ספק 1" },
-  ];
-
-  const stockHistory = [
-    { id: 1, date: "2025-01-15 14:30", product: "מוצר A", type: "כניסה", quantity: 10, user: "משתמש 1" },
-    { id: 2, date: "2025-01-15 13:20", product: "מוצר B", type: "יציאה", quantity: 5, user: "משתמש 2" },
-    { id: 3, date: "2025-01-14 16:45", product: "מוצר C", type: "כניסה", quantity: 25, user: "משתמש 1" },
-    { id: 4, date: "2025-01-14 11:15", product: "מוצר D", type: "יציאה", quantity: 15, user: "משתמש 3" },
-    { id: 5, date: "2025-01-13 09:00", product: "מוצר E", type: "כניסה", quantity: 30, user: "משתמש 2" },
-  ];
-
-  const handleOpenModal = (product: Product, type: "in" | "out") => {
-    setSelectedProduct(product);
-    setMovementType(type);
-    setIsModalOpen(true);
+  const handleAddProduct = (newProduct: Omit<Product, "id" | "status">) => {
+    const status: Product["status"] = 
+      newProduct.quantity === 0 ? "אזל מהמלאי" : 
+      newProduct.quantity < 10 ? "מלאי נמוך" : "זמין";
+    
+    const product: Product = {
+      id: Math.max(...products.map(p => p.id)) + 1,
+      ...newProduct,
+      status,
+    };
+    setProducts([product, ...products]);
   };
 
-  const handleCloseModal = () => {
-    setIsModalOpen(false);
-    setSelectedProduct(null);
-    setMovementType(null);
+  const handleDeleteProduct = (id: number) => {
+    setProducts(products.filter(p => p.id !== id));
   };
 
-  const isLowStock = (current: number, min: number) => current < min;
+  const filteredProducts = products.filter(product =>
+    product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    product.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    product.supplier.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const getStatusVariant = (status: Product["status"]) => {
+    switch (status) {
+      case "זמין":
+        return "bg-success/10 text-success border-success/20";
+      case "מלאי נמוך":
+        return "bg-warning/10 text-warning border-warning/20";
+      case "אזל מהמלאי":
+        return "bg-destructive/10 text-destructive border-destructive/20";
+    }
+  };
 
   return (
-    <div className="flex min-h-screen w-full">
+    <div className="flex min-h-screen w-full bg-background">
       <DashboardSidebar />
       
       <div className="flex-1 flex flex-col">
-        {/* Top Navigation */}
-        <header className="flex h-14 items-center gap-2 border-b bg-card px-3 lg:h-[60px] lg:px-6 sticky top-0 z-10">
-          <h1 className="text-lg lg:text-xl font-bold">ניהול מלאי</h1>
+        {/* Header */}
+        <header className="flex h-14 items-center gap-2 border-b bg-card px-3 lg:h-[60px] lg:px-6 sticky top-0 z-10 shadow-sm">
+          <h1 className="text-lg lg:text-2xl font-bold">ניהול מלאי</h1>
         </header>
 
         {/* Main Content */}
         <main className="flex-1 overflow-y-auto p-3 lg:p-6">
           <div className="mx-auto max-w-7xl space-y-4 lg:space-y-6">
-            {/* Products Table */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg lg:text-2xl">רשימת מוצרים</CardTitle>
-              </CardHeader>
-              <CardContent>
-                {/* Desktop Table */}
-                <div className="hidden md:block overflow-x-auto">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead className="text-right">שם מוצר</TableHead>
-                        <TableHead className="text-right">מק"ט</TableHead>
-                        <TableHead className="text-right">כמות במלאי</TableHead>
-                        <TableHead className="text-right">כמות מינימלית</TableHead>
-                        <TableHead className="text-right">ספק</TableHead>
-                        <TableHead className="text-right">פעולות</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {products.map((product) => (
-                        <TableRow
-                          key={product.id}
-                          className={
-                            isLowStock(product.currentStock, product.minStock)
-                              ? "bg-destructive/5 hover:bg-destructive/10"
-                              : ""
-                          }
-                        >
-                          <TableCell className="font-medium">
-                            <div className="flex items-center gap-2">
-                              {isLowStock(product.currentStock, product.minStock) && (
-                                <AlertTriangle className="h-4 w-4 text-warning" />
-                              )}
-                              {product.name}
-                            </div>
-                          </TableCell>
-                          <TableCell className="text-muted-foreground">{product.sku}</TableCell>
-                          <TableCell>
-                            <Badge
-                              variant="outline"
-                              className={
-                                isLowStock(product.currentStock, product.minStock)
-                                  ? "bg-warning/10 text-warning border-warning/20"
-                                  : "bg-success/10 text-success border-success/20"
-                              }
-                            >
-                              {product.currentStock}
-                            </Badge>
-                          </TableCell>
-                          <TableCell className="text-muted-foreground">{product.minStock}</TableCell>
-                          <TableCell>{product.supplier}</TableCell>
-                          <TableCell>
-                            <div className="flex gap-2">
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                className="gap-1"
-                                onClick={() => handleOpenModal(product, "in")}
-                              >
-                                <Plus className="h-3 w-3" />
-                                כניסה
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                className="gap-1"
-                                onClick={() => handleOpenModal(product, "out")}
-                              >
-                                <Minus className="h-3 w-3" />
-                                יציאה
-                              </Button>
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
-
-                {/* Mobile Cards */}
-                <div className="md:hidden space-y-3">
-                  {products.map((product) => (
-                    <div
-                      key={product.id}
-                      className={`p-4 rounded-lg border ${
-                        isLowStock(product.currentStock, product.minStock)
-                          ? "bg-destructive/5 border-warning/30"
-                          : "bg-card"
-                      }`}
-                    >
-                      <div className="flex items-start justify-between mb-3">
-                        <div className="flex items-center gap-2">
-                          {isLowStock(product.currentStock, product.minStock) && (
-                            <AlertTriangle className="h-5 w-5 text-warning flex-shrink-0" />
-                          )}
-                          <div>
-                            <h3 className="font-semibold text-base">{product.name}</h3>
-                            <p className="text-sm text-muted-foreground">{product.sku}</p>
-                          </div>
-                        </div>
-                        <Badge
-                          variant="outline"
-                          className={
-                            isLowStock(product.currentStock, product.minStock)
-                              ? "bg-warning/10 text-warning border-warning/20"
-                              : "bg-success/10 text-success border-success/20"
-                          }
-                        >
-                          {product.currentStock}
-                        </Badge>
-                      </div>
-                      <div className="space-y-2 text-sm mb-3">
-                        <div className="flex justify-between">
-                          <span className="text-muted-foreground">מינימום:</span>
-                          <span className="font-medium">{product.minStock}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-muted-foreground">ספק:</span>
-                          <span className="font-medium">{product.supplier}</span>
-                        </div>
-                      </div>
-                      <div className="flex gap-2">
-                        <Button
-                          size="lg"
-                          variant="outline"
-                          className="flex-1 gap-2"
-                          onClick={() => handleOpenModal(product, "in")}
-                        >
-                          <Plus className="h-4 w-4" />
-                          כניסה
-                        </Button>
-                        <Button
-                          size="lg"
-                          variant="outline"
-                          className="flex-1 gap-2"
-                          onClick={() => handleOpenModal(product, "out")}
-                        >
-                          <Minus className="h-4 w-4" />
-                          יציאה
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
+            {/* Toolbar */}
+            <Card className="shadow-sm">
+              <CardContent className="p-4">
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <div className="relative flex-1">
+                    <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      placeholder="חיפוש מוצר..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="pr-10 h-11"
+                    />
+                  </div>
+                  <Button 
+                    onClick={() => setIsAddModalOpen(true)}
+                    className="gap-2 h-11 sm:w-auto w-full"
+                    size="lg"
+                  >
+                    <Plus className="h-5 w-5" />
+                    הוסף מוצר חדש
+                  </Button>
                 </div>
               </CardContent>
             </Card>
 
-            {/* Stock History */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg lg:text-2xl">היסטוריית תנועות מלאי</CardTitle>
-              </CardHeader>
-              <CardContent>
+            {/* Products Table */}
+            <Card className="shadow-sm">
+              <CardContent className="p-0">
                 {/* Desktop Table */}
                 <div className="hidden md:block overflow-x-auto">
                   <Table>
                     <TableHeader>
-                      <TableRow>
-                        <TableHead className="text-right">תאריך ושעה</TableHead>
-                        <TableHead className="text-right">שם מוצר</TableHead>
-                        <TableHead className="text-right">סוג תנועה</TableHead>
-                        <TableHead className="text-right">כמות</TableHead>
-                        <TableHead className="text-right">משתמש</TableHead>
+                      <TableRow className="bg-muted/50">
+                        <TableHead className="text-right font-bold">שם מוצר</TableHead>
+                        <TableHead className="text-right font-bold">קטגוריה</TableHead>
+                        <TableHead className="text-right font-bold">כמות במלאי</TableHead>
+                        <TableHead className="text-right font-bold">מחיר</TableHead>
+                        <TableHead className="text-right font-bold">ספק</TableHead>
+                        <TableHead className="text-right font-bold">סטטוס</TableHead>
+                        <TableHead className="text-right font-bold">פעולות</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {stockHistory.map((movement) => (
-                        <TableRow key={movement.id}>
-                          <TableCell className="text-muted-foreground">{movement.date}</TableCell>
-                          <TableCell className="font-medium">{movement.product}</TableCell>
-                          <TableCell>
-                            <Badge
-                              variant="outline"
-                              className={
-                                movement.type === "כניסה"
-                                  ? "bg-success/10 text-success border-success/20"
-                                  : "bg-primary/10 text-primary border-primary/20"
-                              }
-                            >
-                              {movement.type}
-                            </Badge>
+                      {filteredProducts.length === 0 ? (
+                        <TableRow>
+                          <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                            לא נמצאו מוצרים
                           </TableCell>
-                          <TableCell className="font-semibold">{movement.quantity}</TableCell>
-                          <TableCell className="text-muted-foreground">{movement.user}</TableCell>
                         </TableRow>
-                      ))}
+                      ) : (
+                        filteredProducts.map((product) => (
+                          <TableRow 
+                            key={product.id}
+                            className="hover:bg-muted/30 transition-colors"
+                          >
+                            <TableCell className="font-medium">{product.name}</TableCell>
+                            <TableCell className="text-muted-foreground">{product.category}</TableCell>
+                            <TableCell className="font-semibold">{product.quantity}</TableCell>
+                            <TableCell className="font-medium">₪{product.price.toFixed(2)}</TableCell>
+                            <TableCell className="text-muted-foreground">{product.supplier}</TableCell>
+                            <TableCell>
+                              <Badge variant="outline" className={getStatusVariant(product.status)}>
+                                {product.status}
+                              </Badge>
+                            </TableCell>
+                            <TableCell>
+                              <div className="flex gap-2">
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  className="h-8 w-8 p-0 hover:bg-primary/10"
+                                >
+                                  <Pencil className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  className="h-8 w-8 p-0 hover:bg-destructive/10 hover:text-destructive"
+                                  onClick={() => handleDeleteProduct(product.id)}
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        ))
+                      )}
                     </TableBody>
                   </Table>
                 </div>
 
                 {/* Mobile Cards */}
-                <div className="md:hidden space-y-3">
-                  {stockHistory.map((movement) => (
-                    <div key={movement.id} className="p-4 rounded-lg border bg-card">
-                      <div className="flex items-start justify-between mb-3">
-                        <div>
-                          <h3 className="font-semibold text-base mb-1">{movement.product}</h3>
-                          <p className="text-xs text-muted-foreground">{movement.date}</p>
-                        </div>
-                        <Badge
-                          variant="outline"
-                          className={
-                            movement.type === "כניסה"
-                              ? "bg-success/10 text-success border-success/20"
-                              : "bg-primary/10 text-primary border-primary/20"
-                          }
-                        >
-                          {movement.type}
-                        </Badge>
-                      </div>
-                      <div className="flex justify-between text-sm">
-                        <span className="text-muted-foreground">כמות:</span>
-                        <span className="font-semibold">{movement.quantity}</span>
-                      </div>
-                      <div className="flex justify-between text-sm mt-1">
-                        <span className="text-muted-foreground">משתמש:</span>
-                        <span>{movement.user}</span>
-                      </div>
+                <div className="md:hidden p-3 space-y-3">
+                  {filteredProducts.length === 0 ? (
+                    <div className="text-center py-8 text-muted-foreground">
+                      לא נמצאו מוצרים
                     </div>
-                  ))}
+                  ) : (
+                    filteredProducts.map((product) => (
+                      <div
+                        key={product.id}
+                        className="p-4 rounded-lg border bg-card shadow-sm hover:shadow-md transition-shadow"
+                      >
+                        <div className="flex items-start justify-between mb-3">
+                          <div className="flex-1">
+                            <h3 className="font-semibold text-base mb-1">{product.name}</h3>
+                            <p className="text-sm text-muted-foreground">{product.category}</p>
+                          </div>
+                          <Badge variant="outline" className={getStatusVariant(product.status)}>
+                            {product.status}
+                          </Badge>
+                        </div>
+                        
+                        <div className="space-y-2 text-sm mb-3">
+                          <div className="flex justify-between">
+                            <span className="text-muted-foreground">כמות:</span>
+                            <span className="font-semibold">{product.quantity}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-muted-foreground">מחיר:</span>
+                            <span className="font-medium">₪{product.price.toFixed(2)}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-muted-foreground">ספק:</span>
+                            <span className="font-medium">{product.supplier}</span>
+                          </div>
+                        </div>
+                        
+                        <div className="flex gap-2">
+                          <Button
+                            size="lg"
+                            variant="outline"
+                            className="flex-1 gap-2"
+                          >
+                            <Pencil className="h-4 w-4" />
+                            ערוך
+                          </Button>
+                          <Button
+                            size="lg"
+                            variant="outline"
+                            className="flex-1 gap-2 hover:bg-destructive/10 hover:text-destructive hover:border-destructive"
+                            onClick={() => handleDeleteProduct(product.id)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                            מחק
+                          </Button>
+                        </div>
+                      </div>
+                    ))
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -300,15 +241,12 @@ const Inventory = () => {
         </main>
       </div>
 
-      {/* Stock Movement Modal */}
-      {selectedProduct && movementType && (
-        <StockMovementModal
-          isOpen={isModalOpen}
-          onClose={handleCloseModal}
-          product={selectedProduct}
-          movementType={movementType}
-        />
-      )}
+      {/* Add Product Modal */}
+      <AddProductModal
+        isOpen={isAddModalOpen}
+        onClose={() => setIsAddModalOpen(false)}
+        onAdd={handleAddProduct}
+      />
     </div>
   );
 };
