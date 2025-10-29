@@ -28,14 +28,7 @@ interface Product {
 const Inventory = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [products, setProducts] = useState<Product[]>([
-    { id: 1, name: "מחשב נייד Dell XPS", category: "מחשבים", quantity: 15, price: 4500, supplier: "Dell ישראל", status: "זמין" },
-    { id: 2, name: "עכבר אלחוטי Logitech", category: "אביזרים", quantity: 5, price: 120, supplier: "Tech Store", status: "מלאי נמוך" },
-    { id: 3, name: "מקלדת מכנית Razer", category: "אביזרים", quantity: 0, price: 350, supplier: "Gaming Pro", status: "אזל מהמלאי" },
-    { id: 4, name: "מסך 27 אינץ' Samsung", category: "מסכים", quantity: 20, price: 1200, supplier: "Samsung ישראל", status: "זמין" },
-    { id: 5, name: "כונן SSD 1TB", category: "אחסון", quantity: 8, price: 450, supplier: "Tech Supplies", status: "מלאי נמוך" },
-    { id: 6, name: "זיכרון RAM 16GB", category: "רכיבים", quantity: 30, price: 280, supplier: "Computer Parts", status: "זמין" },
-  ]);
+  const [products, setProducts] = useState<Product[]>([]);
 
   const handleAddProduct = (newProduct: Omit<Product, "id" | "status">) => {
     const status: Product["status"] = 
