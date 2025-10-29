@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { Search, Plus, Pencil, Trash2 } from "lucide-react";
 import { DashboardSidebar } from "@/components/DashboardSidebar";
 import { Card, CardContent } from "@/components/ui/card";
@@ -27,11 +28,31 @@ interface Partner {
 }
 
 const Suppliers = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [searchQuery, setSearchQuery] = useState("");
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [modalType, setModalType] = useState<"ספק" | "קבלן">("ספק");
   const [partners, setPartners] = useState<Partner[]>([]);
   const [activeTab, setActiveTab] = useState("suppliers");
+
+  // Sync tab with URL parameter
+  useEffect(() => {
+    const tab = searchParams.get("tab");
+    if (tab === "contractors") {
+      setActiveTab("contractors");
+    } else {
+      setActiveTab("suppliers");
+    }
+  }, [searchParams]);
+
+  const handleTabChange = (value: string) => {
+    setActiveTab(value);
+    if (value === "contractors") {
+      setSearchParams({ tab: "contractors" });
+    } else {
+      setSearchParams({});
+    }
+  };
 
   const handleAddPartner = (newPartner: Omit<Partner, "id" | "active">) => {
     const partner: Partner = {
@@ -201,13 +222,15 @@ const Suppliers = () => {
       <div className="flex-1 flex flex-col">
         {/* Header */}
         <header className="flex h-14 items-center gap-2 border-b bg-card px-3 lg:h-[60px] lg:px-6 sticky top-0 z-10 shadow-sm">
-          <h1 className="text-lg lg:text-2xl font-bold">ניהול ספקים וקבלנים</h1>
+          <h1 className="text-lg lg:text-2xl font-bold">
+            {activeTab === "contractors" ? "ניהול קבלנים" : "ניהול ספקים"}
+          </h1>
         </header>
 
         {/* Main Content */}
         <main className="flex-1 overflow-y-auto p-3 lg:p-6">
           <div className="mx-auto max-w-7xl space-y-4 lg:space-y-6">
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
               <TabsList className="grid w-full grid-cols-2 mb-6">
                 <TabsTrigger value="suppliers" className="text-base">ספקים</TabsTrigger>
                 <TabsTrigger value="contractors" className="text-base">קבלנים</TabsTrigger>
