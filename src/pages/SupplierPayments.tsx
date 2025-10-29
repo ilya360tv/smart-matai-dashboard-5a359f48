@@ -64,6 +64,18 @@ const SupplierPayments = () => {
     console.log("Adding payment:", payment);
   };
 
+  const handleViewDetails = (payment: Payment) => {
+    console.log("Viewing payment details:", payment);
+    // TODO: Open details modal or navigate to details page
+    alert(`פרטי תשלום: ${payment.name}\nסכום כולל: ₪${payment.totalAmount.toLocaleString()}\nחוב פתוח: ₪${payment.openDebt.toLocaleString()}`);
+  };
+
+  const handleUpdatePayment = (payment: Payment) => {
+    console.log("Updating payment:", payment);
+    // TODO: Open update payment modal
+    alert(`עדכון תשלום עבור: ${payment.name}`);
+  };
+
   const filteredPayments = payments.filter((payment) =>
     payment.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
@@ -207,6 +219,8 @@ const SupplierPayments = () => {
                                   size="sm"
                                   variant="ghost"
                                   className="h-8 w-8 p-0 hover:bg-primary/10"
+                                  onClick={() => handleViewDetails(payment)}
+                                  title="צפה בפרטים"
                                 >
                                   <Eye className="h-4 w-4" />
                                 </Button>
@@ -214,6 +228,8 @@ const SupplierPayments = () => {
                                   size="sm"
                                   variant="ghost"
                                   className="h-8 w-8 p-0 hover:bg-success/10 hover:text-success"
+                                  onClick={() => handleUpdatePayment(payment)}
+                                  title="עדכן תשלום"
                                 >
                                   <CreditCard className="h-4 w-4" />
                                 </Button>
@@ -275,7 +291,12 @@ const SupplierPayments = () => {
                         </div>
 
                         <div className="flex gap-2">
-                          <Button size="lg" variant="outline" className="flex-1 gap-2">
+                          <Button 
+                            size="lg" 
+                            variant="outline" 
+                            className="flex-1 gap-2"
+                            onClick={() => handleViewDetails(payment)}
+                          >
                             <Eye className="h-4 w-4" />
                             צפה
                           </Button>
@@ -283,6 +304,7 @@ const SupplierPayments = () => {
                             size="lg"
                             variant="outline"
                             className="flex-1 gap-2 hover:bg-success/10 hover:text-success hover:border-success"
+                            onClick={() => handleUpdatePayment(payment)}
                           >
                             <CreditCard className="h-4 w-4" />
                             עדכן
