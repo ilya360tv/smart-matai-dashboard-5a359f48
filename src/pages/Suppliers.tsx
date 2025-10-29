@@ -1,17 +1,7 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Search, Plus, Pencil, Trash2 } from "lucide-react";
 import { DashboardSidebar } from "@/components/DashboardSidebar";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -20,445 +10,288 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { toast } from "@/hooks/use-toast";
-import { Building2, Mail, Phone, Edit, Eye, Bell } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { AddPartnerModal } from "@/components/AddPartnerModal";
 
-interface BusinessPartner {
-  id: string;
+interface Partner {
+  id: number;
   name: string;
   phone: string;
   email: string;
-  status: "ספק" | "לקוח" | "שניהם";
-  balance: number;
-  notes: string;
+  city: string;
+  status: "ספק" | "לקוח";
+  active: "פעיל" | "לא פעיל";
 }
 
 const Suppliers = () => {
-  const navigate = useNavigate();
-  const [partners, setPartners] = useState<BusinessPartner[]>([
-    {
-      id: "1",
-      name: "ספק דוגמה בע״מ",
-      phone: "050-1234567",
-      email: "supplier@example.com",
-      status: "ספק",
-      balance: 5000,
-      notes: "ספק מוצרי אלקטרוניקה",
-    },
-    {
-      id: "2",
-      name: "לקוח מרכזי בע״מ",
-      phone: "052-9876543",
-      email: "client@example.com",
-      status: "לקוח",
-      balance: -3000,
-      notes: "לקוח VIP",
-    },
-  ]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [modalType, setModalType] = useState<"ספק" | "לקוח">("ספק");
+  const [partners, setPartners] = useState<Partner[]>([]);
+  const [activeTab, setActiveTab] = useState("suppliers");
 
-  const [newPartner, setNewPartner] = useState({
-    name: "",
-    phone: "",
-    email: "",
-    status: "ספק" as "ספק" | "לקוח" | "שניהם",
-    balance: 0,
-    notes: "",
-  });
-
-  const [selectedPartner, setSelectedPartner] = useState<BusinessPartner | null>(null);
-  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
-  const [editingPartner, setEditingPartner] = useState<BusinessPartner | null>(null);
-
-  const handleAddPartner = (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!newPartner.name || !newPartner.phone || !newPartner.email) {
-      toast({
-        title: "שגיאה",
-        description: "אנא מלא את כל השדות הנדרשים",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    const partner: BusinessPartner = {
-      id: Date.now().toString(),
+  const handleAddPartner = (newPartner: Omit<Partner, "id" | "active">) => {
+    const partner: Partner = {
+      id: partners.length > 0 ? Math.max(...partners.map(p => p.id)) + 1 : 1,
       ...newPartner,
+      active: "פעיל",
     };
-
-    setPartners([...partners, partner]);
-
-    toast({
-      title: "העסק נוסף בהצלחה!",
-    });
-
-    // Reset form
-    setNewPartner({
-      name: "",
-      phone: "",
-      email: "",
-      status: "ספק",
-      balance: 0,
-      notes: "",
-    });
+    setPartners([partner, ...partners]);
   };
 
-  const handleViewDetails = (partner: BusinessPartner) => {
-    navigate(`/suppliers/${partner.id}`);
+  const handleDeletePartner = (id: number) => {
+    setPartners(partners.filter(p => p.id !== id));
   };
 
-  const handleEdit = (partner: BusinessPartner) => {
-    setEditingPartner(partner);
-    setNewPartner({
-      name: partner.name,
-      phone: partner.phone,
-      email: partner.email,
-      status: partner.status,
-      balance: partner.balance,
-      notes: partner.notes,
-    });
-    toast({
-      title: "מצב עריכה",
-      description: "ערוך את הפרטים והוסף עסק חדש לשמירה",
-    });
+  const handleOpenModal = (type: "ספק" | "לקוח") => {
+    setModalType(type);
+    setIsAddModalOpen(true);
   };
 
-  const handlePaymentReminder = (partner: BusinessPartner) => {
-    toast({
-      title: "תזכורת נשלחה",
-      description: `תזכורת תשלום נשלחה ל-${partner.name}`,
-    });
+  const suppliers = partners.filter(p => p.status === "ספק");
+  const customers = partners.filter(p => p.status === "לקוח");
+
+  const filteredSuppliers = suppliers.filter(partner =>
+    partner.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    partner.city.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    partner.email.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const filteredCustomers = customers.filter(partner =>
+    partner.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    partner.city.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    partner.email.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const getStatusVariant = (status: Partner["active"]) => {
+    return status === "פעיל" 
+      ? "bg-success/10 text-success border-success/20"
+      : "bg-muted/10 text-muted-foreground border-muted/20";
   };
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case "ספק":
-        return <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20">ספק</Badge>;
-      case "לקוח":
-        return <Badge variant="outline" className="bg-success/10 text-success border-success/20">לקוח</Badge>;
-      case "שניהם":
-        return <Badge variant="outline" className="bg-accent/10 text-accent-foreground border-accent/20">שניהם</Badge>;
-      default:
-        return <Badge variant="outline">{status}</Badge>;
-    }
-  };
+  const renderTable = (filteredPartners: Partner[]) => (
+    <>
+      {/* Desktop Table */}
+      <div className="hidden md:block overflow-x-auto">
+        <Table>
+          <TableHeader>
+            <TableRow className="bg-muted/50">
+              <TableHead className="text-right font-bold">שם</TableHead>
+              <TableHead className="text-right font-bold">טלפון</TableHead>
+              <TableHead className="text-right font-bold">אימייל</TableHead>
+              <TableHead className="text-right font-bold">עיר</TableHead>
+              <TableHead className="text-right font-bold">סטטוס</TableHead>
+              <TableHead className="text-right font-bold">פעולות</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {filteredPartners.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                  לא נמצאו רשומות
+                </TableCell>
+              </TableRow>
+            ) : (
+              filteredPartners.map((partner) => (
+                <TableRow 
+                  key={partner.id}
+                  className="hover:bg-muted/30 transition-colors"
+                >
+                  <TableCell className="font-medium">{partner.name}</TableCell>
+                  <TableCell className="text-muted-foreground">{partner.phone}</TableCell>
+                  <TableCell className="text-muted-foreground">{partner.email}</TableCell>
+                  <TableCell className="text-muted-foreground">{partner.city}</TableCell>
+                  <TableCell>
+                    <Badge variant="outline" className={getStatusVariant(partner.active)}>
+                      {partner.active}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex gap-2">
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="h-8 w-8 p-0 hover:bg-primary/10"
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="h-8 w-8 p-0 hover:bg-destructive/10 hover:text-destructive"
+                        onClick={() => handleDeletePartner(partner.id)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
+          </TableBody>
+        </Table>
+      </div>
+
+      {/* Mobile Cards */}
+      <div className="md:hidden p-3 space-y-3">
+        {filteredPartners.length === 0 ? (
+          <div className="text-center py-8 text-muted-foreground">
+            לא נמצאו רשומות
+          </div>
+        ) : (
+          filteredPartners.map((partner) => (
+            <div
+              key={partner.id}
+              className="p-4 rounded-lg border bg-card shadow-sm hover:shadow-md transition-shadow"
+            >
+              <div className="flex items-start justify-between mb-3">
+                <div className="flex-1">
+                  <h3 className="font-semibold text-base mb-1">{partner.name}</h3>
+                  <p className="text-sm text-muted-foreground">{partner.city}</p>
+                </div>
+                <Badge variant="outline" className={getStatusVariant(partner.active)}>
+                  {partner.active}
+                </Badge>
+              </div>
+              
+              <div className="space-y-2 text-sm mb-3">
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">טלפון:</span>
+                  <span className="font-medium">{partner.phone}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">אימייל:</span>
+                  <span className="font-medium truncate mr-2">{partner.email}</span>
+                </div>
+              </div>
+              
+              <div className="flex gap-2">
+                <Button
+                  size="lg"
+                  variant="outline"
+                  className="flex-1 gap-2"
+                >
+                  <Pencil className="h-4 w-4" />
+                  ערוך
+                </Button>
+                <Button
+                  size="lg"
+                  variant="outline"
+                  className="flex-1 gap-2 hover:bg-destructive/10 hover:text-destructive hover:border-destructive"
+                  onClick={() => handleDeletePartner(partner.id)}
+                >
+                  <Trash2 className="h-4 w-4" />
+                  מחק
+                </Button>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+    </>
+  );
 
   return (
-    <div className="flex min-h-screen w-full">
+    <div className="flex min-h-screen w-full bg-background">
       <DashboardSidebar />
       
       <div className="flex-1 flex flex-col">
-        <header className="flex h-14 items-center gap-2 border-b bg-card px-3 lg:h-[60px] lg:px-6 sticky top-0 z-10">
-          <h1 className="text-base lg:text-xl font-bold truncate">ניהול ספקים / לקוחות עסקיים</h1>
+        {/* Header */}
+        <header className="flex h-14 items-center gap-2 border-b bg-card px-3 lg:h-[60px] lg:px-6 sticky top-0 z-10 shadow-sm">
+          <h1 className="text-lg lg:text-2xl font-bold">ניהול ספקים ולקוחות</h1>
         </header>
 
+        {/* Main Content */}
         <main className="flex-1 overflow-y-auto p-3 lg:p-6">
           <div className="mx-auto max-w-7xl space-y-4 lg:space-y-6">
-            {/* Add New Business Partner Form */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-lg lg:text-2xl">
-                  <Building2 className="h-5 w-5 text-primary" />
-                  הוספת עסק / ספק חדש
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <form onSubmit={handleAddPartner} className="space-y-3 lg:space-y-4">
-                  <div className="grid gap-3 lg:gap-4 md:grid-cols-2">
-                    <div className="space-y-2">
-                      <label htmlFor="business-name" className="text-sm font-medium">
-                        שם עסק / ספק
-                      </label>
-                      <Input
-                        id="business-name"
-                        value={newPartner.name}
-                        onChange={(e) =>
-                          setNewPartner({ ...newPartner, name: e.target.value })
-                        }
-                        placeholder="הכנס שם עסק"
-                        className="h-11"
-                        required
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <label htmlFor="phone" className="text-sm font-medium">
-                        טלפון
-                      </label>
-                      <Input
-                        id="phone"
-                        value={newPartner.phone}
-                        onChange={(e) =>
-                          setNewPartner({ ...newPartner, phone: e.target.value })
-                        }
-                        placeholder="050-1234567"
-                        className="h-11"
-                        required
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <label htmlFor="email" className="text-sm font-medium">
-                        אימייל
-                      </label>
-                      <Input
-                        id="email"
-                        type="email"
-                        value={newPartner.email}
-                        onChange={(e) =>
-                          setNewPartner({ ...newPartner, email: e.target.value })
-                        }
-                        placeholder="email@example.com"
-                        className="h-11"
-                        required
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <label htmlFor="status" className="text-sm font-medium">
-                        סטטוס
-                      </label>
-                      <Select
-                        value={newPartner.status}
-                        onValueChange={(value: "ספק" | "לקוח" | "שניהם") =>
-                          setNewPartner({ ...newPartner, status: value })
-                        }
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+              <TabsList className="grid w-full grid-cols-2 mb-6">
+                <TabsTrigger value="suppliers" className="text-base">ספקים</TabsTrigger>
+                <TabsTrigger value="customers" className="text-base">לקוחות</TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="suppliers" className="space-y-4">
+                {/* Toolbar */}
+                <Card className="shadow-sm">
+                  <CardContent className="p-4">
+                    <div className="flex flex-col sm:flex-row gap-3">
+                      <div className="relative flex-1">
+                        <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <Input
+                          placeholder="חיפוש ספק..."
+                          value={searchQuery}
+                          onChange={(e) => setSearchQuery(e.target.value)}
+                          className="pr-10 h-11"
+                        />
+                      </div>
+                      <Button 
+                        onClick={() => handleOpenModal("ספק")}
+                        className="gap-2 h-11 sm:w-auto w-full"
+                        size="lg"
                       >
-                        <SelectTrigger id="status" className="bg-background">
-                          <SelectValue placeholder="בחר סטטוס" />
-                        </SelectTrigger>
-                        <SelectContent className="bg-background z-50">
-                          <SelectItem value="ספק">ספק</SelectItem>
-                          <SelectItem value="לקוח">לקוח</SelectItem>
-                          <SelectItem value="שניהם">שניהם</SelectItem>
-                        </SelectContent>
-                      </Select>
+                        <Plus className="h-5 w-5" />
+                        הוסף ספק חדש
+                      </Button>
                     </div>
-                    <div className="space-y-2">
-                      <label htmlFor="balance" className="text-sm font-medium">
-                        חוב נוכחי (₪)
-                      </label>
-                      <Input
-                        id="balance"
-                        type="number"
-                        value={newPartner.balance}
-                        onChange={(e) =>
-                          setNewPartner({ ...newPartner, balance: parseFloat(e.target.value) || 0 })
-                        }
-                        placeholder="0"
-                        className="h-11"
-                      />
-                    </div>
-                    <div className="space-y-2 md:col-span-2">
-                      <label htmlFor="notes" className="text-sm font-medium">
-                        הערות
-                      </label>
-                      <Textarea
-                        id="notes"
-                        value={newPartner.notes}
-                        onChange={(e) =>
-                          setNewPartner({ ...newPartner, notes: e.target.value })
-                        }
-                        placeholder="הערות נוספות..."
-                        rows={3}
-                      />
-                    </div>
-                  </div>
-                  <Button type="submit" size="lg" className="w-full">
-                    הוסף עסק חדש
-                  </Button>
-                </form>
-              </CardContent>
-            </Card>
+                  </CardContent>
+                </Card>
 
-            {/* Business Partners Table */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg lg:text-2xl">רשימת עסקים</CardTitle>
-              </CardHeader>
-              <CardContent>
-                {/* Desktop Table */}
-                <div className="hidden md:block overflow-x-auto">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead className="text-right">שם עסק</TableHead>
-                        <TableHead className="text-right">טלפון</TableHead>
-                        <TableHead className="text-right">אימייל</TableHead>
-                        <TableHead className="text-right">סטטוס</TableHead>
-                        <TableHead className="text-right">חוב נוכחי</TableHead>
-                        <TableHead className="text-right">פעולות</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {partners.map((partner) => (
-                        <TableRow key={partner.id}>
-                          <TableCell className="font-medium">{partner.name}</TableCell>
-                          <TableCell>
-                            <span className="flex items-center gap-2">
-                              <Phone className="h-4 w-4 text-muted-foreground" />
-                              {partner.phone}
-                            </span>
-                          </TableCell>
-                          <TableCell>
-                            <span className="flex items-center gap-2">
-                              <Mail className="h-4 w-4 text-muted-foreground" />
-                              {partner.email}
-                            </span>
-                          </TableCell>
-                          <TableCell>{getStatusBadge(partner.status)}</TableCell>
-                          <TableCell>
-                            <span className={partner.balance > 0 ? "text-warning font-semibold" : "text-success font-semibold"}>
-                              ₪{partner.balance.toLocaleString()}
-                            </span>
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex gap-2">
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => handleEdit(partner)}
-                                title="ערוך"
-                              >
-                                <Edit className="h-4 w-4" />
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => handleViewDetails(partner)}
-                                title="פרטי עסק"
-                              >
-                                <Eye className="h-4 w-4" />
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => handlePaymentReminder(partner)}
-                                title="תזכורת תשלום"
-                              >
-                                <Bell className="h-4 w-4" />
-                              </Button>
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
+                {/* Suppliers Table */}
+                <Card className="shadow-sm">
+                  <CardContent className="p-0">
+                    {renderTable(filteredSuppliers)}
+                  </CardContent>
+                </Card>
+              </TabsContent>
 
-                {/* Mobile Cards */}
-                <div className="md:hidden space-y-3">
-                  {partners.map((partner) => (
-                    <div key={partner.id} className="p-4 rounded-lg border bg-card">
-                      <div className="flex items-start justify-between mb-3">
-                        <div className="flex-1">
-                          <h3 className="font-semibold text-base mb-1">{partner.name}</h3>
-                          {getStatusBadge(partner.status)}
-                        </div>
-                        <span className={`text-lg font-bold ${partner.balance > 0 ? "text-warning" : "text-success"}`}>
-                          ₪{partner.balance.toLocaleString()}
-                        </span>
+              <TabsContent value="customers" className="space-y-4">
+                {/* Toolbar */}
+                <Card className="shadow-sm">
+                  <CardContent className="p-4">
+                    <div className="flex flex-col sm:flex-row gap-3">
+                      <div className="relative flex-1">
+                        <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <Input
+                          placeholder="חיפוש לקוח..."
+                          value={searchQuery}
+                          onChange={(e) => setSearchQuery(e.target.value)}
+                          className="pr-10 h-11"
+                        />
                       </div>
-                      <div className="space-y-2 text-sm mb-3">
-                        <div className="flex items-center gap-2">
-                          <Phone className="h-4 w-4 text-muted-foreground" />
-                          <span>{partner.phone}</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Mail className="h-4 w-4 text-muted-foreground" />
-                          <span className="truncate">{partner.email}</span>
-                        </div>
-                      </div>
-                      <div className="grid grid-cols-3 gap-2">
-                        <Button
-                          variant="outline"
-                          size="lg"
-                          onClick={() => handleEdit(partner)}
-                          className="gap-1"
-                        >
-                          <Edit className="h-4 w-4" />
-                          <span className="text-xs">ערוך</span>
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="lg"
-                          onClick={() => handleViewDetails(partner)}
-                          className="gap-1"
-                        >
-                          <Eye className="h-4 w-4" />
-                          <span className="text-xs">פרטים</span>
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="lg"
-                          onClick={() => handlePaymentReminder(partner)}
-                          className="gap-1"
-                        >
-                          <Bell className="h-4 w-4" />
-                          <span className="text-xs">תזכורת</span>
-                        </Button>
-                      </div>
+                      <Button 
+                        onClick={() => handleOpenModal("לקוח")}
+                        className="gap-2 h-11 sm:w-auto w-full"
+                        size="lg"
+                      >
+                        <Plus className="h-5 w-5" />
+                        הוסף לקוח חדש
+                      </Button>
                     </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
+                  </CardContent>
+                </Card>
+
+                {/* Customers Table */}
+                <Card className="shadow-sm">
+                  <CardContent className="p-0">
+                    {renderTable(filteredCustomers)}
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            </Tabs>
           </div>
         </main>
       </div>
 
-      {/* Business Details Modal */}
-      <Dialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
-        <DialogContent className="bg-background max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>פרטי עסק</DialogTitle>
-          </DialogHeader>
-          {selectedPartner && (
-            <div className="space-y-4">
-              <div className="grid gap-4 md:grid-cols-2">
-                <div>
-                  <h4 className="text-sm font-medium text-muted-foreground mb-1">שם עסק</h4>
-                  <p className="font-semibold">{selectedPartner.name}</p>
-                </div>
-                <div>
-                  <h4 className="text-sm font-medium text-muted-foreground mb-1">סטטוס</h4>
-                  {getStatusBadge(selectedPartner.status)}
-                </div>
-                <div>
-                  <h4 className="text-sm font-medium text-muted-foreground mb-1">טלפון</h4>
-                  <p className="flex items-center gap-2">
-                    <Phone className="h-4 w-4" />
-                    {selectedPartner.phone}
-                  </p>
-                </div>
-                <div>
-                  <h4 className="text-sm font-medium text-muted-foreground mb-1">אימייל</h4>
-                  <p className="flex items-center gap-2">
-                    <Mail className="h-4 w-4" />
-                    {selectedPartner.email}
-                  </p>
-                </div>
-                <div>
-                  <h4 className="text-sm font-medium text-muted-foreground mb-1">חוב נוכחי</h4>
-                  <p className={selectedPartner.balance > 0 ? "text-warning font-semibold text-lg" : "text-success font-semibold text-lg"}>
-                    ₪{selectedPartner.balance.toLocaleString()}
-                  </p>
-                </div>
-              </div>
-              {selectedPartner.notes && (
-                <div>
-                  <h4 className="text-sm font-medium text-muted-foreground mb-1">הערות</h4>
-                  <p className="text-sm bg-muted p-3 rounded-md">{selectedPartner.notes}</p>
-                </div>
-              )}
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
+      {/* Add Partner Modal */}
+      <AddPartnerModal
+        isOpen={isAddModalOpen}
+        onClose={() => setIsAddModalOpen(false)}
+        onAdd={handleAddPartner}
+        type={modalType}
+      />
     </div>
   );
 };
