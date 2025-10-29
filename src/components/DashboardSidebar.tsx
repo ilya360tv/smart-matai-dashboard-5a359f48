@@ -7,7 +7,7 @@ const menuItems = [
   { icon: Home, label: "דף הבית", href: "/" },
   { icon: Package, label: "מלאי", href: "/inventory" },
   { icon: Building2, label: "ספקים", href: "/suppliers" },
-  { icon: Users, label: "קבלנים", href: "/suppliers?tab=contractors" },
+  { icon: Users, label: "קבלנים", href: "/contractors" },
 ];
 
 export const DashboardSidebar = () => {
@@ -21,8 +21,7 @@ export const DashboardSidebar = () => {
       <nav className="flex-1 space-y-1 px-2 lg:px-4">
         {menuItems.map((item) => {
           const Icon = item.icon;
-          const isActive = location.pathname + location.search === item.href || 
-                          (item.href === "/suppliers" && location.pathname === "/suppliers" && !location.search);
+          const isActive = location.pathname === item.href;
           return (
             <Link
               key={item.label}

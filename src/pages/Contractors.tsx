@@ -15,7 +15,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { AddPartnerModal } from "@/components/AddPartnerModal";
 
-interface Supplier {
+interface Contractor {
   id: number;
   name: string;
   phone: string;
@@ -24,31 +24,34 @@ interface Supplier {
   active: "פעיל" | "לא פעיל";
 }
 
-const Suppliers = () => {
+const Contractors = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [suppliers, setSuppliers] = useState<Supplier[]>([]);
+  const [contractors, setContractors] = useState<Contractor[]>([]);
 
-  const handleAddSupplier = (newSupplier: Omit<Supplier, "id" | "active">) => {
-    const supplier: Supplier = {
-      id: suppliers.length > 0 ? Math.max(...suppliers.map(s => s.id)) + 1 : 1,
-      ...newSupplier,
+  const handleAddContractor = (newContractor: { name: string; phone: string; email: string; city: string; status: "ספק" | "קבלן" }) => {
+    const contractor: Contractor = {
+      id: contractors.length > 0 ? Math.max(...contractors.map(c => c.id)) + 1 : 1,
+      name: newContractor.name,
+      phone: newContractor.phone,
+      email: newContractor.email,
+      city: newContractor.city,
       active: "פעיל",
     };
-    setSuppliers([supplier, ...suppliers]);
+    setContractors([contractor, ...contractors]);
   };
 
-  const handleDeleteSupplier = (id: number) => {
-    setSuppliers(suppliers.filter(s => s.id !== id));
+  const handleDeleteContractor = (id: number) => {
+    setContractors(contractors.filter(c => c.id !== id));
   };
 
-  const filteredSuppliers = suppliers.filter(supplier =>
-    supplier.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    supplier.city.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    supplier.email.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredContractors = contractors.filter(contractor =>
+    contractor.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    contractor.city.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    contractor.email.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const getStatusVariant = (status: Supplier["active"]) => {
+  const getStatusVariant = (status: Contractor["active"]) => {
     return status === "פעיל" 
       ? "bg-success/10 text-success border-success/20"
       : "bg-muted/10 text-muted-foreground border-muted/20";
@@ -61,7 +64,7 @@ const Suppliers = () => {
       <div className="flex-1 flex flex-col">
         {/* Header */}
         <header className="flex h-14 items-center gap-2 border-b bg-card px-3 lg:h-[60px] lg:px-6 sticky top-0 z-10 shadow-sm">
-          <h1 className="text-lg lg:text-2xl font-bold">ניהול ספקים</h1>
+          <h1 className="text-lg lg:text-2xl font-bold">ניהול קבלנים</h1>
         </header>
 
         {/* Main Content */}
@@ -74,7 +77,7 @@ const Suppliers = () => {
                   <div className="relative flex-1">
                     <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
-                      placeholder="חיפוש ספק..."
+                      placeholder="חיפוש קבלן..."
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                       className="pr-10 h-11"
@@ -86,13 +89,13 @@ const Suppliers = () => {
                     size="lg"
                   >
                     <Plus className="h-5 w-5" />
-                    הוסף ספק חדש
+                    הוסף קבלן חדש
                   </Button>
                 </div>
               </CardContent>
             </Card>
 
-            {/* Suppliers Table */}
+            {/* Contractors Table */}
             <Card className="shadow-sm">
               <CardContent className="p-0">
                 {/* Desktop Table */}
@@ -109,25 +112,25 @@ const Suppliers = () => {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {filteredSuppliers.length === 0 ? (
+                      {filteredContractors.length === 0 ? (
                         <TableRow>
                           <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
                             לא נמצאו רשומות
                           </TableCell>
                         </TableRow>
                       ) : (
-                        filteredSuppliers.map((supplier) => (
+                        filteredContractors.map((contractor) => (
                           <TableRow 
-                            key={supplier.id}
+                            key={contractor.id}
                             className="hover:bg-muted/30 transition-colors"
                           >
-                            <TableCell className="font-medium">{supplier.name}</TableCell>
-                            <TableCell className="text-muted-foreground">{supplier.phone}</TableCell>
-                            <TableCell className="text-muted-foreground">{supplier.email}</TableCell>
-                            <TableCell className="text-muted-foreground">{supplier.city}</TableCell>
+                            <TableCell className="font-medium">{contractor.name}</TableCell>
+                            <TableCell className="text-muted-foreground">{contractor.phone}</TableCell>
+                            <TableCell className="text-muted-foreground">{contractor.email}</TableCell>
+                            <TableCell className="text-muted-foreground">{contractor.city}</TableCell>
                             <TableCell>
-                              <Badge variant="outline" className={getStatusVariant(supplier.active)}>
-                                {supplier.active}
+                              <Badge variant="outline" className={getStatusVariant(contractor.active)}>
+                                {contractor.active}
                               </Badge>
                             </TableCell>
                             <TableCell>
@@ -143,7 +146,7 @@ const Suppliers = () => {
                                   size="sm"
                                   variant="ghost"
                                   className="h-8 w-8 p-0 hover:bg-destructive/10 hover:text-destructive"
-                                  onClick={() => handleDeleteSupplier(supplier.id)}
+                                  onClick={() => handleDeleteContractor(contractor.id)}
                                 >
                                   <Trash2 className="h-4 w-4" />
                                 </Button>
@@ -158,34 +161,34 @@ const Suppliers = () => {
 
                 {/* Mobile Cards */}
                 <div className="md:hidden p-3 space-y-3">
-                  {filteredSuppliers.length === 0 ? (
+                  {filteredContractors.length === 0 ? (
                     <div className="text-center py-8 text-muted-foreground">
                       לא נמצאו רשומות
                     </div>
                   ) : (
-                    filteredSuppliers.map((supplier) => (
+                    filteredContractors.map((contractor) => (
                       <div
-                        key={supplier.id}
+                        key={contractor.id}
                         className="p-4 rounded-lg border bg-card shadow-sm hover:shadow-md transition-shadow"
                       >
                         <div className="flex items-start justify-between mb-3">
                           <div className="flex-1">
-                            <h3 className="font-semibold text-base mb-1">{supplier.name}</h3>
-                            <p className="text-sm text-muted-foreground">{supplier.city}</p>
+                            <h3 className="font-semibold text-base mb-1">{contractor.name}</h3>
+                            <p className="text-sm text-muted-foreground">{contractor.city}</p>
                           </div>
-                          <Badge variant="outline" className={getStatusVariant(supplier.active)}>
-                            {supplier.active}
+                          <Badge variant="outline" className={getStatusVariant(contractor.active)}>
+                            {contractor.active}
                           </Badge>
                         </div>
                         
                         <div className="space-y-2 text-sm mb-3">
                           <div className="flex justify-between">
                             <span className="text-muted-foreground">טלפון:</span>
-                            <span className="font-medium">{supplier.phone}</span>
+                            <span className="font-medium">{contractor.phone}</span>
                           </div>
                           <div className="flex justify-between">
                             <span className="text-muted-foreground">אימייל:</span>
-                            <span className="font-medium truncate mr-2">{supplier.email}</span>
+                            <span className="font-medium truncate mr-2">{contractor.email}</span>
                           </div>
                         </div>
                         
@@ -202,7 +205,7 @@ const Suppliers = () => {
                             size="lg"
                             variant="outline"
                             className="flex-1 gap-2 hover:bg-destructive/10 hover:text-destructive hover:border-destructive"
-                            onClick={() => handleDeleteSupplier(supplier.id)}
+                            onClick={() => handleDeleteContractor(contractor.id)}
                           >
                             <Trash2 className="h-4 w-4" />
                             מחק
@@ -218,15 +221,15 @@ const Suppliers = () => {
         </main>
       </div>
 
-      {/* Add Supplier Modal */}
+      {/* Add Contractor Modal */}
       <AddPartnerModal
         isOpen={isAddModalOpen}
         onClose={() => setIsAddModalOpen(false)}
-        onAdd={handleAddSupplier}
-        type="ספק"
+        onAdd={handleAddContractor}
+        type="קבלן"
       />
     </div>
   );
 };
 
-export default Suppliers;
+export default Contractors;
