@@ -9,6 +9,13 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface AddProductModalProps {
   isOpen: boolean;
@@ -19,6 +26,7 @@ interface AddProductModalProps {
     quantity: number;
     price: number;
     supplier: string;
+    side: "ימין" | "שמאל" | "הזזה" | "לא רלוונטי";
   }) => void;
 }
 
@@ -29,6 +37,7 @@ export const AddProductModal = ({ isOpen, onClose, onAdd }: AddProductModalProps
     quantity: "",
     price: "",
     supplier: "",
+    side: "לא רלוונטי" as "ימין" | "שמאל" | "הזזה" | "לא רלוונטי",
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -39,6 +48,7 @@ export const AddProductModal = ({ isOpen, onClose, onAdd }: AddProductModalProps
       quantity: Number(formData.quantity),
       price: Number(formData.price),
       supplier: formData.supplier,
+      side: formData.side,
     });
     setFormData({
       name: "",
@@ -46,6 +56,7 @@ export const AddProductModal = ({ isOpen, onClose, onAdd }: AddProductModalProps
       quantity: "",
       price: "",
       supplier: "",
+      side: "לא רלוונטי",
     });
     onClose();
   };
@@ -71,14 +82,43 @@ export const AddProductModal = ({ isOpen, onClose, onAdd }: AddProductModalProps
 
           <div className="space-y-2">
             <Label htmlFor="category">קטגוריה</Label>
-            <Input
-              id="category"
+            <Select
               value={formData.category}
-              onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-              placeholder="הזן קטגוריה"
+              onValueChange={(value) => setFormData({ ...formData, category: value })}
               required
-              className="h-11"
-            />
+            >
+              <SelectTrigger className="h-11">
+                <SelectValue placeholder="בחר קטגוריה" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="ידיות">ידיות</SelectItem>
+                <SelectItem value="צירים">צירים</SelectItem>
+                <SelectItem value="מפתחות">מפתחות</SelectItem>
+                <SelectItem value="מנעולים">מנעולים</SelectItem>
+                <SelectItem value="אביזרים">אביזרים</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="side">צד</Label>
+            <Select
+              value={formData.side}
+              onValueChange={(value: "ימין" | "שמאל" | "הזזה" | "לא רלוונטי") => 
+                setFormData({ ...formData, side: value })
+              }
+              required
+            >
+              <SelectTrigger className="h-11">
+                <SelectValue placeholder="בחר צד" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="ימין">ימין</SelectItem>
+                <SelectItem value="שמאל">שמאל</SelectItem>
+                <SelectItem value="הזזה">הזזה</SelectItem>
+                <SelectItem value="לא רלוונטי">לא רלוונטי</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="grid grid-cols-2 gap-4">

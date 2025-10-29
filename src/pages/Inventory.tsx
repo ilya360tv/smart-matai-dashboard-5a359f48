@@ -22,6 +22,7 @@ interface Product {
   quantity: number;
   price: number;
   supplier: string;
+  side: "ימין" | "שמאל" | "הזזה" | "לא רלוונטי";
   status: "זמין" | "אזל מהמלאי" | "מלאי נמוך";
 }
 
@@ -36,7 +37,7 @@ const Inventory = () => {
       newProduct.quantity < 10 ? "מלאי נמוך" : "זמין";
     
     const product: Product = {
-      id: Math.max(...products.map(p => p.id)) + 1,
+      id: products.length > 0 ? Math.max(...products.map(p => p.id)) + 1 : 1,
       ...newProduct,
       status,
     };
@@ -112,6 +113,7 @@ const Inventory = () => {
                       <TableRow className="bg-muted/50">
                         <TableHead className="text-right font-bold">שם מוצר</TableHead>
                         <TableHead className="text-right font-bold">קטגוריה</TableHead>
+                        <TableHead className="text-right font-bold">צד</TableHead>
                         <TableHead className="text-right font-bold">כמות במלאי</TableHead>
                         <TableHead className="text-right font-bold">מחיר</TableHead>
                         <TableHead className="text-right font-bold">ספק</TableHead>
@@ -122,7 +124,7 @@ const Inventory = () => {
                     <TableBody>
                       {filteredProducts.length === 0 ? (
                         <TableRow>
-                          <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                          <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
                             לא נמצאו מוצרים
                           </TableCell>
                         </TableRow>
@@ -134,6 +136,11 @@ const Inventory = () => {
                           >
                             <TableCell className="font-medium">{product.name}</TableCell>
                             <TableCell className="text-muted-foreground">{product.category}</TableCell>
+                            <TableCell>
+                              <Badge variant="secondary" className="font-medium">
+                                {product.side}
+                              </Badge>
+                            </TableCell>
                             <TableCell className="font-semibold">{product.quantity}</TableCell>
                             <TableCell className="font-medium">₪{product.price.toFixed(2)}</TableCell>
                             <TableCell className="text-muted-foreground">{product.supplier}</TableCell>
@@ -191,6 +198,12 @@ const Inventory = () => {
                         </div>
                         
                         <div className="space-y-2 text-sm mb-3">
+                          <div className="flex justify-between">
+                            <span className="text-muted-foreground">צד:</span>
+                            <Badge variant="secondary" className="font-medium">
+                              {product.side}
+                            </Badge>
+                          </div>
                           <div className="flex justify-between">
                             <span className="text-muted-foreground">כמות:</span>
                             <span className="font-semibold">{product.quantity}</span>
