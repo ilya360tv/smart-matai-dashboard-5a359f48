@@ -1,6 +1,7 @@
-import { useState } from "react";
-import { Search, Download, ArrowUp, ArrowDown, Calendar as CalendarIcon } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Search, Download, ArrowUp, ArrowDown, Calendar as CalendarIcon, Clock } from "lucide-react";
 import { format } from "date-fns";
+import { he } from "date-fns/locale";
 import { DashboardSidebar } from "@/components/DashboardSidebar";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -40,6 +41,7 @@ interface StockMovement {
 }
 
 const StockMovements = () => {
+  const [currentTime, setCurrentTime] = useState(new Date());
   const [searchQuery, setSearchQuery] = useState("");
   const [movementType, setMovementType] = useState<"הכל" | "כניסה" | "יציאה">("הכל");
   const [dateFrom, setDateFrom] = useState<Date | undefined>();
@@ -83,6 +85,11 @@ const StockMovements = () => {
     },
   ]);
 
+  useEffect(() => {
+    const timer = setInterval(() => setCurrentTime(new Date()), 1000);
+    return () => clearInterval(timer);
+  }, []);
+
   const handleExportToExcel = () => {
     // Basic export functionality - can be enhanced with xlsx library
     console.log("Exporting to Excel...");
@@ -122,7 +129,14 @@ const StockMovements = () => {
       <div className="flex-1 flex flex-col">
         {/* Header */}
         <header className="flex h-14 items-center gap-2 border-b bg-card px-3 lg:h-[60px] lg:px-6 sticky top-0 z-10 shadow-sm">
-          <h1 className="text-lg lg:text-2xl font-bold">היסטוריית תנועות מלאי</h1>
+          <h1 className="text-lg lg:text-2xl font-bold flex-1">היסטוריית תנועות מלאי</h1>
+          <div className="flex items-center gap-1.5 lg:gap-2 text-muted-foreground">
+            <Clock className="h-3.5 w-3.5 lg:h-4 lg:w-4" />
+            <div className="flex flex-col items-end">
+              <span className="font-medium text-xs lg:text-base">{format(currentTime, "HH:mm:ss")}</span>
+              <span className="text-[10px] lg:text-xs hidden sm:block">{format(currentTime, "d MMMM yyyy", { locale: he })}</span>
+            </div>
+          </div>
         </header>
 
         {/* Main Content */}
