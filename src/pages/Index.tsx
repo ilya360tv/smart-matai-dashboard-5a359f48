@@ -34,11 +34,11 @@ const Index = () => {
         {/* Top Navigation */}
         <header className="flex h-14 items-center gap-2 border-b bg-card px-3 lg:h-[60px] lg:px-6 sticky top-0 z-10">
           <h1 className="text-base lg:text-xl font-bold truncate flex-1">מערכת ניהול מלאי חכמה</h1>
-          <div className="flex items-center gap-2 text-sm lg:text-base text-muted-foreground">
-            <Clock className="h-4 w-4" />
+          <div className="flex items-center gap-1.5 lg:gap-2 text-muted-foreground">
+            <Clock className="h-3.5 w-3.5 lg:h-4 lg:w-4" />
             <div className="flex flex-col items-end">
-              <span className="font-medium">{format(currentTime, "HH:mm:ss")}</span>
-              <span className="text-xs">{format(currentTime, "d MMMM yyyy", { locale: he })}</span>
+              <span className="font-medium text-xs lg:text-base">{format(currentTime, "HH:mm:ss")}</span>
+              <span className="text-[10px] lg:text-xs hidden sm:block">{format(currentTime, "d MMMM yyyy", { locale: he })}</span>
             </div>
           </div>
         </header>
