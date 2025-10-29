@@ -1,7 +1,7 @@
 import { useState } from "react";
-import { Search, Plus, Pencil, Trash2 } from "lucide-react";
+import { Search, Plus, Pencil, Trash2, Upload } from "lucide-react";
 import { DashboardSidebar } from "@/components/DashboardSidebar";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -14,6 +14,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { AddProductModal } from "@/components/AddProductModal";
+import { toast } from "@/hooks/use-toast";
+import * as XLSX from "xlsx";
 
 interface Product {
   id: number;
@@ -30,6 +32,51 @@ const Inventory = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [products, setProducts] = useState<Product[]>([]);
+  const [isFileUploaded, setIsFileUploaded] = useState(false);
+
+  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const data = e.target?.result;
+        const workbook = XLSX.read(data, { type: "binary" });
+        const sheetName = workbook.SheetNames[0];
+        const worksheet = workbook.Sheets[sheetName];
+        const jsonData = XLSX.utils.sheet_to_json<any>(worksheet);
+
+        // Convert Excel data to Product format
+        const newProducts = jsonData.map((row, index) => ({
+          id: products.length + index + 1,
+          name: row["שם מוצר"] || row["name"] || "",
+          category: row["קטגוריה"] || row["category"] || "",
+          quantity: Number(row["כמות"] || row["quantity"] || 0),
+          price: Number(row["מחיר"] || row["price"] || 0),
+          supplier: row["ספק"] || row["supplier"] || "",
+          side: (row["צד"] || row["side"] || "לא רלוונטי") as Product["side"],
+          status: (Number(row["כמות"] || row["quantity"] || 0) === 0 ? "אזל מהמלאי" : 
+                   Number(row["כמות"] || row["quantity"] || 0) < 10 ? "מלאי נמוך" : "זמין") as Product["status"],
+        }));
+
+        setProducts([...products, ...newProducts]);
+        setIsFileUploaded(true);
+
+        toast({
+          title: "הקובץ נטען בהצלחה!",
+          description: `${newProducts.length} מוצרים נטענו מהקובץ`,
+        });
+      } catch (error) {
+        toast({
+          title: "שגיאה בטעינת הקובץ",
+          description: "אנא ודא שהקובץ בפורמט Excel תקין",
+          variant: "destructive",
+        });
+      }
+    };
+    reader.readAsBinaryString(file);
+  };
 
   const handleAddProduct = (newProduct: Omit<Product, "id" | "status">) => {
     const status: Product["status"] = 
@@ -78,6 +125,44 @@ const Inventory = () => {
         {/* Main Content */}
         <main className="flex-1 overflow-y-auto p-3 lg:p-6">
           <div className="mx-auto max-w-7xl space-y-4 lg:space-y-6">
+            {/* Excel Upload Section */}
+            <Card className="shadow-sm">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-lg lg:text-2xl">
+                  <Upload className="h-5 w-5 text-primary" />
+                  ייבוא מלאי מאקסל
+                </CardTitle>
+                <p className="text-sm text-muted-foreground">
+                  העלה קובץ Excel עם רשימת המוצרים שלך
+                </p>
+              </CardHeader>
+              <CardContent>
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                  <Input
+                    id="excel-upload"
+                    type="file"
+                    accept=".xlsx,.xls"
+                    onChange={handleFileUpload}
+                    className="hidden"
+                  />
+                  <Button
+                    onClick={() => document.getElementById("excel-upload")?.click()}
+                    size="lg"
+                    variant="outline"
+                    className="gap-2 w-full sm:w-auto"
+                  >
+                    <Upload className="h-4 w-4" />
+                    בחר קובץ Excel
+                  </Button>
+                  {isFileUploaded && (
+                    <Badge variant="outline" className="bg-success/10 text-success border-success/20 text-center py-2">
+                      הקובץ נטען בהצלחה!
+                    </Badge>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
             {/* Toolbar */}
             <Card className="shadow-sm">
               <CardContent className="p-4">
