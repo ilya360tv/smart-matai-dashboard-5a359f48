@@ -31,32 +31,7 @@ const SupplierPayments = () => {
   const [currentTime, setCurrentTime] = useState(new Date());
   const [searchQuery, setSearchQuery] = useState("");
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [payments] = useState<Payment[]>([
-    {
-      id: 1,
-      name: "ספק ראשי בע״מ",
-      totalAmount: 67000,
-      openDebt: 22000,
-      lastPaymentDate: new Date(2025, 0, 8),
-      status: "באיחור",
-    },
-    {
-      id: 2,
-      name: "ספק משני בע״מ",
-      totalAmount: 41000,
-      openDebt: 0,
-      lastPaymentDate: new Date(2025, 0, 18),
-      status: "שולם",
-    },
-    {
-      id: 3,
-      name: "ספק דלתות מעוצבות",
-      totalAmount: 55000,
-      openDebt: 12000,
-      lastPaymentDate: new Date(2025, 0, 22),
-      status: "בהמתנה",
-    },
-  ]);
+  const [payments] = useState<Payment[]>([]);
 
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);

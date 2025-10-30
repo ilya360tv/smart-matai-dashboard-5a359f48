@@ -31,32 +31,7 @@ const CustomerPayments = () => {
   const [currentTime, setCurrentTime] = useState(new Date());
   const [searchQuery, setSearchQuery] = useState("");
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [payments] = useState<Payment[]>([
-    {
-      id: 1,
-      name: "קבלן דוד כהן",
-      totalAmount: 45000,
-      openDebt: 15000,
-      lastPaymentDate: new Date(2025, 0, 10),
-      status: "באיחור",
-    },
-    {
-      id: 2,
-      name: "קבלן משה לוי",
-      totalAmount: 28000,
-      openDebt: 0,
-      lastPaymentDate: new Date(2025, 0, 15),
-      status: "שולם",
-    },
-    {
-      id: 3,
-      name: "קבלן יוסי אברהם",
-      totalAmount: 32000,
-      openDebt: 8000,
-      lastPaymentDate: new Date(2025, 0, 20),
-      status: "בהמתנה",
-    },
-  ]);
+  const [payments] = useState<Payment[]>([]);
 
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
