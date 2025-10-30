@@ -25,6 +25,7 @@ interface Product {
   category: string;
   quantity: number;
   price: number;
+  customerPrice: number;
   supplier: string;
   side: "ימין" | "שמאל" | "הזזה" | "לא רלוונטי";
   status: "זמין" | "אזל מהמלאי" | "מלאי נמוך";
@@ -56,17 +57,23 @@ const Inventory = () => {
         const jsonData = XLSX.utils.sheet_to_json<any>(worksheet);
 
         // Convert Excel data to Product format
-        const newProducts = jsonData.map((row, index) => ({
-          id: products.length + index + 1,
-          name: row["שם מוצר"] || row["name"] || "",
-          category: row["קטגוריה"] || row["category"] || "",
-          quantity: Number(row["כמות"] || row["quantity"] || 0),
-          price: Number(row["מחיר"] || row["price"] || 0),
-          supplier: row["ספק"] || row["supplier"] || "",
-          side: (row["צד"] || row["side"] || "לא רלוונטי") as Product["side"],
-          status: (Number(row["כמות"] || row["quantity"] || 0) === 0 ? "אזל מהמלאי" : 
-                   Number(row["כמות"] || row["quantity"] || 0) < 10 ? "מלאי נמוך" : "זמין") as Product["status"],
-        }));
+        const newProducts = jsonData.map((row, index) => {
+          const basePrice = Number(row["מחיר"] || row["price"] || 0);
+          const customerPriceFromExcel = Number(row["מחיר ללקוח"] || row["customerPrice"] || 0);
+          
+          return {
+            id: products.length + index + 1,
+            name: row["שם מוצר"] || row["name"] || "",
+            category: row["קטגוריה"] || row["category"] || "",
+            quantity: Number(row["כמות"] || row["quantity"] || 0),
+            price: basePrice,
+            customerPrice: customerPriceFromExcel > 0 ? customerPriceFromExcel : basePrice * 1.1,
+            supplier: row["ספק"] || row["supplier"] || "",
+            side: (row["צד"] || row["side"] || "לא רלוונטי") as Product["side"],
+            status: (Number(row["כמות"] || row["quantity"] || 0) === 0 ? "אזל מהמלאי" : 
+                     Number(row["כמות"] || row["quantity"] || 0) < 10 ? "מלאי נמוך" : "זמין") as Product["status"],
+          };
+        });
 
         setProducts([...products, ...newProducts]);
         setIsFileUploaded(true);
@@ -215,7 +222,8 @@ const Inventory = () => {
                         <TableHead className="text-right font-bold">קטגוריה</TableHead>
                         <TableHead className="text-right font-bold">צד</TableHead>
                         <TableHead className="text-right font-bold">כמות במלאי</TableHead>
-                        <TableHead className="text-right font-bold">מחיר</TableHead>
+                        <TableHead className="text-right font-bold">מחיר בסיסי</TableHead>
+                        <TableHead className="text-right font-bold">מחיר ללקוח</TableHead>
                         <TableHead className="text-right font-bold">ספק</TableHead>
                         <TableHead className="text-right font-bold">סטטוס</TableHead>
                         <TableHead className="text-right font-bold">פעולות</TableHead>
@@ -224,7 +232,7 @@ const Inventory = () => {
                     <TableBody>
                       {filteredProducts.length === 0 ? (
                         <TableRow>
-                          <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
+                          <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
                             לא נמצאו מוצרים
                           </TableCell>
                         </TableRow>
@@ -242,7 +250,8 @@ const Inventory = () => {
                               </Badge>
                             </TableCell>
                             <TableCell className="font-semibold">{product.quantity}</TableCell>
-                            <TableCell className="font-medium">₪{product.price.toFixed(2)}</TableCell>
+                            <TableCell className="font-medium text-muted-foreground">₪{product.price.toFixed(2)}</TableCell>
+                            <TableCell className="font-bold text-primary">₪{product.customerPrice.toFixed(2)}</TableCell>
                             <TableCell className="text-muted-foreground">{product.supplier}</TableCell>
                             <TableCell>
                               <Badge variant="outline" className={getStatusVariant(product.status)}>
@@ -309,8 +318,12 @@ const Inventory = () => {
                             <span className="font-semibold">{product.quantity}</span>
                           </div>
                           <div className="flex justify-between">
-                            <span className="text-muted-foreground">מחיר:</span>
-                            <span className="font-medium">₪{product.price.toFixed(2)}</span>
+                            <span className="text-muted-foreground">מחיר בסיסי:</span>
+                            <span className="font-medium text-muted-foreground">₪{product.price.toFixed(2)}</span>
+                          </div>
+                          <div className="flex justify-between border-t pt-2">
+                            <span className="text-muted-foreground font-medium">מחיר ללקוח:</span>
+                            <span className="font-bold text-primary text-base">₪{product.customerPrice.toFixed(2)}</span>
                           </div>
                           <div className="flex justify-between">
                             <span className="text-muted-foreground">ספק:</span>
