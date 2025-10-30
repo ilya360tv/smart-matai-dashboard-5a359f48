@@ -16,6 +16,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { AddProductModal } from "@/components/AddProductModal";
+import { InventoryAssistant } from "@/components/InventoryAssistant";
 import { toast } from "@/hooks/use-toast";
 import * as XLSX from "xlsx";
 
@@ -147,6 +148,9 @@ const Inventory = () => {
         {/* Main Content */}
         <main className="flex-1 overflow-y-auto p-3 lg:p-6">
           <div className="mx-auto max-w-7xl space-y-4 lg:space-y-6">
+            {/* Smart Assistant */}
+            <InventoryAssistant products={products} />
+
             {/* Excel Upload Section */}
             <Card className="shadow-sm">
               <CardHeader>
