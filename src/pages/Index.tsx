@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Package, Building2, Users, AlertTriangle, Calendar, User, Clock } from "lucide-react";
 import { format } from "date-fns";
 import { he } from "date-fns/locale";
@@ -8,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
 const Index = () => {
+  const navigate = useNavigate();
   const [currentTime, setCurrentTime] = useState(new Date());
 
   useEffect(() => {
@@ -67,24 +69,28 @@ const Index = () => {
                 value="1,234"
                 icon={Package}
                 iconColor="text-primary"
+                onClick={() => navigate("/inventory")}
               />
               <MetricCard
                 title="ספקים פעילים"
                 value="45"
                 icon={Building2}
                 iconColor="text-accent-foreground"
+                onClick={() => navigate("/suppliers")}
               />
               <MetricCard
                 title="לקוחות פעילים"
                 value="89"
                 icon={Users}
                 iconColor="text-success"
+                onClick={() => navigate("/customers")}
               />
               <MetricCard
                 title="התראות פתוחות"
                 value="3"
                 icon={AlertTriangle}
                 iconColor="text-warning"
+                onClick={() => navigate("/stock-movements")}
               />
             </div>
 

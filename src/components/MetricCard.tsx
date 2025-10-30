@@ -6,11 +6,15 @@ interface MetricCardProps {
   value: string | number;
   icon: LucideIcon;
   iconColor?: string;
+  onClick?: () => void;
 }
 
-export const MetricCard = ({ title, value, icon: Icon, iconColor = "text-primary" }: MetricCardProps) => {
+export const MetricCard = ({ title, value, icon: Icon, iconColor = "text-primary", onClick }: MetricCardProps) => {
   return (
-    <Card className="transition-all hover:shadow-lg">
+    <Card 
+      className={`transition-all hover:shadow-lg ${onClick ? 'cursor-pointer hover:scale-[1.02] active:scale-[0.98]' : ''}`}
+      onClick={onClick}
+    >
       <CardHeader className="flex flex-row items-center justify-between pb-2 p-4 lg:p-6">
         <CardTitle className="text-xs lg:text-sm font-medium text-muted-foreground">
           {title}
