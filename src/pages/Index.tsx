@@ -20,13 +20,7 @@ const Index = () => {
     return () => clearInterval(timer);
   }, []);
 
-  const recentUpdates = [
-    { id: 1, productName: "מוצר A", quantity: 150, supplier: "ספק 1", status: "פעיל", date: "2024-03-15", user: "אדמין" },
-    { id: 2, productName: "מוצר B", quantity: 75, supplier: "ספק 2", status: "פעיל", date: "2024-03-14", user: "מנהל" },
-    { id: 3, productName: "מוצר C", quantity: 200, supplier: "ספק 3", status: "פעיל", date: "2024-03-14", user: "אדמין" },
-    { id: 4, productName: "מוצר D", quantity: 50, supplier: "ספק 1", status: "ממתין", date: "2024-03-13", user: "מנהל" },
-    { id: 5, productName: "מוצר E", quantity: 120, supplier: "ספק 4", status: "פעיל", date: "2024-03-13", user: "אדמין" },
-  ];
+  const recentUpdates: Array<{ id: number; productName: string; quantity: number; supplier: string; status: string; date: string; user: string }> = [];
 
   return (
     <div className="flex min-h-screen w-full">
@@ -66,28 +60,28 @@ const Index = () => {
             <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
               <MetricCard
                 title="סה״כ פריטים במלאי"
-                value="1,234"
+                value="0"
                 icon={Package}
                 iconColor="text-primary"
                 onClick={() => navigate("/inventory")}
               />
               <MetricCard
                 title="ספקים פעילים"
-                value="45"
+                value="0"
                 icon={Building2}
                 iconColor="text-accent-foreground"
                 onClick={() => navigate("/suppliers")}
               />
               <MetricCard
                 title="לקוחות פעילים"
-                value="89"
+                value="0"
                 icon={Users}
                 iconColor="text-success"
                 onClick={() => navigate("/customers")}
               />
               <MetricCard
                 title="התראות פתוחות"
-                value="3"
+                value="0"
                 icon={AlertTriangle}
                 iconColor="text-warning"
                 onClick={() => navigate("/stock-movements")}
@@ -120,66 +114,80 @@ const Index = () => {
                       </tr>
                     </thead>
                     <tbody>
-                      {recentUpdates.map((update) => (
-                        <tr key={update.id} className="border-b hover:bg-accent/50 transition-colors">
-                          <td className="p-3 font-medium">{update.productName}</td>
-                          <td className="p-3">{update.quantity}</td>
-                          <td className="p-3 text-muted-foreground">{update.supplier}</td>
-                          <td className="p-3">
-                            <Badge 
-                              variant="outline" 
-                              className={
-                                update.status === "פעיל" 
-                                  ? "bg-success/10 text-success border-success/20" 
-                                  : "bg-warning/10 text-warning border-warning/20"
-                              }
-                            >
-                              {update.status}
-                            </Badge>
-                          </td>
-                          <td className="p-3 text-sm text-muted-foreground">{update.date}</td>
-                          <td className="p-3">
-                            <div className="flex items-center gap-2">
-                              <User className="h-4 w-4 text-muted-foreground" />
-                              <span className="text-sm">{update.user}</span>
-                            </div>
+                      {recentUpdates.length === 0 ? (
+                        <tr>
+                          <td colSpan={6} className="p-8 text-center text-muted-foreground">
+                            אין עדכונים אחרונים להצגה
                           </td>
                         </tr>
-                      ))}
+                      ) : (
+                        recentUpdates.map((update) => (
+                          <tr key={update.id} className="border-b hover:bg-accent/50 transition-colors">
+                            <td className="p-3 font-medium">{update.productName}</td>
+                            <td className="p-3">{update.quantity}</td>
+                            <td className="p-3 text-muted-foreground">{update.supplier}</td>
+                            <td className="p-3">
+                              <Badge 
+                                variant="outline" 
+                                className={
+                                  update.status === "פעיל" 
+                                    ? "bg-success/10 text-success border-success/20" 
+                                    : "bg-warning/10 text-warning border-warning/20"
+                                }
+                              >
+                                {update.status}
+                              </Badge>
+                            </td>
+                            <td className="p-3 text-sm text-muted-foreground">{update.date}</td>
+                            <td className="p-3">
+                              <div className="flex items-center gap-2">
+                                <User className="h-4 w-4 text-muted-foreground" />
+                                <span className="text-sm">{update.user}</span>
+                              </div>
+                            </td>
+                          </tr>
+                        ))
+                      )}
                     </tbody>
                   </table>
                 </div>
 
                 {/* Mobile Cards */}
                 <div className="md:hidden space-y-3">
-                  {recentUpdates.map((update) => (
-                    <div key={update.id} className="border rounded-lg p-4 space-y-2 hover:bg-accent/50 transition-colors">
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <h4 className="font-semibold text-base">{update.productName}</h4>
-                          <p className="text-sm text-muted-foreground">{update.supplier}</p>
-                        </div>
-                        <Badge 
-                          variant="outline" 
-                          className={
-                            update.status === "פעיל" 
-                              ? "bg-success/10 text-success border-success/20" 
-                              : "bg-warning/10 text-warning border-warning/20"
-                          }
-                        >
-                          {update.status}
-                        </Badge>
-                      </div>
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="text-muted-foreground">כמות: {update.quantity}</span>
-                        <span className="text-muted-foreground">{update.date}</span>
-                      </div>
-                      <div className="flex items-center gap-2 text-sm">
-                        <User className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-muted-foreground">{update.user}</span>
-                      </div>
+                  {recentUpdates.length === 0 ? (
+                    <div className="p-8 text-center text-muted-foreground">
+                      אין עדכונים אחרונים להצגה
                     </div>
-                  ))}
+                  ) : (
+                    recentUpdates.map((update) => (
+                      <div key={update.id} className="border rounded-lg p-4 space-y-2 hover:bg-accent/50 transition-colors">
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <h4 className="font-semibold text-base">{update.productName}</h4>
+                            <p className="text-sm text-muted-foreground">{update.supplier}</p>
+                          </div>
+                          <Badge 
+                            variant="outline" 
+                            className={
+                              update.status === "פעיל" 
+                                ? "bg-success/10 text-success border-success/20" 
+                                : "bg-warning/10 text-warning border-warning/20"
+                            }
+                          >
+                            {update.status}
+                          </Badge>
+                        </div>
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="text-muted-foreground">כמות: {update.quantity}</span>
+                          <span className="text-muted-foreground">{update.date}</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-sm">
+                          <User className="h-4 w-4 text-muted-foreground" />
+                          <span className="text-muted-foreground">{update.user}</span>
+                        </div>
+                      </div>
+                    ))
+                  )}
                 </div>
               </CardContent>
             </Card>
