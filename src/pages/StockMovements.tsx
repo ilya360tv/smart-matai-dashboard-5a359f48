@@ -46,44 +46,7 @@ const StockMovements = () => {
   const [movementType, setMovementType] = useState<"הכל" | "כניסה" | "יציאה">("הכל");
   const [dateFrom, setDateFrom] = useState<Date | undefined>();
   const [dateTo, setDateTo] = useState<Date | undefined>();
-  const [movements] = useState<StockMovement[]>([
-    {
-      id: 1,
-      date: new Date(2025, 0, 15),
-      productName: "דלת כניסה מעוצבת",
-      type: "כניסה",
-      quantity: 10,
-      partner: "ספק ראשי בע״מ",
-      notes: "משלוח שבועי",
-    },
-    {
-      id: 2,
-      date: new Date(2025, 0, 14),
-      productName: "ידית אלומיניום",
-      type: "יציאה",
-      quantity: 25,
-      partner: "קבלן דוד כהן",
-      notes: "פרויקט רמת אביב",
-    },
-    {
-      id: 3,
-      date: new Date(2025, 0, 13),
-      productName: "צירים מתכווננים",
-      type: "כניסה",
-      quantity: 50,
-      partner: "ספק משני בע״מ",
-      notes: "",
-    },
-    {
-      id: 4,
-      date: new Date(2025, 0, 12),
-      productName: "מנעול חכם",
-      type: "יציאה",
-      quantity: 15,
-      partner: "קבלן משה לוי",
-      notes: "דחוף",
-    },
-  ]);
+  const [movements] = useState<StockMovement[]>([]);
 
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
