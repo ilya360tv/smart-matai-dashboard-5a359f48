@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Search, Plus, Pencil, Trash2, Upload, Clock, Download } from "lucide-react";
+import { Search, Plus, Pencil, Trash2, Upload, Clock, Download, ArrowUpDown } from "lucide-react";
 import { format } from "date-fns";
 import { he } from "date-fns/locale";
 import { DashboardSidebar } from "@/components/DashboardSidebar";
@@ -22,6 +22,8 @@ import { AddProductModal } from "@/components/AddProductModal";
 import { AddPullHandleModal } from "@/components/AddPullHandleModal";
 import { AddLockingProductModal } from "@/components/AddLockingProductModal";
 import { AddHardwareModal } from "@/components/AddHardwareModal";
+import { EditProductModal } from "@/components/EditProductModal";
+import { EditInventoryItemModal } from "@/components/EditInventoryItemModal";
 import { InventoryAssistant } from "@/components/InventoryAssistant";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -67,21 +69,33 @@ const Inventory = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [isFileUploaded, setIsFileUploaded] = useState(false);
   const [replaceExisting, setReplaceExisting] = useState(true);
+  const [sortField, setSortField] = useState<keyof Product | null>(null);
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
+  
+  // Edit modals
+  const [isEditProductModalOpen, setIsEditProductModalOpen] = useState(false);
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   
   // Pull Handles state
   const [pullHandles, setPullHandles] = useState<PullHandle[]>([]);
   const [isAddPullHandleModalOpen, setIsAddPullHandleModalOpen] = useState(false);
   const [pullHandleSearchQuery, setPullHandleSearchQuery] = useState("");
+  const [isEditPullHandleModalOpen, setIsEditPullHandleModalOpen] = useState(false);
+  const [editingPullHandle, setEditingPullHandle] = useState<PullHandle | null>(null);
   
   // Locking Products state
   const [lockingProducts, setLockingProducts] = useState<LockingProduct[]>([]);
   const [isAddLockingProductModalOpen, setIsAddLockingProductModalOpen] = useState(false);
   const [lockingProductSearchQuery, setLockingProductSearchQuery] = useState("");
+  const [isEditLockingProductModalOpen, setIsEditLockingProductModalOpen] = useState(false);
+  const [editingLockingProduct, setEditingLockingProduct] = useState<LockingProduct | null>(null);
   
   // Hardware state
   const [hardware, setHardware] = useState<Hardware[]>([]);
   const [isAddHardwareModalOpen, setIsAddHardwareModalOpen] = useState(false);
   const [hardwareSearchQuery, setHardwareSearchQuery] = useState("");
+  const [isEditHardwareModalOpen, setIsEditHardwareModalOpen] = useState(false);
+  const [editingHardware, setEditingHardware] = useState<Hardware | null>(null);
 
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
@@ -315,6 +329,32 @@ const Inventory = () => {
     });
   };
 
+  const handleEditProduct = (product: Product) => {
+    setEditingProduct(product);
+    setIsEditProductModalOpen(true);
+  };
+
+  const handleSaveProduct = (updatedProduct: Product) => {
+    const updatedProducts = products.map(p => 
+      p.id === updatedProduct.id ? {
+        ...updatedProduct,
+        status: updatedProduct.quantity === 0 ? "אזל מהמלאי" : 
+                updatedProduct.quantity < 10 ? "מלאי נמוך" : "זמין" as Product["status"]
+      } : p
+    );
+    setProducts(updatedProducts);
+    sonnerToast.success("המוצר עודכן בהצלחה");
+  };
+
+  const handleSort = (field: keyof Product) => {
+    if (sortField === field) {
+      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
+    } else {
+      setSortField(field);
+      setSortDirection("asc");
+    }
+  };
+
   // Pull Handles handlers
   const handleAddPullHandle = async (item: Omit<PullHandle, "id">) => {
     const { error } = await supabase
@@ -414,25 +454,103 @@ const Inventory = () => {
     fetchHardware();
   };
 
+  const handleEditPullHandle = (item: PullHandle) => {
+    setEditingPullHandle(item);
+    setIsEditPullHandleModalOpen(true);
+  };
+
+  const handleSavePullHandle = async (id: string, quantity: number) => {
+    const { error } = await supabase
+      .from("pull_handles_inventory")
+      .update({ quantity })
+      .eq("id", id);
+
+    if (error) {
+      sonnerToast.error("שגיאה בעדכון הפריט");
+      console.error("Error updating pull handle:", error);
+      return;
+    }
+
+    sonnerToast.success("הפריט עודכן בהצלחה");
+    fetchPullHandles();
+  };
+
+  const handleEditLockingProduct = (item: LockingProduct) => {
+    setEditingLockingProduct(item);
+    setIsEditLockingProductModalOpen(true);
+  };
+
+  const handleSaveLockingProduct = async (id: string, quantity: number) => {
+    const { error } = await supabase
+      .from("locking_products_inventory")
+      .update({ quantity })
+      .eq("id", id);
+
+    if (error) {
+      sonnerToast.error("שגיאה בעדכון הפריט");
+      console.error("Error updating locking product:", error);
+      return;
+    }
+
+    sonnerToast.success("הפריט עודכן בהצלחה");
+    fetchLockingProducts();
+  };
+
+  const handleEditHardware = (item: Hardware) => {
+    setEditingHardware(item);
+    setIsEditHardwareModalOpen(true);
+  };
+
+  const handleSaveHardware = async (id: string, quantity: number) => {
+    const { error } = await supabase
+      .from("hardware_inventory")
+      .update({ quantity })
+      .eq("id", id);
+
+    if (error) {
+      sonnerToast.error("שגיאה בעדכון הפריט");
+      console.error("Error updating hardware:", error);
+      return;
+    }
+
+    sonnerToast.success("הפריט עודכן בהצלחה");
+    fetchHardware();
+  };
+
   const filteredProducts = products.filter(product =>
     product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     product.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
     product.supplier.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  const sortedProducts = [...filteredProducts].sort((a, b) => {
+    if (!sortField) return 0;
+    const aValue = a[sortField];
+    const bValue = b[sortField];
+    const modifier = sortDirection === "asc" ? 1 : -1;
+    
+    if (typeof aValue === "string" && typeof bValue === "string") {
+      return aValue.localeCompare(bValue, "he") * modifier;
+    }
+    if (typeof aValue === "number" && typeof bValue === "number") {
+      return (aValue - bValue) * modifier;
+    }
+    return 0;
+  });
+
   const filteredPullHandles = pullHandles.filter(item =>
     item.handle_type.toLowerCase().includes(pullHandleSearchQuery.toLowerCase()) ||
     item.color.toLowerCase().includes(pullHandleSearchQuery.toLowerCase())
-  );
+  ).sort((a, b) => a.handle_type.localeCompare(b.handle_type, "he"));
 
   const filteredLockingProducts = lockingProducts.filter(item =>
     item.item_type.toLowerCase().includes(lockingProductSearchQuery.toLowerCase())
-  );
+  ).sort((a, b) => a.item_type.localeCompare(b.item_type, "he"));
 
   const filteredHardware = hardware.filter(item =>
     item.hardware_type.toLowerCase().includes(hardwareSearchQuery.toLowerCase()) ||
     item.color.toLowerCase().includes(hardwareSearchQuery.toLowerCase())
-  );
+  ).sort((a, b) => a.hardware_type.localeCompare(b.hardware_type, "he"));
 
   const getStatusVariant = (status: Product["status"]) => {
     switch (status) {
@@ -567,26 +685,56 @@ const Inventory = () => {
                       <Table>
                         <TableHeader>
                           <TableRow className="bg-muted/50">
-                            <TableHead className="text-right font-bold">שם מוצר</TableHead>
-                            <TableHead className="text-right font-bold">קטגוריה</TableHead>
+                            <TableHead className="text-right font-bold">
+                              <Button variant="ghost" onClick={() => handleSort("name")} className="gap-1">
+                                שם מוצר
+                                <ArrowUpDown className="h-3 w-3" />
+                              </Button>
+                            </TableHead>
+                            <TableHead className="text-right font-bold">
+                              <Button variant="ghost" onClick={() => handleSort("category")} className="gap-1">
+                                קטגוריה
+                                <ArrowUpDown className="h-3 w-3" />
+                              </Button>
+                            </TableHead>
                             <TableHead className="text-right font-bold">צד</TableHead>
-                            <TableHead className="text-right font-bold">כמות במלאי</TableHead>
-                            <TableHead className="text-right font-bold">מחיר בסיסי</TableHead>
-                            <TableHead className="text-right font-bold">מחיר ללקוח</TableHead>
-                            <TableHead className="text-right font-bold">ספק</TableHead>
+                            <TableHead className="text-right font-bold">
+                              <Button variant="ghost" onClick={() => handleSort("quantity")} className="gap-1">
+                                כמות במלאי
+                                <ArrowUpDown className="h-3 w-3" />
+                              </Button>
+                            </TableHead>
+                            <TableHead className="text-right font-bold">
+                              <Button variant="ghost" onClick={() => handleSort("price")} className="gap-1">
+                                מחיר בסיסי
+                                <ArrowUpDown className="h-3 w-3" />
+                              </Button>
+                            </TableHead>
+                            <TableHead className="text-right font-bold">
+                              <Button variant="ghost" onClick={() => handleSort("customerPrice")} className="gap-1">
+                                מחיר ללקוח
+                                <ArrowUpDown className="h-3 w-3" />
+                              </Button>
+                            </TableHead>
+                            <TableHead className="text-right font-bold">
+                              <Button variant="ghost" onClick={() => handleSort("supplier")} className="gap-1">
+                                ספק
+                                <ArrowUpDown className="h-3 w-3" />
+                              </Button>
+                            </TableHead>
                             <TableHead className="text-right font-bold">סטטוס</TableHead>
                             <TableHead className="text-right font-bold">פעולות</TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody>
-                          {filteredProducts.length === 0 ? (
+                          {sortedProducts.length === 0 ? (
                             <TableRow>
                               <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
                                 לא נמצאו מוצרים
                               </TableCell>
                             </TableRow>
                           ) : (
-                            filteredProducts.map((product) => (
+                            sortedProducts.map((product) => (
                               <TableRow 
                                 key={product.id}
                                 className="hover:bg-muted/30 transition-colors"
@@ -613,6 +761,7 @@ const Inventory = () => {
                                       size="sm"
                                       variant="ghost"
                                       className="h-8 w-8 p-0 hover:bg-primary/10"
+                                      onClick={() => handleEditProduct(product)}
                                     >
                                       <Pencil className="h-4 w-4" />
                                     </Button>
@@ -634,12 +783,12 @@ const Inventory = () => {
                     </div>
 
                     <div className="md:hidden p-3 space-y-3">
-                      {filteredProducts.length === 0 ? (
+                      {sortedProducts.length === 0 ? (
                         <div className="text-center py-8 text-muted-foreground">
                           לא נמצאו מוצרים
                         </div>
                       ) : (
-                        filteredProducts.map((product) => (
+                        sortedProducts.map((product) => (
                           <div
                             key={product.id}
                             className="p-4 rounded-lg border bg-card shadow-sm hover:shadow-md transition-shadow"
@@ -684,6 +833,7 @@ const Inventory = () => {
                                 size="lg"
                                 variant="outline"
                                 className="flex-1 gap-2"
+                                onClick={() => handleEditProduct(product)}
                               >
                                 <Pencil className="h-4 w-4" />
                                 ערוך
@@ -758,13 +908,22 @@ const Inventory = () => {
                                 <TableCell>{item.color}</TableCell>
                                 <TableCell>{item.quantity}</TableCell>
                                 <TableCell>
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    onClick={() => handleDeletePullHandle(item.id)}
-                                  >
-                                    <Trash2 className="h-4 w-4" />
-                                  </Button>
+                                  <div className="flex gap-2">
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      onClick={() => handleEditPullHandle(item)}
+                                    >
+                                      <Pencil className="h-4 w-4" />
+                                    </Button>
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      onClick={() => handleDeletePullHandle(item.id)}
+                                    >
+                                      <Trash2 className="h-4 w-4" />
+                                    </Button>
+                                  </div>
                                 </TableCell>
                               </TableRow>
                             ))
@@ -826,13 +985,22 @@ const Inventory = () => {
                                 <TableCell className="font-medium">{item.item_type}</TableCell>
                                 <TableCell>{item.quantity}</TableCell>
                                 <TableCell>
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    onClick={() => handleDeleteLockingProduct(item.id)}
-                                  >
-                                    <Trash2 className="h-4 w-4" />
-                                  </Button>
+                                  <div className="flex gap-2">
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      onClick={() => handleEditLockingProduct(item)}
+                                    >
+                                      <Pencil className="h-4 w-4" />
+                                    </Button>
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      onClick={() => handleDeleteLockingProduct(item.id)}
+                                    >
+                                      <Trash2 className="h-4 w-4" />
+                                    </Button>
+                                  </div>
                                 </TableCell>
                               </TableRow>
                             ))
@@ -896,13 +1064,22 @@ const Inventory = () => {
                                 <TableCell>{item.color}</TableCell>
                                 <TableCell>{item.quantity}</TableCell>
                                 <TableCell>
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    onClick={() => handleDeleteHardware(item.id)}
-                                  >
-                                    <Trash2 className="h-4 w-4" />
-                                  </Button>
+                                  <div className="flex gap-2">
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      onClick={() => handleEditHardware(item)}
+                                    >
+                                      <Pencil className="h-4 w-4" />
+                                    </Button>
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      onClick={() => handleDeleteHardware(item.id)}
+                                    >
+                                      <Trash2 className="h-4 w-4" />
+                                    </Button>
+                                  </div>
                                 </TableCell>
                               </TableRow>
                             ))
@@ -925,10 +1102,25 @@ const Inventory = () => {
         onAdd={handleAddProduct}
       />
       
+      <EditProductModal
+        isOpen={isEditProductModalOpen}
+        onClose={() => setIsEditProductModalOpen(false)}
+        onSave={handleSaveProduct}
+        product={editingProduct}
+      />
+      
       <AddPullHandleModal
         open={isAddPullHandleModalOpen}
         onOpenChange={setIsAddPullHandleModalOpen}
         onAdd={handleAddPullHandle}
+      />
+
+      <EditInventoryItemModal
+        isOpen={isEditPullHandleModalOpen}
+        onClose={() => setIsEditPullHandleModalOpen(false)}
+        onSave={handleSavePullHandle}
+        item={editingPullHandle}
+        title="עריכת ידית משיכה"
       />
 
       <AddLockingProductModal
@@ -937,10 +1129,26 @@ const Inventory = () => {
         onAdd={handleAddLockingProduct}
       />
 
+      <EditInventoryItemModal
+        isOpen={isEditLockingProductModalOpen}
+        onClose={() => setIsEditLockingProductModalOpen(false)}
+        onSave={handleSaveLockingProduct}
+        item={editingLockingProduct}
+        title="עריכת מוצר נעילה"
+      />
+
       <AddHardwareModal
         open={isAddHardwareModalOpen}
         onOpenChange={setIsAddHardwareModalOpen}
         onAdd={handleAddHardware}
+      />
+
+      <EditInventoryItemModal
+        isOpen={isEditHardwareModalOpen}
+        onClose={() => setIsEditHardwareModalOpen(false)}
+        onSave={handleSaveHardware}
+        item={editingHardware}
+        title="עריכת פירזול"
       />
     </div>
   );
