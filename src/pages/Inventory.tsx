@@ -4,6 +4,7 @@ import { format } from "date-fns";
 import { he } from "date-fns/locale";
 import { DashboardSidebar } from "@/components/DashboardSidebar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Table,
   TableBody,
@@ -18,8 +19,13 @@ import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { AddProductModal } from "@/components/AddProductModal";
+import { AddPullHandleModal } from "@/components/AddPullHandleModal";
+import { AddLockingProductModal } from "@/components/AddLockingProductModal";
+import { AddHardwareModal } from "@/components/AddHardwareModal";
 import { InventoryAssistant } from "@/components/InventoryAssistant";
 import { toast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { toast as sonnerToast } from "sonner";
 import * as XLSX from "xlsx";
 
 interface Product {
@@ -34,6 +40,26 @@ interface Product {
   status: "זמין" | "אזל מהמלאי" | "מלאי נמוך";
 }
 
+interface PullHandle {
+  id: string;
+  handle_type: string;
+  color: string;
+  quantity: number;
+}
+
+interface LockingProduct {
+  id: string;
+  item_type: string;
+  quantity: number;
+}
+
+interface Hardware {
+  id: string;
+  hardware_type: string;
+  color: string;
+  quantity: number;
+}
+
 const Inventory = () => {
   const [currentTime, setCurrentTime] = useState(new Date());
   const [searchQuery, setSearchQuery] = useState("");
@@ -41,11 +67,77 @@ const Inventory = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [isFileUploaded, setIsFileUploaded] = useState(false);
   const [replaceExisting, setReplaceExisting] = useState(true);
+  
+  // Pull Handles state
+  const [pullHandles, setPullHandles] = useState<PullHandle[]>([]);
+  const [isAddPullHandleModalOpen, setIsAddPullHandleModalOpen] = useState(false);
+  const [pullHandleSearchQuery, setPullHandleSearchQuery] = useState("");
+  
+  // Locking Products state
+  const [lockingProducts, setLockingProducts] = useState<LockingProduct[]>([]);
+  const [isAddLockingProductModalOpen, setIsAddLockingProductModalOpen] = useState(false);
+  const [lockingProductSearchQuery, setLockingProductSearchQuery] = useState("");
+  
+  // Hardware state
+  const [hardware, setHardware] = useState<Hardware[]>([]);
+  const [isAddHardwareModalOpen, setIsAddHardwareModalOpen] = useState(false);
+  const [hardwareSearchQuery, setHardwareSearchQuery] = useState("");
 
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
     return () => clearInterval(timer);
   }, []);
+
+  useEffect(() => {
+    fetchPullHandles();
+    fetchLockingProducts();
+    fetchHardware();
+  }, []);
+
+  const fetchPullHandles = async () => {
+    const { data, error } = await supabase
+      .from("pull_handles_inventory")
+      .select("*")
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      sonnerToast.error("שגיאה בטעינת המלאי");
+      console.error("Error fetching pull handles:", error);
+      return;
+    }
+
+    setPullHandles(data || []);
+  };
+
+  const fetchLockingProducts = async () => {
+    const { data, error } = await supabase
+      .from("locking_products_inventory")
+      .select("*")
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      sonnerToast.error("שגיאה בטעינת המלאי");
+      console.error("Error fetching locking products:", error);
+      return;
+    }
+
+    setLockingProducts(data || []);
+  };
+
+  const fetchHardware = async () => {
+    const { data, error } = await supabase
+      .from("hardware_inventory")
+      .select("*")
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      sonnerToast.error("שגיאה בטעינת המלאי");
+      console.error("Error fetching hardware:", error);
+      return;
+    }
+
+    setHardware(data || []);
+  };
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -223,10 +315,123 @@ const Inventory = () => {
     });
   };
 
+  // Pull Handles handlers
+  const handleAddPullHandle = async (item: Omit<PullHandle, "id">) => {
+    const { error } = await supabase
+      .from("pull_handles_inventory")
+      .insert([item]);
+
+    if (error) {
+      sonnerToast.error("שגיאה בהוספת פריט");
+      console.error("Error adding pull handle:", error);
+      return;
+    }
+
+    sonnerToast.success("הפריט נוסף בהצלחה");
+    fetchPullHandles();
+    setIsAddPullHandleModalOpen(false);
+  };
+
+  const handleDeletePullHandle = async (id: string) => {
+    const { error } = await supabase
+      .from("pull_handles_inventory")
+      .delete()
+      .eq("id", id);
+
+    if (error) {
+      sonnerToast.error("שגיאה במחיקת הפריט");
+      console.error("Error deleting pull handle:", error);
+      return;
+    }
+
+    sonnerToast.success("הפריט נמחק בהצלחה");
+    fetchPullHandles();
+  };
+
+  // Locking Products handlers
+  const handleAddLockingProduct = async (item: Omit<LockingProduct, "id">) => {
+    const { error } = await supabase
+      .from("locking_products_inventory")
+      .insert([item]);
+
+    if (error) {
+      sonnerToast.error("שגיאה בהוספת פריט");
+      console.error("Error adding locking product:", error);
+      return;
+    }
+
+    sonnerToast.success("הפריט נוסף בהצלחה");
+    fetchLockingProducts();
+    setIsAddLockingProductModalOpen(false);
+  };
+
+  const handleDeleteLockingProduct = async (id: string) => {
+    const { error } = await supabase
+      .from("locking_products_inventory")
+      .delete()
+      .eq("id", id);
+
+    if (error) {
+      sonnerToast.error("שגיאה במחיקת הפריט");
+      console.error("Error deleting locking product:", error);
+      return;
+    }
+
+    sonnerToast.success("הפריט נמחק בהצלחה");
+    fetchLockingProducts();
+  };
+
+  // Hardware handlers
+  const handleAddHardware = async (item: Omit<Hardware, "id">) => {
+    const { error } = await supabase
+      .from("hardware_inventory")
+      .insert([item]);
+
+    if (error) {
+      sonnerToast.error("שגיאה בהוספת פריט");
+      console.error("Error adding hardware:", error);
+      return;
+    }
+
+    sonnerToast.success("הפריט נוסף בהצלחה");
+    fetchHardware();
+    setIsAddHardwareModalOpen(false);
+  };
+
+  const handleDeleteHardware = async (id: string) => {
+    const { error } = await supabase
+      .from("hardware_inventory")
+      .delete()
+      .eq("id", id);
+
+    if (error) {
+      sonnerToast.error("שגיאה במחיקת הפריט");
+      console.error("Error deleting hardware:", error);
+      return;
+    }
+
+    sonnerToast.success("הפריט נמחק בהצלחה");
+    fetchHardware();
+  };
+
   const filteredProducts = products.filter(product =>
     product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     product.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
     product.supplier.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const filteredPullHandles = pullHandles.filter(item =>
+    item.handle_type.toLowerCase().includes(pullHandleSearchQuery.toLowerCase()) ||
+    item.color.toLowerCase().includes(pullHandleSearchQuery.toLowerCase())
+  );
+
+  const filteredLockingProducts = lockingProducts.filter(item =>
+    item.item_type.toLowerCase().includes(lockingProductSearchQuery.toLowerCase())
+  );
+
+  const filteredHardware = hardware.filter(item =>
+    item.hardware_type.toLowerCase().includes(hardwareSearchQuery.toLowerCase()) ||
+    item.color.toLowerCase().includes(hardwareSearchQuery.toLowerCase())
   );
 
   const getStatusVariant = (status: Product["status"]) => {
@@ -321,186 +526,421 @@ const Inventory = () => {
               </CardContent>
             </Card>
 
-            {/* Toolbar */}
-            <Card className="shadow-sm">
-              <CardContent className="p-4">
-                <div className="flex flex-col sm:flex-row gap-3">
-                  <div className="relative flex-1">
-                    <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      placeholder="חיפוש מוצר..."
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      className="pr-10 h-11"
-                    />
-                  </div>
-                  <Button 
-                    onClick={() => setIsAddModalOpen(true)}
-                    className="gap-2 h-11 sm:w-auto w-full"
-                    size="lg"
-                  >
-                    <Plus className="h-5 w-5" />
-                    הוסף מוצר חדש
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
+            {/* Tabs for different inventories */}
+            <Tabs defaultValue="products" className="w-full">
+              <TabsList className="grid w-full grid-cols-4">
+                <TabsTrigger value="products">מוצרים</TabsTrigger>
+                <TabsTrigger value="pull-handles">ידיות משיכה</TabsTrigger>
+                <TabsTrigger value="locking-products">מוצרי נעילה</TabsTrigger>
+                <TabsTrigger value="hardware">פירזולים</TabsTrigger>
+              </TabsList>
 
-            {/* Products Table */}
-            <Card className="shadow-sm">
-              <CardContent className="p-0">
-                {/* Desktop Table */}
-                <div className="hidden md:block overflow-x-auto">
-                  <Table>
-                    <TableHeader>
-                      <TableRow className="bg-muted/50">
-                        <TableHead className="text-right font-bold">שם מוצר</TableHead>
-                        <TableHead className="text-right font-bold">קטגוריה</TableHead>
-                        <TableHead className="text-right font-bold">צד</TableHead>
-                        <TableHead className="text-right font-bold">כמות במלאי</TableHead>
-                        <TableHead className="text-right font-bold">מחיר בסיסי</TableHead>
-                        <TableHead className="text-right font-bold">מחיר ללקוח</TableHead>
-                        <TableHead className="text-right font-bold">ספק</TableHead>
-                        <TableHead className="text-right font-bold">סטטוס</TableHead>
-                        <TableHead className="text-right font-bold">פעולות</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
+              {/* Products Tab */}
+              <TabsContent value="products" className="space-y-4 mt-4">
+                <Card className="shadow-sm">
+                  <CardContent className="p-4">
+                    <div className="flex flex-col sm:flex-row gap-3">
+                      <div className="relative flex-1">
+                        <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <Input
+                          placeholder="חיפוש מוצר..."
+                          value={searchQuery}
+                          onChange={(e) => setSearchQuery(e.target.value)}
+                          className="pr-10 h-11"
+                        />
+                      </div>
+                      <Button 
+                        onClick={() => setIsAddModalOpen(true)}
+                        className="gap-2 h-11 sm:w-auto w-full"
+                        size="lg"
+                      >
+                        <Plus className="h-5 w-5" />
+                        הוסף מוצר חדש
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card className="shadow-sm">
+                  <CardContent className="p-0">
+                    <div className="hidden md:block overflow-x-auto">
+                      <Table>
+                        <TableHeader>
+                          <TableRow className="bg-muted/50">
+                            <TableHead className="text-right font-bold">שם מוצר</TableHead>
+                            <TableHead className="text-right font-bold">קטגוריה</TableHead>
+                            <TableHead className="text-right font-bold">צד</TableHead>
+                            <TableHead className="text-right font-bold">כמות במלאי</TableHead>
+                            <TableHead className="text-right font-bold">מחיר בסיסי</TableHead>
+                            <TableHead className="text-right font-bold">מחיר ללקוח</TableHead>
+                            <TableHead className="text-right font-bold">ספק</TableHead>
+                            <TableHead className="text-right font-bold">סטטוס</TableHead>
+                            <TableHead className="text-right font-bold">פעולות</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {filteredProducts.length === 0 ? (
+                            <TableRow>
+                              <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
+                                לא נמצאו מוצרים
+                              </TableCell>
+                            </TableRow>
+                          ) : (
+                            filteredProducts.map((product) => (
+                              <TableRow 
+                                key={product.id}
+                                className="hover:bg-muted/30 transition-colors"
+                              >
+                                <TableCell className="font-medium">{product.name}</TableCell>
+                                <TableCell className="text-muted-foreground">{product.category}</TableCell>
+                                <TableCell>
+                                  <Badge variant="secondary" className="font-medium">
+                                    {product.side}
+                                  </Badge>
+                                </TableCell>
+                                <TableCell className="font-semibold">{product.quantity}</TableCell>
+                                <TableCell className="font-medium text-muted-foreground">₪{product.price.toFixed(2)}</TableCell>
+                                <TableCell className="font-bold text-primary">₪{product.customerPrice.toFixed(2)}</TableCell>
+                                <TableCell className="text-muted-foreground">{product.supplier}</TableCell>
+                                <TableCell>
+                                  <Badge variant="outline" className={getStatusVariant(product.status)}>
+                                    {product.status}
+                                  </Badge>
+                                </TableCell>
+                                <TableCell>
+                                  <div className="flex gap-2">
+                                    <Button
+                                      size="sm"
+                                      variant="ghost"
+                                      className="h-8 w-8 p-0 hover:bg-primary/10"
+                                    >
+                                      <Pencil className="h-4 w-4" />
+                                    </Button>
+                                    <Button
+                                      size="sm"
+                                      variant="ghost"
+                                      className="h-8 w-8 p-0 hover:bg-destructive/10 hover:text-destructive"
+                                      onClick={() => handleDeleteProduct(product.id)}
+                                    >
+                                      <Trash2 className="h-4 w-4" />
+                                    </Button>
+                                  </div>
+                                </TableCell>
+                              </TableRow>
+                            ))
+                          )}
+                        </TableBody>
+                      </Table>
+                    </div>
+
+                    <div className="md:hidden p-3 space-y-3">
                       {filteredProducts.length === 0 ? (
-                        <TableRow>
-                          <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
-                            לא נמצאו מוצרים
-                          </TableCell>
-                        </TableRow>
+                        <div className="text-center py-8 text-muted-foreground">
+                          לא נמצאו מוצרים
+                        </div>
                       ) : (
                         filteredProducts.map((product) => (
-                          <TableRow 
+                          <div
                             key={product.id}
-                            className="hover:bg-muted/30 transition-colors"
+                            className="p-4 rounded-lg border bg-card shadow-sm hover:shadow-md transition-shadow"
                           >
-                            <TableCell className="font-medium">{product.name}</TableCell>
-                            <TableCell className="text-muted-foreground">{product.category}</TableCell>
-                            <TableCell>
-                              <Badge variant="secondary" className="font-medium">
-                                {product.side}
-                              </Badge>
-                            </TableCell>
-                            <TableCell className="font-semibold">{product.quantity}</TableCell>
-                            <TableCell className="font-medium text-muted-foreground">₪{product.price.toFixed(2)}</TableCell>
-                            <TableCell className="font-bold text-primary">₪{product.customerPrice.toFixed(2)}</TableCell>
-                            <TableCell className="text-muted-foreground">{product.supplier}</TableCell>
-                            <TableCell>
+                            <div className="flex items-start justify-between mb-3">
+                              <div className="flex-1">
+                                <h3 className="font-semibold text-base mb-1">{product.name}</h3>
+                                <p className="text-sm text-muted-foreground">{product.category}</p>
+                              </div>
                               <Badge variant="outline" className={getStatusVariant(product.status)}>
                                 {product.status}
                               </Badge>
-                            </TableCell>
-                            <TableCell>
-                              <div className="flex gap-2">
-                                <Button
-                                  size="sm"
-                                  variant="ghost"
-                                  className="h-8 w-8 p-0 hover:bg-primary/10"
-                                >
-                                  <Pencil className="h-4 w-4" />
-                                </Button>
-                                <Button
-                                  size="sm"
-                                  variant="ghost"
-                                  className="h-8 w-8 p-0 hover:bg-destructive/10 hover:text-destructive"
-                                  onClick={() => handleDeleteProduct(product.id)}
-                                >
-                                  <Trash2 className="h-4 w-4" />
-                                </Button>
+                            </div>
+                            
+                            <div className="space-y-2 text-sm mb-3">
+                              <div className="flex justify-between">
+                                <span className="text-muted-foreground">צד:</span>
+                                <Badge variant="secondary" className="font-medium">
+                                  {product.side}
+                                </Badge>
                               </div>
-                            </TableCell>
-                          </TableRow>
+                              <div className="flex justify-between">
+                                <span className="text-muted-foreground">כמות:</span>
+                                <span className="font-semibold">{product.quantity}</span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className="text-muted-foreground">מחיר בסיסי:</span>
+                                <span className="font-medium text-muted-foreground">₪{product.price.toFixed(2)}</span>
+                              </div>
+                              <div className="flex justify-between border-t pt-2">
+                                <span className="text-muted-foreground font-medium">מחיר ללקוח:</span>
+                                <span className="font-bold text-primary text-base">₪{product.customerPrice.toFixed(2)}</span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className="text-muted-foreground">ספק:</span>
+                                <span className="font-medium">{product.supplier}</span>
+                              </div>
+                            </div>
+                            
+                            <div className="flex gap-2">
+                              <Button
+                                size="lg"
+                                variant="outline"
+                                className="flex-1 gap-2"
+                              >
+                                <Pencil className="h-4 w-4" />
+                                ערוך
+                              </Button>
+                              <Button
+                                size="lg"
+                                variant="outline"
+                                className="flex-1 gap-2 hover:bg-destructive/10 hover:text-destructive hover:border-destructive"
+                                onClick={() => handleDeleteProduct(product.id)}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                                מחק
+                              </Button>
+                            </div>
+                          </div>
                         ))
                       )}
-                    </TableBody>
-                  </Table>
-                </div>
-
-                {/* Mobile Cards */}
-                <div className="md:hidden p-3 space-y-3">
-                  {filteredProducts.length === 0 ? (
-                    <div className="text-center py-8 text-muted-foreground">
-                      לא נמצאו מוצרים
                     </div>
-                  ) : (
-                    filteredProducts.map((product) => (
-                      <div
-                        key={product.id}
-                        className="p-4 rounded-lg border bg-card shadow-sm hover:shadow-md transition-shadow"
-                      >
-                        <div className="flex items-start justify-between mb-3">
-                          <div className="flex-1">
-                            <h3 className="font-semibold text-base mb-1">{product.name}</h3>
-                            <p className="text-sm text-muted-foreground">{product.category}</p>
-                          </div>
-                          <Badge variant="outline" className={getStatusVariant(product.status)}>
-                            {product.status}
-                          </Badge>
-                        </div>
-                        
-                        <div className="space-y-2 text-sm mb-3">
-                          <div className="flex justify-between">
-                            <span className="text-muted-foreground">צד:</span>
-                            <Badge variant="secondary" className="font-medium">
-                              {product.side}
-                            </Badge>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-muted-foreground">כמות:</span>
-                            <span className="font-semibold">{product.quantity}</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-muted-foreground">מחיר בסיסי:</span>
-                            <span className="font-medium text-muted-foreground">₪{product.price.toFixed(2)}</span>
-                          </div>
-                          <div className="flex justify-between border-t pt-2">
-                            <span className="text-muted-foreground font-medium">מחיר ללקוח:</span>
-                            <span className="font-bold text-primary text-base">₪{product.customerPrice.toFixed(2)}</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-muted-foreground">ספק:</span>
-                            <span className="font-medium">{product.supplier}</span>
-                          </div>
-                        </div>
-                        
-                        <div className="flex gap-2">
-                          <Button
-                            size="lg"
-                            variant="outline"
-                            className="flex-1 gap-2"
-                          >
-                            <Pencil className="h-4 w-4" />
-                            ערוך
-                          </Button>
-                          <Button
-                            size="lg"
-                            variant="outline"
-                            className="flex-1 gap-2 hover:bg-destructive/10 hover:text-destructive hover:border-destructive"
-                            onClick={() => handleDeleteProduct(product.id)}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                            מחק
-                          </Button>
-                        </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              {/* Pull Handles Tab */}
+              <TabsContent value="pull-handles" className="space-y-4 mt-4">
+                <Card className="shadow-sm">
+                  <CardContent className="p-4">
+                    <div className="flex flex-col sm:flex-row gap-3">
+                      <div className="relative flex-1">
+                        <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <Input
+                          placeholder="חיפוש לפי סוג ידית או צבע..."
+                          value={pullHandleSearchQuery}
+                          onChange={(e) => setPullHandleSearchQuery(e.target.value)}
+                          className="pr-10 h-11"
+                        />
                       </div>
-                    ))
-                  )}
-                </div>
-              </CardContent>
-            </Card>
+                      <Button 
+                        onClick={() => setIsAddPullHandleModalOpen(true)}
+                        className="gap-2 h-11 sm:w-auto w-full"
+                        size="lg"
+                      >
+                        <Plus className="h-5 w-5" />
+                        הוסף פריט
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card className="shadow-sm">
+                  <CardContent className="p-0">
+                    <div className="rounded-md border">
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead className="text-right">סוג ידית</TableHead>
+                            <TableHead className="text-right">צבע</TableHead>
+                            <TableHead className="text-right">כמות</TableHead>
+                            <TableHead className="text-right">פעולות</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {filteredPullHandles.length === 0 ? (
+                            <TableRow>
+                              <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
+                                לא נמצאו פריטים
+                              </TableCell>
+                            </TableRow>
+                          ) : (
+                            filteredPullHandles.map((item) => (
+                              <TableRow key={item.id}>
+                                <TableCell className="font-medium">{item.handle_type}</TableCell>
+                                <TableCell>{item.color}</TableCell>
+                                <TableCell>{item.quantity}</TableCell>
+                                <TableCell>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() => handleDeletePullHandle(item.id)}
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                </TableCell>
+                              </TableRow>
+                            ))
+                          )}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              {/* Locking Products Tab */}
+              <TabsContent value="locking-products" className="space-y-4 mt-4">
+                <Card className="shadow-sm">
+                  <CardContent className="p-4">
+                    <div className="flex flex-col sm:flex-row gap-3">
+                      <div className="relative flex-1">
+                        <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <Input
+                          placeholder="חיפוש לפי סוג פריט..."
+                          value={lockingProductSearchQuery}
+                          onChange={(e) => setLockingProductSearchQuery(e.target.value)}
+                          className="pr-10 h-11"
+                        />
+                      </div>
+                      <Button 
+                        onClick={() => setIsAddLockingProductModalOpen(true)}
+                        className="gap-2 h-11 sm:w-auto w-full"
+                        size="lg"
+                      >
+                        <Plus className="h-5 w-5" />
+                        הוסף פריט
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card className="shadow-sm">
+                  <CardContent className="p-0">
+                    <div className="rounded-md border">
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead className="text-right">סוג פריט</TableHead>
+                            <TableHead className="text-right">כמות</TableHead>
+                            <TableHead className="text-right">פעולות</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {filteredLockingProducts.length === 0 ? (
+                            <TableRow>
+                              <TableCell colSpan={3} className="text-center py-8 text-muted-foreground">
+                                לא נמצאו פריטים
+                              </TableCell>
+                            </TableRow>
+                          ) : (
+                            filteredLockingProducts.map((item) => (
+                              <TableRow key={item.id}>
+                                <TableCell className="font-medium">{item.item_type}</TableCell>
+                                <TableCell>{item.quantity}</TableCell>
+                                <TableCell>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() => handleDeleteLockingProduct(item.id)}
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                </TableCell>
+                              </TableRow>
+                            ))
+                          )}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              {/* Hardware Tab */}
+              <TabsContent value="hardware" className="space-y-4 mt-4">
+                <Card className="shadow-sm">
+                  <CardContent className="p-4">
+                    <div className="flex flex-col sm:flex-row gap-3">
+                      <div className="relative flex-1">
+                        <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <Input
+                          placeholder="חיפוש לפי סוג פירזול או צבע..."
+                          value={hardwareSearchQuery}
+                          onChange={(e) => setHardwareSearchQuery(e.target.value)}
+                          className="pr-10 h-11"
+                        />
+                      </div>
+                      <Button 
+                        onClick={() => setIsAddHardwareModalOpen(true)}
+                        className="gap-2 h-11 sm:w-auto w-full"
+                        size="lg"
+                      >
+                        <Plus className="h-5 w-5" />
+                        הוסף פריט
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card className="shadow-sm">
+                  <CardContent className="p-0">
+                    <div className="rounded-md border">
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead className="text-right">סוג פירזול</TableHead>
+                            <TableHead className="text-right">צבע</TableHead>
+                            <TableHead className="text-right">כמות</TableHead>
+                            <TableHead className="text-right">פעולות</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {filteredHardware.length === 0 ? (
+                            <TableRow>
+                              <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
+                                לא נמצאו פריטים
+                              </TableCell>
+                            </TableRow>
+                          ) : (
+                            filteredHardware.map((item) => (
+                              <TableRow key={item.id}>
+                                <TableCell className="font-medium">{item.hardware_type}</TableCell>
+                                <TableCell>{item.color}</TableCell>
+                                <TableCell>{item.quantity}</TableCell>
+                                <TableCell>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() => handleDeleteHardware(item.id)}
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                </TableCell>
+                              </TableRow>
+                            ))
+                          )}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            </Tabs>
           </div>
         </main>
       </div>
 
-      {/* Add Product Modal */}
+      {/* Modals */}
       <AddProductModal
         isOpen={isAddModalOpen}
         onClose={() => setIsAddModalOpen(false)}
         onAdd={handleAddProduct}
+      />
+      
+      <AddPullHandleModal
+        open={isAddPullHandleModalOpen}
+        onOpenChange={setIsAddPullHandleModalOpen}
+        onAdd={handleAddPullHandle}
+      />
+
+      <AddLockingProductModal
+        open={isAddLockingProductModalOpen}
+        onOpenChange={setIsAddLockingProductModalOpen}
+        onAdd={handleAddLockingProduct}
+      />
+
+      <AddHardwareModal
+        open={isAddHardwareModalOpen}
+        onOpenChange={setIsAddHardwareModalOpen}
+        onAdd={handleAddHardware}
       />
     </div>
   );

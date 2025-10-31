@@ -13,9 +13,6 @@ import CustomerPayments from "./pages/CustomerPayments";
 import SupplierPayments from "./pages/SupplierPayments";
 import Customers from "./pages/Customers";
 import PartnerProfile from "./pages/PartnerProfile";
-import PullHandlesInventory from "./pages/PullHandlesInventory";
-import LockingProductsInventory from "./pages/LockingProductsInventory";
-import HardwareInventory from "./pages/HardwareInventory";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -37,9 +34,6 @@ const App = () => (
           <Route path="/contractors" element={<Contractors />} />
           <Route path="/suppliers/:id" element={<PartnerProfile />} />
           <Route path="/customers" element={<Customers />} />
-          <Route path="/pull-handles" element={<PullHandlesInventory />} />
-          <Route path="/locking-products" element={<LockingProductsInventory />} />
-          <Route path="/hardware" element={<HardwareInventory />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
