@@ -14,7 +14,75 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      orders: {
+        Row: {
+          clamp_holes: string | null
+          construction_frame: string | null
+          cover_frame: string | null
+          created_at: string
+          customer_name: string
+          door_color: string | null
+          drilling: string | null
+          electric_lock: boolean | null
+          frame_height: number | null
+          handle_hole: boolean | null
+          id: string
+          installer_price: number
+          katif_blocker: string | null
+          order_number: string
+          price: number
+          product_type: string
+          product_width: number | null
+          quantity: number
+          side: string | null
+          updated_at: string
+        }
+        Insert: {
+          clamp_holes?: string | null
+          construction_frame?: string | null
+          cover_frame?: string | null
+          created_at?: string
+          customer_name: string
+          door_color?: string | null
+          drilling?: string | null
+          electric_lock?: boolean | null
+          frame_height?: number | null
+          handle_hole?: boolean | null
+          id?: string
+          installer_price?: number
+          katif_blocker?: string | null
+          order_number: string
+          price?: number
+          product_type: string
+          product_width?: number | null
+          quantity?: number
+          side?: string | null
+          updated_at?: string
+        }
+        Update: {
+          clamp_holes?: string | null
+          construction_frame?: string | null
+          cover_frame?: string | null
+          created_at?: string
+          customer_name?: string
+          door_color?: string | null
+          drilling?: string | null
+          electric_lock?: boolean | null
+          frame_height?: number | null
+          handle_hole?: boolean | null
+          id?: string
+          installer_price?: number
+          katif_blocker?: string | null
+          order_number?: string
+          price?: number
+          product_type?: string
+          product_width?: number | null
+          quantity?: number
+          side?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
