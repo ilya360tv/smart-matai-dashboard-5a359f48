@@ -46,16 +46,22 @@ const Inventory = () => {
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (!file) return;
+    console.log("File selected:", file);
+    if (!file) {
+      console.log("No file selected");
+      return;
+    }
 
     const reader = new FileReader();
     reader.onload = (e) => {
       try {
+        console.log("File loaded, parsing...");
         const data = e.target?.result;
         const workbook = XLSX.read(data, { type: "binary" });
         const sheetName = workbook.SheetNames[0];
         const worksheet = workbook.Sheets[sheetName];
         const jsonData = XLSX.utils.sheet_to_json<any>(worksheet);
+        console.log("Parsed data:", jsonData);
 
         // Convert Excel data to Product format
         const newProducts = jsonData.map((row, index) => {
@@ -76,6 +82,7 @@ const Inventory = () => {
           };
         });
 
+        console.log("New products:", newProducts);
         setProducts([...products, ...newProducts]);
         setIsFileUploaded(true);
 
@@ -84,6 +91,7 @@ const Inventory = () => {
           description: `${newProducts.length} מוצרים נטענו מהקובץ`,
         });
       } catch (error) {
+        console.error("Error parsing file:", error);
         toast({
           title: "שגיאה בטעינת הקובץ",
           description: "אנא ודא שהקובץ בפורמט Excel תקין",
