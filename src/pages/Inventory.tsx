@@ -78,6 +78,12 @@ interface DoorInventory {
   type_7126d: number;
   type_0096d: number;
   type_mr09: number;
+  type_d100: number;
+  type_d82: number;
+  type_d80: number;
+  type_d_rhk: number;
+  type_d6: number;
+  type_d7: number;
   total: number;
 }
 
@@ -558,7 +564,8 @@ const Inventory = () => {
 
   // Doors handlers
   const handleAddDoor = async (item: Omit<DoorInventory, "id" | "total">) => {
-    const total = item.type_9016t + item.type_9001t + item.type_7126d + item.type_0096d + item.type_mr09;
+    const total = item.type_9016t + item.type_9001t + item.type_7126d + item.type_0096d + item.type_mr09 +
+                  item.type_d100 + item.type_d82 + item.type_d80 + item.type_d_rhk + item.type_d6 + item.type_d7;
     
     const { error } = await supabase
       .from("doors_inventory")
@@ -920,6 +927,12 @@ const Inventory = () => {
                             <TableHead className="text-right">7126d</TableHead>
                             <TableHead className="text-right">0096d</TableHead>
                             <TableHead className="text-right">MR09</TableHead>
+                            <TableHead className="text-right">D100</TableHead>
+                            <TableHead className="text-right">D82</TableHead>
+                            <TableHead className="text-right">D80</TableHead>
+                            <TableHead className="text-right">D R/H/K</TableHead>
+                            <TableHead className="text-right">D6</TableHead>
+                            <TableHead className="text-right">D7</TableHead>
                             <TableHead className="text-right font-bold">סה"כ</TableHead>
                             <TableHead className="text-right">פעולות</TableHead>
                           </TableRow>
@@ -927,7 +940,7 @@ const Inventory = () => {
                         <TableBody>
                           {filteredDoors.length === 0 ? (
                             <TableRow>
-                              <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
+                              <TableCell colSpan={15} className="text-center py-8 text-muted-foreground">
                                 לא נמצאו דלתות
                               </TableCell>
                             </TableRow>
@@ -941,6 +954,12 @@ const Inventory = () => {
                                 <TableCell>{door.type_7126d}</TableCell>
                                 <TableCell>{door.type_0096d}</TableCell>
                                 <TableCell>{door.type_mr09}</TableCell>
+                                <TableCell>{door.type_d100}</TableCell>
+                                <TableCell>{door.type_d82}</TableCell>
+                                <TableCell>{door.type_d80}</TableCell>
+                                <TableCell>{door.type_d_rhk}</TableCell>
+                                <TableCell>{door.type_d6}</TableCell>
+                                <TableCell>{door.type_d7}</TableCell>
                                 <TableCell className="font-bold">{door.total}</TableCell>
                                 <TableCell>
                                   <Button

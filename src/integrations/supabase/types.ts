@@ -25,6 +25,12 @@ export type Database = {
           type_7126d: number
           type_9001t: number
           type_9016t: number
+          type_d_rhk: number
+          type_d100: number
+          type_d6: number
+          type_d7: number
+          type_d80: number
+          type_d82: number
           type_mr09: number
           updated_at: string
         }
@@ -38,6 +44,12 @@ export type Database = {
           type_7126d?: number
           type_9001t?: number
           type_9016t?: number
+          type_d_rhk?: number
+          type_d100?: number
+          type_d6?: number
+          type_d7?: number
+          type_d80?: number
+          type_d82?: number
           type_mr09?: number
           updated_at?: string
         }
@@ -51,6 +63,12 @@ export type Database = {
           type_7126d?: number
           type_9001t?: number
           type_9016t?: number
+          type_d_rhk?: number
+          type_d100?: number
+          type_d6?: number
+          type_d7?: number
+          type_d80?: number
+          type_d82?: number
           type_mr09?: number
           updated_at?: string
         }
