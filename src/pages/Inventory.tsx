@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Search, Plus, Pencil, Trash2, Upload, Clock } from "lucide-react";
+import { Search, Plus, Pencil, Trash2, Upload, Clock, Download } from "lucide-react";
 import { format } from "date-fns";
 import { he } from "date-fns/locale";
 import { DashboardSidebar } from "@/components/DashboardSidebar";
@@ -15,6 +15,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 import { AddProductModal } from "@/components/AddProductModal";
 import { InventoryAssistant } from "@/components/InventoryAssistant";
 import { toast } from "@/hooks/use-toast";
@@ -38,68 +40,162 @@ const Inventory = () => {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [products, setProducts] = useState<Product[]>([]);
   const [isFileUploaded, setIsFileUploaded] = useState(false);
+  const [replaceExisting, setReplaceExisting] = useState(true);
 
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
     return () => clearInterval(timer);
   }, []);
 
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    console.log("File selected:", file);
+    console.log("📁 File selected:", file?.name);
+    
     if (!file) {
-      console.log("No file selected");
+      console.log("❌ No file selected");
       return;
     }
 
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      try {
-        console.log("File loaded, parsing...");
-        const data = e.target?.result;
-        const workbook = XLSX.read(data, { type: "binary" });
-        const sheetName = workbook.SheetNames[0];
-        const worksheet = workbook.Sheets[sheetName];
-        const jsonData = XLSX.utils.sheet_to_json<any>(worksheet);
-        console.log("Parsed data:", jsonData);
-
-        // Convert Excel data to Product format
-        const newProducts = jsonData.map((row, index) => {
-          const basePrice = Number(row["מחיר"] || row["price"] || 0);
-          const customerPriceFromExcel = Number(row["מחיר ללקוח"] || row["customerPrice"] || 0);
-          
-          return {
-            id: products.length + index + 1,
-            name: row["שם מוצר"] || row["name"] || "",
-            category: row["קטגוריה"] || row["category"] || "",
-            quantity: Number(row["כמות"] || row["quantity"] || 0),
-            price: basePrice,
-            customerPrice: customerPriceFromExcel > 0 ? customerPriceFromExcel : basePrice * 1.1,
-            supplier: row["ספק"] || row["supplier"] || "",
-            side: (row["צד"] || row["side"] || "לא רלוונטי") as Product["side"],
-            status: (Number(row["כמות"] || row["quantity"] || 0) === 0 ? "אזל מהמלאי" : 
-                     Number(row["כמות"] || row["quantity"] || 0) < 10 ? "מלאי נמוך" : "זמין") as Product["status"],
-          };
-        });
-
-        console.log("New products:", newProducts);
-        setProducts([...products, ...newProducts]);
-        setIsFileUploaded(true);
-
+    try {
+      console.log("📖 Reading file...");
+      const arrayBuffer = await file.arrayBuffer();
+      console.log("✅ File read successfully, parsing...");
+      
+      const workbook = XLSX.read(arrayBuffer, { type: "array" });
+      
+      if (!workbook.SheetNames || workbook.SheetNames.length === 0) {
+        console.error("❌ No sheets found in workbook");
         toast({
-          title: "הקובץ נטען בהצלחה!",
-          description: `${newProducts.length} מוצרים נטענו מהקובץ`,
-        });
-      } catch (error) {
-        console.error("Error parsing file:", error);
-        toast({
-          title: "שגיאה בטעינת הקובץ",
-          description: "אנא ודא שהקובץ בפורמט Excel תקין",
+          title: "שגיאה בקריאת הקובץ",
+          description: "לא נמצא גיליון בקובץ",
           variant: "destructive",
         });
+        event.target.value = "";
+        return;
       }
-    };
-    reader.readAsBinaryString(file);
+
+      const sheetName = workbook.SheetNames[0];
+      const worksheet = workbook.Sheets[sheetName];
+      const jsonData = XLSX.utils.sheet_to_json<any>(worksheet, { defval: "" });
+      console.log("📊 Parsed raw data:", jsonData);
+
+      // Helper function to normalize row keys (trim + lowercase)
+      const normalizeRow = (row: any) => {
+        const normalized: any = {};
+        Object.keys(row).forEach(key => {
+          normalized[key.trim().toLowerCase()] = row[key];
+        });
+        return normalized;
+      };
+
+      // Helper function to get value from multiple possible keys
+      const get = (row: any, keys: string[]): any => {
+        for (const key of keys) {
+          if (row[key] !== undefined && row[key] !== null && row[key] !== "") {
+            return row[key];
+          }
+        }
+        return "";
+      };
+
+      // Convert Excel data to Product format with flexible column matching
+      const newProducts: Product[] = jsonData
+        .map((rawRow, index) => {
+          const row = normalizeRow(rawRow);
+          
+          const name = get(row, ["שם מוצר", "שם", "name", "product"]);
+          
+          // Skip rows without a product name
+          if (!name || name.toString().trim() === "") {
+            return null;
+          }
+
+          const quantity = Number(get(row, ["כמות", "quantity", "qty"]) || 0);
+          const basePrice = Number(get(row, ["מחיר", "price", "מחיר בסיסי"]) || 0);
+          const customerPriceFromExcel = Number(get(row, ["מחיר ללקוח", "מחיר לקוח", "customerprice", "customer price"]) || 0);
+          
+          const maxId = replaceExisting ? 0 : (products.length > 0 ? Math.max(...products.map(p => p.id)) : 0);
+          
+          return {
+            id: maxId + index + 1,
+            name: name.toString().trim(),
+            category: get(row, ["קטגוריה", "category", "cat"]).toString().trim() || "",
+            quantity,
+            price: basePrice,
+            customerPrice: customerPriceFromExcel > 0 ? customerPriceFromExcel : basePrice * 1.1,
+            supplier: get(row, ["ספק", "supplier"]).toString().trim() || "",
+            side: (get(row, ["צד", "side"]) || "לא רלוונטי") as Product["side"],
+            status: (quantity === 0 ? "אזל מהמלאי" : 
+                     quantity < 10 ? "מלאי נמוך" : "זמין") as Product["status"],
+          };
+        })
+        .filter((p): p is Product => p !== null);
+
+      console.log("✨ New products created:", newProducts);
+
+      if (newProducts.length === 0) {
+        console.warn("⚠️ No valid products found");
+        toast({
+          title: "לא נמצאו מוצרים",
+          description: "אנא ודא ששורת הכותרות כוללת את העמודה 'שם מוצר' או 'name'",
+          variant: "destructive",
+        });
+        event.target.value = "";
+        return;
+      }
+
+      // Replace or append based on switch
+      if (replaceExisting) {
+        setProducts(newProducts);
+        console.log("🔄 Replaced existing products");
+      } else {
+        setProducts([...products, ...newProducts]);
+        console.log("➕ Appended to existing products");
+      }
+      
+      setIsFileUploaded(true);
+
+      toast({
+        title: "הקובץ נטען בהצלחה!",
+        description: `${newProducts.length} מוצרים נטענו מהקובץ${replaceExisting ? "" : " והתווספו למלאי הקיים"}`,
+      });
+
+      // Reset input value to allow uploading the same file again
+      event.target.value = "";
+      
+    } catch (error) {
+      console.error("❌ Error parsing file:", error);
+      toast({
+        title: "שגיאה בטעינת הקובץ",
+        description: "אנא ודא שהקובץ בפורמט Excel תקין",
+        variant: "destructive",
+      });
+      event.target.value = "";
+    }
+  };
+
+  const handleDownloadTemplate = () => {
+    const template = [
+      {
+        "שם מוצר": "דוגמה למוצר",
+        "קטגוריה": "אביזרים",
+        "צד": "ימין",
+        "כמות": 50,
+        "מחיר": 100,
+        "מחיר ללקוח": 120,
+        "ספק": "ספק לדוגמה"
+      }
+    ];
+    
+    const worksheet = XLSX.utils.json_to_sheet(template);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "מלאי");
+    XLSX.writeFile(workbook, "תבנית_מלאי.xlsx");
+    
+    toast({
+      title: "התבנית הורדה בהצלחה",
+      description: "מלא את הקובץ והעלה אותו חזרה",
+    });
   };
 
   const handleAddProduct = (newProduct: Omit<Product, "id" | "status">) => {
@@ -178,7 +274,18 @@ const Inventory = () => {
                   העלה קובץ Excel עם רשימת המוצרים שלך
                 </p>
               </CardHeader>
-              <CardContent>
+              <CardContent className="space-y-4">
+                <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
+                  <Switch
+                    id="replace-mode"
+                    checked={replaceExisting}
+                    onCheckedChange={setReplaceExisting}
+                  />
+                  <Label htmlFor="replace-mode" className="cursor-pointer text-sm font-medium">
+                    להחליף מלאי קיים (אם לא מסומן, המוצרים יתווספו למלאי הקיים)
+                  </Label>
+                </div>
+                
                 <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
                   <Input
                     id="excel-upload"
@@ -195,6 +302,15 @@ const Inventory = () => {
                   >
                     <Upload className="h-4 w-4" />
                     בחר קובץ Excel
+                  </Button>
+                  <Button
+                    onClick={handleDownloadTemplate}
+                    size="lg"
+                    variant="secondary"
+                    className="gap-2 w-full sm:w-auto"
+                  >
+                    <Download className="h-4 w-4" />
+                    הורד תבנית אקסל
                   </Button>
                   {isFileUploaded && (
                     <Badge variant="outline" className="bg-success/10 text-success border-success/20 text-center py-2">
