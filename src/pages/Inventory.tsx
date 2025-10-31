@@ -28,6 +28,7 @@ import { AddProductModal } from "@/components/AddProductModal";
 import { AddPullHandleModal } from "@/components/AddPullHandleModal";
 import { AddLockingProductModal } from "@/components/AddLockingProductModal";
 import { AddHardwareModal } from "@/components/AddHardwareModal";
+import { AddDoorModal } from "@/components/AddDoorModal";
 import { EditProductModal } from "@/components/EditProductModal";
 import { EditInventoryItemModal } from "@/components/EditInventoryItemModal";
 import { InventoryAssistant } from "@/components/InventoryAssistant";
@@ -68,7 +69,19 @@ interface Hardware {
   quantity: number;
 }
 
-type ProductCategory = "all" | "products" | "pull-handles" | "locking-products" | "hardware";
+interface DoorInventory {
+  id: string;
+  size: string;
+  direction: string;
+  type_9016t: number;
+  type_9001t: number;
+  type_7126d: number;
+  type_0096d: number;
+  type_mr09: number;
+  total: number;
+}
+
+type ProductCategory = "all" | "products" | "pull-handles" | "locking-products" | "hardware" | "doors";
 
 const Inventory = () => {
   const [currentTime, setCurrentTime] = useState(new Date());
@@ -102,6 +115,12 @@ const Inventory = () => {
   const [isAddHardwareModalOpen, setIsAddHardwareModalOpen] = useState(false);
   const [isEditHardwareModalOpen, setIsEditHardwareModalOpen] = useState(false);
   const [editingHardware, setEditingHardware] = useState<Hardware | null>(null);
+  
+  // Doors state
+  const [doors, setDoors] = useState<DoorInventory[]>([]);
+  const [isAddDoorModalOpen, setIsAddDoorModalOpen] = useState(false);
+  const [isEditDoorModalOpen, setIsEditDoorModalOpen] = useState(false);
+  const [editingDoor, setEditingDoor] = useState<DoorInventory | null>(null);
 
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
@@ -112,6 +131,7 @@ const Inventory = () => {
     fetchPullHandles();
     fetchLockingProducts();
     fetchHardware();
+    fetchDoors();
   }, []);
 
   const fetchPullHandles = async () => {
@@ -157,6 +177,21 @@ const Inventory = () => {
     }
 
     setHardware(data || []);
+  };
+
+  const fetchDoors = async () => {
+    const { data, error } = await supabase
+      .from("doors_inventory")
+      .select("*")
+      .order("size", { ascending: true });
+
+    if (error) {
+      sonnerToast.error("שגיאה בטעינת המלאי");
+      console.error("Error fetching doors:", error);
+      return;
+    }
+
+    setDoors(data || []);
   };
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -523,6 +558,40 @@ const Inventory = () => {
     fetchHardware();
   };
 
+  // Doors handlers
+  const handleAddDoor = async (door: Omit<DoorInventory, "id" | "total">) => {
+    const total = door.type_9016t + door.type_9001t + door.type_7126d + door.type_0096d + door.type_mr09;
+    const { error } = await supabase
+      .from("doors_inventory")
+      .insert([{ ...door, total }]);
+
+    if (error) {
+      sonnerToast.error("שגיאה בהוספת דלת");
+      console.error("Error adding door:", error);
+      return;
+    }
+
+    sonnerToast.success("הדלת נוספה בהצלחה");
+    fetchDoors();
+    setIsAddDoorModalOpen(false);
+  };
+
+  const handleDeleteDoor = async (id: string) => {
+    const { error } = await supabase
+      .from("doors_inventory")
+      .delete()
+      .eq("id", id);
+
+    if (error) {
+      sonnerToast.error("שגיאה במחיקת הדלת");
+      console.error("Error deleting door:", error);
+      return;
+    }
+
+    sonnerToast.success("הדלת נמחקה בהצלחה");
+    fetchDoors();
+  };
+
   // Filter and combine all inventory items
   const filteredProducts = products.filter(product =>
     product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -542,6 +611,11 @@ const Inventory = () => {
   const filteredHardware = hardware.filter(item =>
     item.hardware_type.toLowerCase().includes(searchQuery.toLowerCase()) ||
     item.color.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const filteredDoors = doors.filter(item =>
+    item.size.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    item.direction.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   // Apply category filter
@@ -698,6 +772,7 @@ const Inventory = () => {
                         <SelectItem value="pull-handles">ידיות משיכה</SelectItem>
                         <SelectItem value="locking-products">מוצרי נעילה</SelectItem>
                         <SelectItem value="hardware">פירזולים</SelectItem>
+                        <SelectItem value="doors">דלתות</SelectItem>
                       </SelectContent>
                     </Select>
                     <Button 
@@ -705,6 +780,7 @@ const Inventory = () => {
                         if (categoryFilter === "pull-handles") setIsAddPullHandleModalOpen(true);
                         else if (categoryFilter === "locking-products") setIsAddLockingProductModalOpen(true);
                         else if (categoryFilter === "hardware") setIsAddHardwareModalOpen(true);
+                        else if (categoryFilter === "doors") setIsAddDoorModalOpen(true);
                         else setIsAddModalOpen(true);
                       }}
                       className="gap-2 h-11 sm:w-auto w-full"
@@ -1071,6 +1147,65 @@ const Inventory = () => {
                   </CardContent>
                 </Card>
             )}
+            
+            {/* Doors Table */}
+            {(categoryFilter === "all" || categoryFilter === "doors") && (
+              <Card className="shadow-sm">
+                <CardHeader>
+                  <CardTitle>מלאי דלתות</CardTitle>
+                </CardHeader>
+                  <CardContent className="p-0">
+                    <div className="rounded-md border">
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead className="text-right">מידה</TableHead>
+                            <TableHead className="text-right">כיוון</TableHead>
+                            <TableHead className="text-right">9016t</TableHead>
+                            <TableHead className="text-right">9001t</TableHead>
+                            <TableHead className="text-right">7126d</TableHead>
+                            <TableHead className="text-right">0096d</TableHead>
+                            <TableHead className="text-right">MR09</TableHead>
+                            <TableHead className="text-right font-bold">סה"כ</TableHead>
+                            <TableHead className="text-right">פעולות</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {filteredDoors.length === 0 ? (
+                            <TableRow>
+                              <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
+                                לא נמצאו דלתות
+                              </TableCell>
+                            </TableRow>
+                          ) : (
+                            filteredDoors.map((door) => (
+                              <TableRow key={door.id}>
+                                <TableCell className="font-medium">{door.size}</TableCell>
+                                <TableCell>{door.direction}</TableCell>
+                                <TableCell>{door.type_9016t}</TableCell>
+                                <TableCell>{door.type_9001t}</TableCell>
+                                <TableCell>{door.type_7126d}</TableCell>
+                                <TableCell>{door.type_0096d}</TableCell>
+                                <TableCell>{door.type_mr09}</TableCell>
+                                <TableCell className="font-bold">{door.total}</TableCell>
+                                <TableCell>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() => handleDeleteDoor(door.id)}
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                </TableCell>
+                              </TableRow>
+                            ))
+                          )}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  </CardContent>
+                </Card>
+            )}
           </div>
         </main>
       </div>
@@ -1129,6 +1264,12 @@ const Inventory = () => {
         onSave={handleSaveHardware}
         item={editingHardware}
         title="עריכת פירזול"
+      />
+
+      <AddDoorModal
+        open={isAddDoorModalOpen}
+        onOpenChange={setIsAddDoorModalOpen}
+        onAdd={handleAddDoor}
       />
     </div>
   );
