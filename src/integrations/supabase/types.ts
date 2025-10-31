@@ -14,62 +14,164 @@ export type Database = {
   }
   public: {
     Tables: {
-      doors_inventory: {
+      doors_d_rhk: {
         Row: {
           created_at: string
           direction: string
           id: string
+          quantity: number
           size: string
-          total: number
-          type_0096d: number
-          type_7126d: number
-          type_9001t: number
-          type_9016t: number
-          type_d_rhk: number
-          type_d100: number
-          type_d6: number
-          type_d7: number
-          type_d80: number
-          type_d82: number
-          type_mr09: number
           updated_at: string
         }
         Insert: {
           created_at?: string
           direction: string
           id?: string
+          quantity?: number
           size: string
-          total?: number
-          type_0096d?: number
-          type_7126d?: number
-          type_9001t?: number
-          type_9016t?: number
-          type_d_rhk?: number
-          type_d100?: number
-          type_d6?: number
-          type_d7?: number
-          type_d80?: number
-          type_d82?: number
-          type_mr09?: number
           updated_at?: string
         }
         Update: {
           created_at?: string
           direction?: string
           id?: string
+          quantity?: number
           size?: string
-          total?: number
-          type_0096d?: number
-          type_7126d?: number
-          type_9001t?: number
-          type_9016t?: number
-          type_d_rhk?: number
-          type_d100?: number
-          type_d6?: number
-          type_d7?: number
-          type_d80?: number
-          type_d82?: number
-          type_mr09?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      doors_d100: {
+        Row: {
+          created_at: string
+          direction: string
+          id: string
+          quantity: number
+          size: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          direction: string
+          id?: string
+          quantity?: number
+          size: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          direction?: string
+          id?: string
+          quantity?: number
+          size?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      doors_d6: {
+        Row: {
+          created_at: string
+          direction: string
+          id: string
+          quantity: number
+          size: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          direction: string
+          id?: string
+          quantity?: number
+          size: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          direction?: string
+          id?: string
+          quantity?: number
+          size?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      doors_d7: {
+        Row: {
+          created_at: string
+          direction: string
+          id: string
+          quantity: number
+          size: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          direction: string
+          id?: string
+          quantity?: number
+          size: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          direction?: string
+          id?: string
+          quantity?: number
+          size?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      doors_d80: {
+        Row: {
+          created_at: string
+          direction: string
+          id: string
+          quantity: number
+          size: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          direction: string
+          id?: string
+          quantity?: number
+          size: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          direction?: string
+          id?: string
+          quantity?: number
+          size?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      doors_d82: {
+        Row: {
+          created_at: string
+          direction: string
+          id: string
+          quantity: number
+          size: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          direction: string
+          id?: string
+          quantity?: number
+          size: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          direction?: string
+          id?: string
+          quantity?: number
+          size?: string
           updated_at?: string
         }
         Relationships: []
