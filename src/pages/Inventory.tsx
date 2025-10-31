@@ -81,7 +81,7 @@ interface DoorInventory {
   total: number;
 }
 
-type ProductCategory = "all" | "products" | "pull-handles" | "locking-products" | "hardware" | "doors";
+type ProductCategory = "all" | "pull-handles" | "locking-products" | "hardware" | "doors";
 
 const Inventory = () => {
   const [currentTime, setCurrentTime] = useState(new Date());
@@ -620,21 +620,21 @@ const Inventory = () => {
   // Apply category filter
   const getFilteredItems = () => {
     switch (categoryFilter) {
-      case "products":
-        return filteredProducts;
       case "pull-handles":
         return filteredPullHandles;
       case "locking-products":
         return filteredLockingProducts;
       case "hardware":
         return filteredHardware;
+      case "doors":
+        return filteredDoors;
       case "all":
       default:
         return [
-          ...filteredProducts,
           ...filteredPullHandles,
           ...filteredLockingProducts,
-          ...filteredHardware
+          ...filteredHardware,
+          ...filteredDoors
         ];
     }
   };
@@ -685,67 +685,6 @@ const Inventory = () => {
         {/* Main Content */}
         <main className="flex-1 overflow-y-auto p-3 lg:p-6">
           <div className="mx-auto max-w-7xl space-y-4 lg:space-y-6">
-            {/* Smart Assistant */}
-            <InventoryAssistant products={products} />
-
-            {/* Excel Upload Section */}
-            <Card className="shadow-sm">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-lg lg:text-2xl">
-                  <Upload className="h-5 w-5 text-primary" />
-                  ייבוא מלאי מאקסל
-                </CardTitle>
-                <p className="text-sm text-muted-foreground">
-                  העלה קובץ Excel עם רשימת המוצרים שלך
-                </p>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
-                  <Switch
-                    id="replace-mode"
-                    checked={replaceExisting}
-                    onCheckedChange={setReplaceExisting}
-                  />
-                  <Label htmlFor="replace-mode" className="cursor-pointer text-sm font-medium">
-                    להחליף מלאי קיים (אם לא מסומן, המוצרים יתווספו למלאי הקיים)
-                  </Label>
-                </div>
-                
-                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-                  <Input
-                    id="excel-upload"
-                    type="file"
-                    accept=".xlsx,.xls"
-                    onChange={handleFileUpload}
-                    className="hidden"
-                  />
-                  <Button
-                    onClick={() => document.getElementById("excel-upload")?.click()}
-                    size="lg"
-                    variant="outline"
-                    className="gap-2 w-full sm:w-auto"
-                  >
-                    <Upload className="h-4 w-4" />
-                    בחר קובץ Excel
-                  </Button>
-                  <Button
-                    onClick={handleDownloadTemplate}
-                    size="lg"
-                    variant="secondary"
-                    className="gap-2 w-full sm:w-auto"
-                  >
-                    <Download className="h-4 w-4" />
-                    הורד תבנית אקסל
-                  </Button>
-                  {isFileUploaded && (
-                    <Badge variant="outline" className="bg-success/10 text-success border-success/20 text-center py-2">
-                      הקובץ נטען בהצלחה!
-                    </Badge>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-
             {/* Unified Products Table */}
             <Card className="shadow-sm">
               <CardContent className="p-4 space-y-4">
@@ -767,7 +706,6 @@ const Inventory = () => {
                       </SelectTrigger>
                       <SelectContent className="bg-background z-50">
                         <SelectItem value="all">כל המוצרים</SelectItem>
-                        <SelectItem value="products">מוצרים רגילים</SelectItem>
                         <SelectItem value="pull-handles">ידיות משיכה</SelectItem>
                         <SelectItem value="locking-products">מוצרי נעילה</SelectItem>
                         <SelectItem value="hardware">פירזולים</SelectItem>
@@ -780,200 +718,17 @@ const Inventory = () => {
                         else if (categoryFilter === "locking-products") setIsAddLockingProductModalOpen(true);
                         else if (categoryFilter === "hardware") setIsAddHardwareModalOpen(true);
                         else if (categoryFilter === "doors") setIsAddDoorModalOpen(true);
-                        else setIsAddModalOpen(true);
                       }}
                       className="gap-2 h-11 sm:w-auto w-full"
                       size="lg"
                     >
                       <Plus className="h-5 w-5" />
-                      הוסף מוצר
+                      הוסף פריט
                     </Button>
                   </div>
                 </div>
               </CardContent>
             </Card>
-
-            {/* Products Table - Regular Products */}
-            {(categoryFilter === "all" || categoryFilter === "products") && (
-              <Card className="shadow-sm">
-                <CardHeader>
-                  <CardTitle>מוצרים רגילים</CardTitle>
-                </CardHeader>
-                  <CardContent className="p-0">
-                    <div className="hidden md:block overflow-x-auto">
-                      <Table>
-                        <TableHeader>
-                          <TableRow className="bg-muted/50">
-                            <TableHead className="text-right font-bold">
-                              <Button variant="ghost" onClick={() => handleSort("name")} className="gap-1">
-                                שם מוצר
-                                <ArrowUpDown className="h-3 w-3" />
-                              </Button>
-                            </TableHead>
-                            <TableHead className="text-right font-bold">
-                              <Button variant="ghost" onClick={() => handleSort("category")} className="gap-1">
-                                קטגוריה
-                                <ArrowUpDown className="h-3 w-3" />
-                              </Button>
-                            </TableHead>
-                            <TableHead className="text-right font-bold">צד</TableHead>
-                            <TableHead className="text-right font-bold">
-                              <Button variant="ghost" onClick={() => handleSort("quantity")} className="gap-1">
-                                כמות במלאי
-                                <ArrowUpDown className="h-3 w-3" />
-                              </Button>
-                            </TableHead>
-                            <TableHead className="text-right font-bold">
-                              <Button variant="ghost" onClick={() => handleSort("price")} className="gap-1">
-                                מחיר בסיסי
-                                <ArrowUpDown className="h-3 w-3" />
-                              </Button>
-                            </TableHead>
-                            <TableHead className="text-right font-bold">
-                              <Button variant="ghost" onClick={() => handleSort("customerPrice")} className="gap-1">
-                                מחיר ללקוח
-                                <ArrowUpDown className="h-3 w-3" />
-                              </Button>
-                            </TableHead>
-                            <TableHead className="text-right font-bold">
-                              <Button variant="ghost" onClick={() => handleSort("supplier")} className="gap-1">
-                                ספק
-                                <ArrowUpDown className="h-3 w-3" />
-                              </Button>
-                            </TableHead>
-                            <TableHead className="text-right font-bold">סטטוס</TableHead>
-                            <TableHead className="text-right font-bold">פעולות</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {sortedProducts.length === 0 ? (
-                            <TableRow>
-                              <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
-                                לא נמצאו מוצרים
-                              </TableCell>
-                            </TableRow>
-                          ) : (
-                            sortedProducts.map((product) => (
-                              <TableRow 
-                                key={product.id}
-                                className="hover:bg-muted/30 transition-colors"
-                              >
-                                <TableCell className="font-medium">{product.name}</TableCell>
-                                <TableCell className="text-muted-foreground">{product.category}</TableCell>
-                                <TableCell>
-                                  <Badge variant="secondary" className="font-medium">
-                                    {product.side}
-                                  </Badge>
-                                </TableCell>
-                                <TableCell className="font-semibold">{product.quantity}</TableCell>
-                                <TableCell className="font-medium text-muted-foreground">₪{product.price.toFixed(2)}</TableCell>
-                                <TableCell className="font-bold text-primary">₪{product.customerPrice.toFixed(2)}</TableCell>
-                                <TableCell className="text-muted-foreground">{product.supplier}</TableCell>
-                                <TableCell>
-                                  <Badge variant="outline" className={getStatusVariant(product.status)}>
-                                    {product.status}
-                                  </Badge>
-                                </TableCell>
-                                <TableCell>
-                                  <div className="flex gap-2">
-                                    <Button
-                                      size="sm"
-                                      variant="ghost"
-                                      className="h-8 w-8 p-0 hover:bg-primary/10"
-                                      onClick={() => handleEditProduct(product)}
-                                    >
-                                      <Pencil className="h-4 w-4" />
-                                    </Button>
-                                    <Button
-                                      size="sm"
-                                      variant="ghost"
-                                      className="h-8 w-8 p-0 hover:bg-destructive/10 hover:text-destructive"
-                                      onClick={() => handleDeleteProduct(product.id)}
-                                    >
-                                      <Trash2 className="h-4 w-4" />
-                                    </Button>
-                                  </div>
-                                </TableCell>
-                              </TableRow>
-                            ))
-                          )}
-                        </TableBody>
-                      </Table>
-                    </div>
-
-                    <div className="md:hidden p-3 space-y-3">
-                      {sortedProducts.length === 0 ? (
-                        <div className="text-center py-8 text-muted-foreground">
-                          לא נמצאו מוצרים
-                        </div>
-                      ) : (
-                        sortedProducts.map((product) => (
-                          <div
-                            key={product.id}
-                            className="p-4 rounded-lg border bg-card shadow-sm hover:shadow-md transition-shadow"
-                          >
-                            <div className="flex items-start justify-between mb-3">
-                              <div className="flex-1">
-                                <h3 className="font-semibold text-base mb-1">{product.name}</h3>
-                                <p className="text-sm text-muted-foreground">{product.category}</p>
-                              </div>
-                              <Badge variant="outline" className={getStatusVariant(product.status)}>
-                                {product.status}
-                              </Badge>
-                            </div>
-                            
-                            <div className="space-y-2 text-sm mb-3">
-                              <div className="flex justify-between">
-                                <span className="text-muted-foreground">צד:</span>
-                                <Badge variant="secondary" className="font-medium">
-                                  {product.side}
-                                </Badge>
-                              </div>
-                              <div className="flex justify-between">
-                                <span className="text-muted-foreground">כמות:</span>
-                                <span className="font-semibold">{product.quantity}</span>
-                              </div>
-                              <div className="flex justify-between">
-                                <span className="text-muted-foreground">מחיר בסיסי:</span>
-                                <span className="font-medium text-muted-foreground">₪{product.price.toFixed(2)}</span>
-                              </div>
-                              <div className="flex justify-between border-t pt-2">
-                                <span className="text-muted-foreground font-medium">מחיר ללקוח:</span>
-                                <span className="font-bold text-primary text-base">₪{product.customerPrice.toFixed(2)}</span>
-                              </div>
-                              <div className="flex justify-between">
-                                <span className="text-muted-foreground">ספק:</span>
-                                <span className="font-medium">{product.supplier}</span>
-                              </div>
-                            </div>
-                            
-                            <div className="flex gap-2">
-                              <Button
-                                size="lg"
-                                variant="outline"
-                                className="flex-1 gap-2"
-                                onClick={() => handleEditProduct(product)}
-                              >
-                                <Pencil className="h-4 w-4" />
-                                ערוך
-                              </Button>
-                              <Button
-                                size="lg"
-                                variant="outline"
-                                className="flex-1 gap-2 hover:bg-destructive/10 hover:text-destructive hover:border-destructive"
-                                onClick={() => handleDeleteProduct(product.id)}
-                              >
-                                <Trash2 className="h-4 w-4" />
-                                מחק
-                              </Button>
-                            </div>
-                          </div>
-                        ))
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-            )}
 
             {/* Pull Handles Table */}
             {(categoryFilter === "all" || categoryFilter === "pull-handles") && (
