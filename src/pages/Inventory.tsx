@@ -73,8 +73,13 @@ interface DoorInventory {
   id: string;
   size: string;
   direction: string;
-  quantity: number;
-  table_name: string; // Which table this door belongs to
+  type_9016t: number;
+  type_9001t: number;
+  type_7126d: number;
+  type_0096d: number;
+  type_mr09: number;
+  total: number;
+  table_name: string;
 }
 
 type ProductCategory = "all" | "pull-handles" | "locking-products" | "hardware" | "doors";
@@ -563,12 +568,13 @@ const Inventory = () => {
   };
 
   // Doors handlers
-  const handleAddDoor = async (item: Omit<DoorInventory, "id">) => {
+  const handleAddDoor = async (item: Omit<DoorInventory, "id" | "total">) => {
     const { table_name, ...doorData } = item;
+    const total = item.type_9016t + item.type_9001t + item.type_7126d + item.type_0096d + item.type_mr09;
     
     const { error } = await supabase
       .from(table_name as any)
-      .insert([doorData]);
+      .insert([{ ...doorData, total }]);
 
     if (error) {
       sonnerToast.error("שגיאה בהוספת דלת");
@@ -911,30 +917,35 @@ const Inventory = () => {
             {/* Doors Tables - Separate table for each door type */}
             {(categoryFilter === "all" || categoryFilter === "doors") && (
               <>
-                {['doors_d100', 'doors_d82', 'doors_d80', 'doors_d_rhk', 'doors_d6', 'doors_d7'].map((tableName) => {
+                {['doors_d7', 'doors_d100', 'doors_d82', 'doors_d80', 'doors_d_rhk', 'doors_d6'].map((tableName) => {
                   const tableLabel = tableName.replace('doors_', '').toUpperCase();
                   const tableDoors = filteredDoors.filter(door => door.table_name === tableName);
                   
                   return (
                     <Card key={tableName} className="shadow-sm">
                       <CardHeader>
-                        <CardTitle>מלאי דלתות {tableLabel}</CardTitle>
+                        <CardTitle>מלאי דלתות מיקום {tableLabel}</CardTitle>
                       </CardHeader>
                       <CardContent className="p-0">
-                        <div className="rounded-md border">
+                        <div className="rounded-md border overflow-x-auto">
                           <Table>
                             <TableHeader>
                               <TableRow>
                                 <TableHead className="text-right">מידה</TableHead>
                                 <TableHead className="text-right">כיוון</TableHead>
-                                <TableHead className="text-right">כמות</TableHead>
+                                <TableHead className="text-right">9016t</TableHead>
+                                <TableHead className="text-right">9001t</TableHead>
+                                <TableHead className="text-right">7126d</TableHead>
+                                <TableHead className="text-right">0096d</TableHead>
+                                <TableHead className="text-right">MR09</TableHead>
+                                <TableHead className="text-right font-bold">סה"כ</TableHead>
                                 <TableHead className="text-right">פעולות</TableHead>
                               </TableRow>
                             </TableHeader>
                             <TableBody>
                               {tableDoors.length === 0 ? (
                                 <TableRow>
-                                  <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
+                                  <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
                                     לא נמצאו דלתות
                                   </TableCell>
                                 </TableRow>
@@ -943,7 +954,12 @@ const Inventory = () => {
                                   <TableRow key={door.id}>
                                     <TableCell className="font-medium">{door.size}</TableCell>
                                     <TableCell>{door.direction}</TableCell>
-                                    <TableCell>{door.quantity}</TableCell>
+                                    <TableCell>{door.type_9016t}</TableCell>
+                                    <TableCell>{door.type_9001t}</TableCell>
+                                    <TableCell>{door.type_7126d}</TableCell>
+                                    <TableCell>{door.type_0096d}</TableCell>
+                                    <TableCell>{door.type_mr09}</TableCell>
+                                    <TableCell className="font-bold">{door.total}</TableCell>
                                     <TableCell>
                                       <Button
                                         variant="ghost"

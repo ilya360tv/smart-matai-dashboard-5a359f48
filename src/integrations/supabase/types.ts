@@ -19,24 +19,39 @@ export type Database = {
           created_at: string
           direction: string
           id: string
-          quantity: number
           size: string
+          total: number
+          type_0096d: number
+          type_7126d: number
+          type_9001t: number
+          type_9016t: number
+          type_mr09: number
           updated_at: string
         }
         Insert: {
           created_at?: string
           direction: string
           id?: string
-          quantity?: number
           size: string
+          total?: number
+          type_0096d?: number
+          type_7126d?: number
+          type_9001t?: number
+          type_9016t?: number
+          type_mr09?: number
           updated_at?: string
         }
         Update: {
           created_at?: string
           direction?: string
           id?: string
-          quantity?: number
           size?: string
+          total?: number
+          type_0096d?: number
+          type_7126d?: number
+          type_9001t?: number
+          type_9016t?: number
+          type_mr09?: number
           updated_at?: string
         }
         Relationships: []
@@ -46,24 +61,39 @@ export type Database = {
           created_at: string
           direction: string
           id: string
-          quantity: number
           size: string
+          total: number
+          type_0096d: number
+          type_7126d: number
+          type_9001t: number
+          type_9016t: number
+          type_mr09: number
           updated_at: string
         }
         Insert: {
           created_at?: string
           direction: string
           id?: string
-          quantity?: number
           size: string
+          total?: number
+          type_0096d?: number
+          type_7126d?: number
+          type_9001t?: number
+          type_9016t?: number
+          type_mr09?: number
           updated_at?: string
         }
         Update: {
           created_at?: string
           direction?: string
           id?: string
-          quantity?: number
           size?: string
+          total?: number
+          type_0096d?: number
+          type_7126d?: number
+          type_9001t?: number
+          type_9016t?: number
+          type_mr09?: number
           updated_at?: string
         }
         Relationships: []
@@ -73,24 +103,39 @@ export type Database = {
           created_at: string
           direction: string
           id: string
-          quantity: number
           size: string
+          total: number
+          type_0096d: number
+          type_7126d: number
+          type_9001t: number
+          type_9016t: number
+          type_mr09: number
           updated_at: string
         }
         Insert: {
           created_at?: string
           direction: string
           id?: string
-          quantity?: number
           size: string
+          total?: number
+          type_0096d?: number
+          type_7126d?: number
+          type_9001t?: number
+          type_9016t?: number
+          type_mr09?: number
           updated_at?: string
         }
         Update: {
           created_at?: string
           direction?: string
           id?: string
-          quantity?: number
           size?: string
+          total?: number
+          type_0096d?: number
+          type_7126d?: number
+          type_9001t?: number
+          type_9016t?: number
+          type_mr09?: number
           updated_at?: string
         }
         Relationships: []
@@ -100,24 +145,39 @@ export type Database = {
           created_at: string
           direction: string
           id: string
-          quantity: number
           size: string
+          total: number
+          type_0096d: number
+          type_7126d: number
+          type_9001t: number
+          type_9016t: number
+          type_mr09: number
           updated_at: string
         }
         Insert: {
           created_at?: string
           direction: string
           id?: string
-          quantity?: number
           size: string
+          total?: number
+          type_0096d?: number
+          type_7126d?: number
+          type_9001t?: number
+          type_9016t?: number
+          type_mr09?: number
           updated_at?: string
         }
         Update: {
           created_at?: string
           direction?: string
           id?: string
-          quantity?: number
           size?: string
+          total?: number
+          type_0096d?: number
+          type_7126d?: number
+          type_9001t?: number
+          type_9016t?: number
+          type_mr09?: number
           updated_at?: string
         }
         Relationships: []
@@ -127,24 +187,39 @@ export type Database = {
           created_at: string
           direction: string
           id: string
-          quantity: number
           size: string
+          total: number
+          type_0096d: number
+          type_7126d: number
+          type_9001t: number
+          type_9016t: number
+          type_mr09: number
           updated_at: string
         }
         Insert: {
           created_at?: string
           direction: string
           id?: string
-          quantity?: number
           size: string
+          total?: number
+          type_0096d?: number
+          type_7126d?: number
+          type_9001t?: number
+          type_9016t?: number
+          type_mr09?: number
           updated_at?: string
         }
         Update: {
           created_at?: string
           direction?: string
           id?: string
-          quantity?: number
           size?: string
+          total?: number
+          type_0096d?: number
+          type_7126d?: number
+          type_9001t?: number
+          type_9016t?: number
+          type_mr09?: number
           updated_at?: string
         }
         Relationships: []
@@ -154,24 +229,39 @@ export type Database = {
           created_at: string
           direction: string
           id: string
-          quantity: number
           size: string
+          total: number
+          type_0096d: number
+          type_7126d: number
+          type_9001t: number
+          type_9016t: number
+          type_mr09: number
           updated_at: string
         }
         Insert: {
           created_at?: string
           direction: string
           id?: string
-          quantity?: number
           size: string
+          total?: number
+          type_0096d?: number
+          type_7126d?: number
+          type_9001t?: number
+          type_9016t?: number
+          type_mr09?: number
           updated_at?: string
         }
         Update: {
           created_at?: string
           direction?: string
           id?: string
-          quantity?: number
           size?: string
+          total?: number
+          type_0096d?: number
+          type_7126d?: number
+          type_9001t?: number
+          type_9016t?: number
+          type_mr09?: number
           updated_at?: string
         }
         Relationships: []
