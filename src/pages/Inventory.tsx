@@ -1,10 +1,16 @@
 import { useState, useEffect } from "react";
-import { Search, Plus, Pencil, Trash2, Upload, Clock, Download, ArrowUpDown } from "lucide-react";
+import { Search, Plus, Pencil, Trash2, Upload, Clock, Download, ArrowUpDown, Filter } from "lucide-react";
 import { format } from "date-fns";
 import { he } from "date-fns/locale";
 import { DashboardSidebar } from "@/components/DashboardSidebar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Table,
   TableBody,
@@ -62,9 +68,12 @@ interface Hardware {
   quantity: number;
 }
 
+type ProductCategory = "all" | "products" | "pull-handles" | "locking-products" | "hardware";
+
 const Inventory = () => {
   const [currentTime, setCurrentTime] = useState(new Date());
   const [searchQuery, setSearchQuery] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState<ProductCategory>("all");
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [products, setProducts] = useState<Product[]>([]);
   const [isFileUploaded, setIsFileUploaded] = useState(false);
@@ -79,21 +88,18 @@ const Inventory = () => {
   // Pull Handles state
   const [pullHandles, setPullHandles] = useState<PullHandle[]>([]);
   const [isAddPullHandleModalOpen, setIsAddPullHandleModalOpen] = useState(false);
-  const [pullHandleSearchQuery, setPullHandleSearchQuery] = useState("");
   const [isEditPullHandleModalOpen, setIsEditPullHandleModalOpen] = useState(false);
   const [editingPullHandle, setEditingPullHandle] = useState<PullHandle | null>(null);
   
   // Locking Products state
   const [lockingProducts, setLockingProducts] = useState<LockingProduct[]>([]);
   const [isAddLockingProductModalOpen, setIsAddLockingProductModalOpen] = useState(false);
-  const [lockingProductSearchQuery, setLockingProductSearchQuery] = useState("");
   const [isEditLockingProductModalOpen, setIsEditLockingProductModalOpen] = useState(false);
   const [editingLockingProduct, setEditingLockingProduct] = useState<LockingProduct | null>(null);
   
   // Hardware state
   const [hardware, setHardware] = useState<Hardware[]>([]);
   const [isAddHardwareModalOpen, setIsAddHardwareModalOpen] = useState(false);
-  const [hardwareSearchQuery, setHardwareSearchQuery] = useState("");
   const [isEditHardwareModalOpen, setIsEditHardwareModalOpen] = useState(false);
   const [editingHardware, setEditingHardware] = useState<Hardware | null>(null);
 
@@ -517,11 +523,48 @@ const Inventory = () => {
     fetchHardware();
   };
 
+  // Filter and combine all inventory items
   const filteredProducts = products.filter(product =>
     product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     product.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
     product.supplier.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  const filteredPullHandles = pullHandles.filter(item =>
+    item.handle_type.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    item.color.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const filteredLockingProducts = lockingProducts.filter(item =>
+    item.item_type.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const filteredHardware = hardware.filter(item =>
+    item.hardware_type.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    item.color.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  // Apply category filter
+  const getFilteredItems = () => {
+    switch (categoryFilter) {
+      case "products":
+        return filteredProducts;
+      case "pull-handles":
+        return filteredPullHandles;
+      case "locking-products":
+        return filteredLockingProducts;
+      case "hardware":
+        return filteredHardware;
+      case "all":
+      default:
+        return [
+          ...filteredProducts,
+          ...filteredPullHandles,
+          ...filteredLockingProducts,
+          ...filteredHardware
+        ];
+    }
+  };
 
   const sortedProducts = [...filteredProducts].sort((a, b) => {
     if (!sortField) return 0;
@@ -537,20 +580,6 @@ const Inventory = () => {
     }
     return 0;
   });
-
-  const filteredPullHandles = pullHandles.filter(item =>
-    item.handle_type.toLowerCase().includes(pullHandleSearchQuery.toLowerCase()) ||
-    item.color.toLowerCase().includes(pullHandleSearchQuery.toLowerCase())
-  ).sort((a, b) => a.handle_type.localeCompare(b.handle_type, "he"));
-
-  const filteredLockingProducts = lockingProducts.filter(item =>
-    item.item_type.toLowerCase().includes(lockingProductSearchQuery.toLowerCase())
-  ).sort((a, b) => a.item_type.localeCompare(b.item_type, "he"));
-
-  const filteredHardware = hardware.filter(item =>
-    item.hardware_type.toLowerCase().includes(hardwareSearchQuery.toLowerCase()) ||
-    item.color.toLowerCase().includes(hardwareSearchQuery.toLowerCase())
-  ).sort((a, b) => a.hardware_type.localeCompare(b.hardware_type, "he"));
 
   const getStatusVariant = (status: Product["status"]) => {
     switch (status) {
@@ -644,42 +673,57 @@ const Inventory = () => {
               </CardContent>
             </Card>
 
-            {/* Tabs for different inventories */}
-            <Tabs defaultValue="products" className="w-full">
-              <TabsList className="grid w-full grid-cols-4">
-                <TabsTrigger value="products">מוצרים</TabsTrigger>
-                <TabsTrigger value="pull-handles">ידיות משיכה</TabsTrigger>
-                <TabsTrigger value="locking-products">מוצרי נעילה</TabsTrigger>
-                <TabsTrigger value="hardware">פירזולים</TabsTrigger>
-              </TabsList>
+            {/* Unified Products Table */}
+            <Card className="shadow-sm">
+              <CardContent className="p-4 space-y-4">
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <div className="relative flex-1">
+                    <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      placeholder="חיפוש..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="pr-10 h-11"
+                    />
+                  </div>
+                  <div className="flex gap-3">
+                    <Select value={categoryFilter} onValueChange={(value) => setCategoryFilter(value as ProductCategory)}>
+                      <SelectTrigger className="w-[200px] h-11 bg-background">
+                        <Filter className="ml-2 h-4 w-4" />
+                        <SelectValue placeholder="סנן לפי סוג" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-background z-50">
+                        <SelectItem value="all">כל המוצרים</SelectItem>
+                        <SelectItem value="products">מוצרים רגילים</SelectItem>
+                        <SelectItem value="pull-handles">ידיות משיכה</SelectItem>
+                        <SelectItem value="locking-products">מוצרי נעילה</SelectItem>
+                        <SelectItem value="hardware">פירזולים</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <Button 
+                      onClick={() => {
+                        if (categoryFilter === "pull-handles") setIsAddPullHandleModalOpen(true);
+                        else if (categoryFilter === "locking-products") setIsAddLockingProductModalOpen(true);
+                        else if (categoryFilter === "hardware") setIsAddHardwareModalOpen(true);
+                        else setIsAddModalOpen(true);
+                      }}
+                      className="gap-2 h-11 sm:w-auto w-full"
+                      size="lg"
+                    >
+                      <Plus className="h-5 w-5" />
+                      הוסף מוצר
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
 
-              {/* Products Tab */}
-              <TabsContent value="products" className="space-y-4 mt-4">
-                <Card className="shadow-sm">
-                  <CardContent className="p-4">
-                    <div className="flex flex-col sm:flex-row gap-3">
-                      <div className="relative flex-1">
-                        <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                        <Input
-                          placeholder="חיפוש מוצר..."
-                          value={searchQuery}
-                          onChange={(e) => setSearchQuery(e.target.value)}
-                          className="pr-10 h-11"
-                        />
-                      </div>
-                      <Button 
-                        onClick={() => setIsAddModalOpen(true)}
-                        className="gap-2 h-11 sm:w-auto w-full"
-                        size="lg"
-                      >
-                        <Plus className="h-5 w-5" />
-                        הוסף מוצר חדש
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card className="shadow-sm">
+            {/* Products Table - Regular Products */}
+            {(categoryFilter === "all" || categoryFilter === "products") && (
+              <Card className="shadow-sm">
+                <CardHeader>
+                  <CardTitle>מוצרים רגילים</CardTitle>
+                </CardHeader>
                   <CardContent className="p-0">
                     <div className="hidden md:block overflow-x-auto">
                       <Table>
@@ -854,35 +898,14 @@ const Inventory = () => {
                     </div>
                   </CardContent>
                 </Card>
-              </TabsContent>
+            )}
 
-              {/* Pull Handles Tab */}
-              <TabsContent value="pull-handles" className="space-y-4 mt-4">
-                <Card className="shadow-sm">
-                  <CardContent className="p-4">
-                    <div className="flex flex-col sm:flex-row gap-3">
-                      <div className="relative flex-1">
-                        <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                        <Input
-                          placeholder="חיפוש לפי סוג ידית או צבע..."
-                          value={pullHandleSearchQuery}
-                          onChange={(e) => setPullHandleSearchQuery(e.target.value)}
-                          className="pr-10 h-11"
-                        />
-                      </div>
-                      <Button 
-                        onClick={() => setIsAddPullHandleModalOpen(true)}
-                        className="gap-2 h-11 sm:w-auto w-full"
-                        size="lg"
-                      >
-                        <Plus className="h-5 w-5" />
-                        הוסף פריט
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card className="shadow-sm">
+            {/* Pull Handles Table */}
+            {(categoryFilter === "all" || categoryFilter === "pull-handles") && (
+              <Card className="shadow-sm">
+                <CardHeader>
+                  <CardTitle>ידיות משיכה</CardTitle>
+                </CardHeader>
                   <CardContent className="p-0">
                     <div className="rounded-md border">
                       <Table>
@@ -933,35 +956,14 @@ const Inventory = () => {
                     </div>
                   </CardContent>
                 </Card>
-              </TabsContent>
+            )}
 
-              {/* Locking Products Tab */}
-              <TabsContent value="locking-products" className="space-y-4 mt-4">
-                <Card className="shadow-sm">
-                  <CardContent className="p-4">
-                    <div className="flex flex-col sm:flex-row gap-3">
-                      <div className="relative flex-1">
-                        <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                        <Input
-                          placeholder="חיפוש לפי סוג פריט..."
-                          value={lockingProductSearchQuery}
-                          onChange={(e) => setLockingProductSearchQuery(e.target.value)}
-                          className="pr-10 h-11"
-                        />
-                      </div>
-                      <Button 
-                        onClick={() => setIsAddLockingProductModalOpen(true)}
-                        className="gap-2 h-11 sm:w-auto w-full"
-                        size="lg"
-                      >
-                        <Plus className="h-5 w-5" />
-                        הוסף פריט
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card className="shadow-sm">
+            {/* Locking Products Table */}
+            {(categoryFilter === "all" || categoryFilter === "locking-products") && (
+              <Card className="shadow-sm">
+                <CardHeader>
+                  <CardTitle>מוצרי נעילה</CardTitle>
+                </CardHeader>
                   <CardContent className="p-0">
                     <div className="rounded-md border">
                       <Table>
@@ -1010,35 +1012,14 @@ const Inventory = () => {
                     </div>
                   </CardContent>
                 </Card>
-              </TabsContent>
+            )}
 
-              {/* Hardware Tab */}
-              <TabsContent value="hardware" className="space-y-4 mt-4">
-                <Card className="shadow-sm">
-                  <CardContent className="p-4">
-                    <div className="flex flex-col sm:flex-row gap-3">
-                      <div className="relative flex-1">
-                        <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                        <Input
-                          placeholder="חיפוש לפי סוג פירזול או צבע..."
-                          value={hardwareSearchQuery}
-                          onChange={(e) => setHardwareSearchQuery(e.target.value)}
-                          className="pr-10 h-11"
-                        />
-                      </div>
-                      <Button 
-                        onClick={() => setIsAddHardwareModalOpen(true)}
-                        className="gap-2 h-11 sm:w-auto w-full"
-                        size="lg"
-                      >
-                        <Plus className="h-5 w-5" />
-                        הוסף פריט
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card className="shadow-sm">
+            {/* Hardware Table */}
+            {(categoryFilter === "all" || categoryFilter === "hardware") && (
+              <Card className="shadow-sm">
+                <CardHeader>
+                  <CardTitle>פירזולים</CardTitle>
+                </CardHeader>
                   <CardContent className="p-0">
                     <div className="rounded-md border">
                       <Table>
@@ -1089,8 +1070,7 @@ const Inventory = () => {
                     </div>
                   </CardContent>
                 </Card>
-              </TabsContent>
-            </Tabs>
+            )}
           </div>
         </main>
       </div>
