@@ -116,7 +116,15 @@ const Inventory = () => {
   };
 
   const handleDeleteProduct = (id: number) => {
-    setProducts(products.filter(p => p.id !== id));
+    console.log("Deleting product with id:", id);
+    console.log("Current products:", products);
+    const updatedProducts = products.filter(p => p.id !== id);
+    console.log("Updated products after delete:", updatedProducts);
+    setProducts(updatedProducts);
+    toast({
+      title: "המוצר נמחק בהצלחה",
+      description: "המוצר הוסר מהמלאי",
+    });
   };
 
   const filteredProducts = products.filter(product =>
