@@ -14,6 +14,57 @@ export type Database = {
   }
   public: {
     Tables: {
+      hardware_inventory: {
+        Row: {
+          color: string
+          created_at: string
+          hardware_type: string
+          id: string
+          quantity: number
+          updated_at: string
+        }
+        Insert: {
+          color: string
+          created_at?: string
+          hardware_type: string
+          id?: string
+          quantity?: number
+          updated_at?: string
+        }
+        Update: {
+          color?: string
+          created_at?: string
+          hardware_type?: string
+          id?: string
+          quantity?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      locking_products_inventory: {
+        Row: {
+          created_at: string
+          id: string
+          item_type: string
+          quantity: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          item_type: string
+          quantity?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          item_type?: string
+          quantity?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       orders: {
         Row: {
           clamp_holes: string | null
@@ -79,6 +130,33 @@ export type Database = {
           product_width?: number | null
           quantity?: number
           side?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      pull_handles_inventory: {
+        Row: {
+          color: string
+          created_at: string
+          handle_type: string
+          id: string
+          quantity: number
+          updated_at: string
+        }
+        Insert: {
+          color: string
+          created_at?: string
+          handle_type: string
+          id?: string
+          quantity?: number
+          updated_at?: string
+        }
+        Update: {
+          color?: string
+          created_at?: string
+          handle_type?: string
+          id?: string
+          quantity?: number
           updated_at?: string
         }
         Relationships: []
