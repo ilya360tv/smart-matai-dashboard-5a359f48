@@ -25,7 +25,7 @@ interface DoorInventory {
 interface AddDoorModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onAdd: (door: Omit<DoorInventory, "total">) => void;
+  onAdd: (item: Omit<DoorInventory, "id" | "total">) => void;
 }
 
 export const AddDoorModal = ({ open, onOpenChange, onAdd }: AddDoorModalProps) => {
@@ -94,6 +94,7 @@ export const AddDoorModal = ({ open, onOpenChange, onAdd }: AddDoorModalProps) =
                 min="0"
                 value={formData.type_9016t}
                 onChange={(e) => setFormData({ ...formData, type_9016t: Number(e.target.value) })}
+                required
               />
             </div>
             <div>
@@ -104,6 +105,7 @@ export const AddDoorModal = ({ open, onOpenChange, onAdd }: AddDoorModalProps) =
                 min="0"
                 value={formData.type_9001t}
                 onChange={(e) => setFormData({ ...formData, type_9001t: Number(e.target.value) })}
+                required
               />
             </div>
             <div>
@@ -114,6 +116,7 @@ export const AddDoorModal = ({ open, onOpenChange, onAdd }: AddDoorModalProps) =
                 min="0"
                 value={formData.type_7126d}
                 onChange={(e) => setFormData({ ...formData, type_7126d: Number(e.target.value) })}
+                required
               />
             </div>
             <div>
@@ -124,16 +127,18 @@ export const AddDoorModal = ({ open, onOpenChange, onAdd }: AddDoorModalProps) =
                 min="0"
                 value={formData.type_0096d}
                 onChange={(e) => setFormData({ ...formData, type_0096d: Number(e.target.value) })}
+                required
               />
             </div>
             <div>
-              <Label htmlFor="type_mr09">MR09</Label>
+              <Label htmlFor="type_mr09">mr09</Label>
               <Input
                 id="type_mr09"
                 type="number"
                 min="0"
                 value={formData.type_mr09}
                 onChange={(e) => setFormData({ ...formData, type_mr09: Number(e.target.value) })}
+                required
               />
             </div>
           </div>

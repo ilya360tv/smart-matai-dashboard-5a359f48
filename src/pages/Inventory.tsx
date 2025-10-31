@@ -115,12 +115,10 @@ const Inventory = () => {
   const [isAddHardwareModalOpen, setIsAddHardwareModalOpen] = useState(false);
   const [isEditHardwareModalOpen, setIsEditHardwareModalOpen] = useState(false);
   const [editingHardware, setEditingHardware] = useState<Hardware | null>(null);
-  
+
   // Doors state
   const [doors, setDoors] = useState<DoorInventory[]>([]);
   const [isAddDoorModalOpen, setIsAddDoorModalOpen] = useState(false);
-  const [isEditDoorModalOpen, setIsEditDoorModalOpen] = useState(false);
-  const [editingDoor, setEditingDoor] = useState<DoorInventory | null>(null);
 
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
@@ -186,7 +184,7 @@ const Inventory = () => {
       .order("size", { ascending: true });
 
     if (error) {
-      sonnerToast.error("שגיאה בטעינת המלאי");
+      sonnerToast.error("שגיאה בטעינת מלאי דלתות");
       console.error("Error fetching doors:", error);
       return;
     }
@@ -559,11 +557,12 @@ const Inventory = () => {
   };
 
   // Doors handlers
-  const handleAddDoor = async (door: Omit<DoorInventory, "id" | "total">) => {
-    const total = door.type_9016t + door.type_9001t + door.type_7126d + door.type_0096d + door.type_mr09;
+  const handleAddDoor = async (item: Omit<DoorInventory, "id" | "total">) => {
+    const total = item.type_9016t + item.type_9001t + item.type_7126d + item.type_0096d + item.type_mr09;
+    
     const { error } = await supabase
       .from("doors_inventory")
-      .insert([{ ...door, total }]);
+      .insert([{ ...item, total }]);
 
     if (error) {
       sonnerToast.error("שגיאה בהוספת דלת");
