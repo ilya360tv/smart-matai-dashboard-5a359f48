@@ -570,7 +570,8 @@ const Inventory = () => {
   // Doors handlers
   const handleAddDoor = async (item: Omit<DoorInventory, "id" | "total">) => {
     const { table_name, ...doorData } = item;
-    const total = item.type_9016t + item.type_9001t + item.type_7126d + item.type_0096d + item.type_mr09;
+    const total = doorData.type_9016t + doorData.type_9001t + doorData.type_7126d + 
+                  doorData.type_0096d + doorData.type_mr09;
     
     const { error } = await supabase
       .from(table_name as any)

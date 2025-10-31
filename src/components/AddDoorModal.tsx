@@ -73,7 +73,7 @@ export const AddDoorModal = ({ open, onOpenChange, onAdd }: AddDoorModalProps) =
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="table_name">סוג דלת</Label>
+              <Label htmlFor="table_name">סוג מלאי</Label>
               <Select
                 value={formData.table_name}
                 onValueChange={(value) => setFormData({ ...formData, table_name: value })}
@@ -160,7 +160,7 @@ export const AddDoorModal = ({ open, onOpenChange, onAdd }: AddDoorModalProps) =
               />
             </div>
             <div>
-              <Label htmlFor="type_mr09">mr09</Label>
+              <Label htmlFor="type_mr09">MR09</Label>
               <Input
                 id="type_mr09"
                 type="number"
