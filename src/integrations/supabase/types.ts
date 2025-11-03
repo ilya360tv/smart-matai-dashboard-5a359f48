@@ -266,6 +266,48 @@ export type Database = {
         }
         Relationships: []
       }
+      doors_d88: {
+        Row: {
+          created_at: string
+          direction: string
+          id: string
+          size: string
+          total: number
+          type_0096d: number
+          type_7126d: number
+          type_9001t: number
+          type_9016t: number
+          type_mr09: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          direction: string
+          id?: string
+          size: string
+          total?: number
+          type_0096d?: number
+          type_7126d?: number
+          type_9001t?: number
+          type_9016t?: number
+          type_mr09?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          direction?: string
+          id?: string
+          size?: string
+          total?: number
+          type_0096d?: number
+          type_7126d?: number
+          type_9001t?: number
+          type_9016t?: number
+          type_mr09?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       hardware_inventory: {
         Row: {
           color: string

@@ -179,7 +179,7 @@ const Inventory = () => {
   };
 
   const fetchDoors = async () => {
-    const tables = ['doors_d100', 'doors_d82', 'doors_d80', 'doors_d_rhk', 'doors_d6', 'doors_d7'];
+    const tables = ['doors_d100', 'doors_d82', 'doors_d80', 'doors_d88', 'doors_d_rhk', 'doors_d6', 'doors_d7'];
     const allDoors: DoorInventory[] = [];
 
     for (const tableName of tables) {
@@ -918,7 +918,7 @@ const Inventory = () => {
             {/* Doors Tables - Separate table for each door type */}
             {(categoryFilter === "all" || categoryFilter === "doors") && (
               <>
-                {['doors_d7', 'doors_d100', 'doors_d82', 'doors_d80', 'doors_d_rhk', 'doors_d6'].map((tableName) => {
+                {['doors_d7', 'doors_d100', 'doors_d82', 'doors_d80', 'doors_d88', 'doors_d_rhk', 'doors_d6'].map((tableName) => {
                   const tableLabel = tableName.replace('doors_', '').toUpperCase();
                   const tableDoors = filteredDoors.filter(door => door.table_name === tableName);
                   
