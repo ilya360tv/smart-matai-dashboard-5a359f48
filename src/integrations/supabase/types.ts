@@ -18,8 +18,11 @@ export type Database = {
         Row: {
           created_at: string
           direction: string
+          hardware_addition: number | null
           id: string
+          reseller_price: number | null
           size: string
+          supplier_price: number | null
           total: number
           type_0096d: number
           type_7126d: number
@@ -31,8 +34,11 @@ export type Database = {
         Insert: {
           created_at?: string
           direction: string
+          hardware_addition?: number | null
           id?: string
+          reseller_price?: number | null
           size: string
+          supplier_price?: number | null
           total?: number
           type_0096d?: number
           type_7126d?: number
@@ -44,8 +50,11 @@ export type Database = {
         Update: {
           created_at?: string
           direction?: string
+          hardware_addition?: number | null
           id?: string
+          reseller_price?: number | null
           size?: string
+          supplier_price?: number | null
           total?: number
           type_0096d?: number
           type_7126d?: number
@@ -60,8 +69,11 @@ export type Database = {
         Row: {
           created_at: string
           direction: string
+          hardware_addition: number | null
           id: string
+          reseller_price: number | null
           size: string
+          supplier_price: number | null
           total: number
           type_0096d: number
           type_7126d: number
@@ -73,8 +85,11 @@ export type Database = {
         Insert: {
           created_at?: string
           direction: string
+          hardware_addition?: number | null
           id?: string
+          reseller_price?: number | null
           size: string
+          supplier_price?: number | null
           total?: number
           type_0096d?: number
           type_7126d?: number
@@ -86,8 +101,11 @@ export type Database = {
         Update: {
           created_at?: string
           direction?: string
+          hardware_addition?: number | null
           id?: string
+          reseller_price?: number | null
           size?: string
+          supplier_price?: number | null
           total?: number
           type_0096d?: number
           type_7126d?: number
@@ -102,8 +120,11 @@ export type Database = {
         Row: {
           created_at: string
           direction: string
+          hardware_addition: number | null
           id: string
+          reseller_price: number | null
           size: string
+          supplier_price: number | null
           total: number
           type_0096d: number
           type_7126d: number
@@ -115,8 +136,11 @@ export type Database = {
         Insert: {
           created_at?: string
           direction: string
+          hardware_addition?: number | null
           id?: string
+          reseller_price?: number | null
           size: string
+          supplier_price?: number | null
           total?: number
           type_0096d?: number
           type_7126d?: number
@@ -128,8 +152,11 @@ export type Database = {
         Update: {
           created_at?: string
           direction?: string
+          hardware_addition?: number | null
           id?: string
+          reseller_price?: number | null
           size?: string
+          supplier_price?: number | null
           total?: number
           type_0096d?: number
           type_7126d?: number
@@ -144,8 +171,11 @@ export type Database = {
         Row: {
           created_at: string
           direction: string
+          hardware_addition: number | null
           id: string
+          reseller_price: number | null
           size: string
+          supplier_price: number | null
           total: number
           type_0096d: number
           type_7126d: number
@@ -157,8 +187,11 @@ export type Database = {
         Insert: {
           created_at?: string
           direction: string
+          hardware_addition?: number | null
           id?: string
+          reseller_price?: number | null
           size: string
+          supplier_price?: number | null
           total?: number
           type_0096d?: number
           type_7126d?: number
@@ -170,8 +203,11 @@ export type Database = {
         Update: {
           created_at?: string
           direction?: string
+          hardware_addition?: number | null
           id?: string
+          reseller_price?: number | null
           size?: string
+          supplier_price?: number | null
           total?: number
           type_0096d?: number
           type_7126d?: number
@@ -186,8 +222,11 @@ export type Database = {
         Row: {
           created_at: string
           direction: string
+          hardware_addition: number | null
           id: string
+          reseller_price: number | null
           size: string
+          supplier_price: number | null
           total: number
           type_0096d: number
           type_7126d: number
@@ -199,8 +238,11 @@ export type Database = {
         Insert: {
           created_at?: string
           direction: string
+          hardware_addition?: number | null
           id?: string
+          reseller_price?: number | null
           size: string
+          supplier_price?: number | null
           total?: number
           type_0096d?: number
           type_7126d?: number
@@ -212,8 +254,11 @@ export type Database = {
         Update: {
           created_at?: string
           direction?: string
+          hardware_addition?: number | null
           id?: string
+          reseller_price?: number | null
           size?: string
+          supplier_price?: number | null
           total?: number
           type_0096d?: number
           type_7126d?: number
@@ -228,8 +273,11 @@ export type Database = {
         Row: {
           created_at: string
           direction: string
+          hardware_addition: number | null
           id: string
+          reseller_price: number | null
           size: string
+          supplier_price: number | null
           total: number
           type_0096d: number
           type_7126d: number
@@ -241,8 +289,11 @@ export type Database = {
         Insert: {
           created_at?: string
           direction: string
+          hardware_addition?: number | null
           id?: string
+          reseller_price?: number | null
           size: string
+          supplier_price?: number | null
           total?: number
           type_0096d?: number
           type_7126d?: number
@@ -254,8 +305,11 @@ export type Database = {
         Update: {
           created_at?: string
           direction?: string
+          hardware_addition?: number | null
           id?: string
+          reseller_price?: number | null
           size?: string
+          supplier_price?: number | null
           total?: number
           type_0096d?: number
           type_7126d?: number
@@ -270,8 +324,11 @@ export type Database = {
         Row: {
           created_at: string
           direction: string
+          hardware_addition: number | null
           id: string
+          reseller_price: number | null
           size: string
+          supplier_price: number | null
           total: number
           type_0096d: number
           type_7126d: number
@@ -283,8 +340,11 @@ export type Database = {
         Insert: {
           created_at?: string
           direction: string
+          hardware_addition?: number | null
           id?: string
+          reseller_price?: number | null
           size: string
+          supplier_price?: number | null
           total?: number
           type_0096d?: number
           type_7126d?: number
@@ -296,14 +356,161 @@ export type Database = {
         Update: {
           created_at?: string
           direction?: string
+          hardware_addition?: number | null
           id?: string
+          reseller_price?: number | null
           size?: string
+          supplier_price?: number | null
           total?: number
           type_0096d?: number
           type_7126d?: number
           type_9001t?: number
           type_9016t?: number
           type_mr09?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      frame_heads_130: {
+        Row: {
+          created_at: string
+          id: string
+          size: number
+          total: number
+          type_0096d: number
+          type_7126d: number
+          type_9001t: number
+          type_9016t: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          size: number
+          total?: number
+          type_0096d?: number
+          type_7126d?: number
+          type_9001t?: number
+          type_9016t?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          size?: number
+          total?: number
+          type_0096d?: number
+          type_7126d?: number
+          type_9001t?: number
+          type_9016t?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      frame_heads_240: {
+        Row: {
+          created_at: string
+          id: string
+          size: number
+          total: number
+          type_0096d: number
+          type_7126d: number
+          type_9001t: number
+          type_9016t: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          size: number
+          total?: number
+          type_0096d?: number
+          type_7126d?: number
+          type_9001t?: number
+          type_9016t?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          size?: number
+          total?: number
+          type_0096d?: number
+          type_7126d?: number
+          type_9001t?: number
+          type_9016t?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      frame_legs_130: {
+        Row: {
+          created_at: string
+          direction: string
+          id: string
+          total: number
+          type_0096d: number
+          type_7126d: number
+          type_9001t: number
+          type_9016t: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          direction: string
+          id?: string
+          total?: number
+          type_0096d?: number
+          type_7126d?: number
+          type_9001t?: number
+          type_9016t?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          direction?: string
+          id?: string
+          total?: number
+          type_0096d?: number
+          type_7126d?: number
+          type_9001t?: number
+          type_9016t?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      frame_legs_240: {
+        Row: {
+          created_at: string
+          direction: string
+          id: string
+          total: number
+          type_0096d: number
+          type_7126d: number
+          type_9001t: number
+          type_9016t: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          direction: string
+          id?: string
+          total?: number
+          type_0096d?: number
+          type_7126d?: number
+          type_9001t?: number
+          type_9016t?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          direction?: string
+          id?: string
+          total?: number
+          type_0096d?: number
+          type_7126d?: number
+          type_9001t?: number
+          type_9016t?: number
           updated_at?: string
         }
         Relationships: []
@@ -315,6 +522,8 @@ export type Database = {
           hardware_type: string
           id: string
           quantity: number
+          reseller_price: number | null
+          supplier_price: number | null
           updated_at: string
         }
         Insert: {
@@ -323,6 +532,8 @@ export type Database = {
           hardware_type: string
           id?: string
           quantity?: number
+          reseller_price?: number | null
+          supplier_price?: number | null
           updated_at?: string
         }
         Update: {
@@ -331,6 +542,41 @@ export type Database = {
           hardware_type?: string
           id?: string
           quantity?: number
+          reseller_price?: number | null
+          supplier_price?: number | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      inserts_150: {
+        Row: {
+          created_at: string
+          id: string
+          size: number
+          total: number
+          type_7126: number
+          type_9016: number
+          type_mr09: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          size: number
+          total?: number
+          type_7126?: number
+          type_9016?: number
+          type_mr09?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          size?: number
+          total?: number
+          type_7126?: number
+          type_9016?: number
+          type_mr09?: number
           updated_at?: string
         }
         Relationships: []
@@ -341,6 +587,8 @@ export type Database = {
           id: string
           item_type: string
           quantity: number
+          reseller_price: number | null
+          supplier_price: number | null
           updated_at: string
         }
         Insert: {
@@ -348,6 +596,8 @@ export type Database = {
           id?: string
           item_type: string
           quantity?: number
+          reseller_price?: number | null
+          supplier_price?: number | null
           updated_at?: string
         }
         Update: {
@@ -355,6 +605,8 @@ export type Database = {
           id?: string
           item_type?: string
           quantity?: number
+          reseller_price?: number | null
+          supplier_price?: number | null
           updated_at?: string
         }
         Relationships: []
@@ -435,6 +687,8 @@ export type Database = {
           handle_type: string
           id: string
           quantity: number
+          reseller_price: number | null
+          supplier_price: number | null
           updated_at: string
         }
         Insert: {
@@ -443,6 +697,8 @@ export type Database = {
           handle_type: string
           id?: string
           quantity?: number
+          reseller_price?: number | null
+          supplier_price?: number | null
           updated_at?: string
         }
         Update: {
@@ -451,6 +707,8 @@ export type Database = {
           handle_type?: string
           id?: string
           quantity?: number
+          reseller_price?: number | null
+          supplier_price?: number | null
           updated_at?: string
         }
         Relationships: []
