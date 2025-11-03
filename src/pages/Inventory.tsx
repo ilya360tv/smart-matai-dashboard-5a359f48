@@ -725,19 +725,39 @@ const Inventory = () => {
                         <SelectItem value="doors">דלתות</SelectItem>
                       </SelectContent>
                     </Select>
-                    <Button 
-                      onClick={() => {
-                        if (categoryFilter === "pull-handles") setIsAddPullHandleModalOpen(true);
-                        else if (categoryFilter === "locking-products") setIsAddLockingProductModalOpen(true);
-                        else if (categoryFilter === "hardware") setIsAddHardwareModalOpen(true);
-                        else if (categoryFilter === "doors") setIsAddDoorModalOpen(true);
-                      }}
-                      className="gap-2 h-11 sm:w-auto w-full"
-                      size="lg"
-                    >
-                      <Plus className="h-5 w-5" />
-                      הוסף פריט
-                    </Button>
+                    {categoryFilter === "all" ? (
+                      <Select onValueChange={(value) => {
+                        if (value === "pull-handles") setIsAddPullHandleModalOpen(true);
+                        else if (value === "locking-products") setIsAddLockingProductModalOpen(true);
+                        else if (value === "hardware") setIsAddHardwareModalOpen(true);
+                        else if (value === "doors") setIsAddDoorModalOpen(true);
+                      }}>
+                        <SelectTrigger className="w-[150px] h-11 bg-primary text-primary-foreground">
+                          <Plus className="ml-2 h-5 w-5" />
+                          <SelectValue placeholder="הוסף פריט" />
+                        </SelectTrigger>
+                        <SelectContent className="bg-background z-50">
+                          <SelectItem value="pull-handles">ידית משיכה</SelectItem>
+                          <SelectItem value="locking-products">מוצר נעילה</SelectItem>
+                          <SelectItem value="hardware">פירזול</SelectItem>
+                          <SelectItem value="doors">דלת</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    ) : (
+                      <Button 
+                        onClick={() => {
+                          if (categoryFilter === "pull-handles") setIsAddPullHandleModalOpen(true);
+                          else if (categoryFilter === "locking-products") setIsAddLockingProductModalOpen(true);
+                          else if (categoryFilter === "hardware") setIsAddHardwareModalOpen(true);
+                          else if (categoryFilter === "doors") setIsAddDoorModalOpen(true);
+                        }}
+                        className="gap-2 h-11 sm:w-auto w-full"
+                        size="lg"
+                      >
+                        <Plus className="h-5 w-5" />
+                        הוסף פריט
+                      </Button>
+                    )}
                   </div>
                 </div>
               </CardContent>
