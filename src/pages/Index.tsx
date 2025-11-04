@@ -7,10 +7,12 @@ import { MetricCard } from "@/components/MetricCard";
 import { DashboardSidebar } from "@/components/DashboardSidebar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { supabase } from "@/integrations/supabase/client";
 
 const Index = () => {
   const navigate = useNavigate();
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [totalInventoryItems, setTotalInventoryItems] = useState(0);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -19,6 +21,38 @@ const Index = () => {
 
     return () => clearInterval(timer);
   }, []);
+
+  useEffect(() => {
+    fetchTotalInventory();
+  }, []);
+
+  const fetchTotalInventory = async () => {
+    try {
+      const [pullHandlesRes, lockingProductsRes, hardwareRes] = await Promise.all([
+        supabase.from("pull_handles_inventory").select("quantity", { count: "exact" }),
+        supabase.from("locking_products_inventory").select("quantity", { count: "exact" }),
+        supabase.from("hardware_inventory").select("quantity", { count: "exact" }),
+      ]);
+
+      let total = 0;
+      
+      if (pullHandlesRes.data) {
+        total += pullHandlesRes.data.reduce((sum, item) => sum + (item.quantity || 0), 0);
+      }
+      
+      if (lockingProductsRes.data) {
+        total += lockingProductsRes.data.reduce((sum, item) => sum + (item.quantity || 0), 0);
+      }
+      
+      if (hardwareRes.data) {
+        total += hardwareRes.data.reduce((sum, item) => sum + (item.quantity || 0), 0);
+      }
+
+      setTotalInventoryItems(total);
+    } catch (error) {
+      console.error("Error fetching total inventory:", error);
+    }
+  };
 
   const recentUpdates: Array<{ id: number; productName: string; quantity: number; supplier: string; status: string; date: string; user: string }> = [];
 
@@ -60,7 +94,7 @@ const Index = () => {
             <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
               <MetricCard
                 title="סה״כ פריטים במלאי"
-                value="0"
+                value={totalInventoryItems.toString()}
                 icon={Package}
                 iconColor="text-primary"
                 onClick={() => navigate("/inventory")}
