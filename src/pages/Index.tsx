@@ -28,10 +28,38 @@ const Index = () => {
 
   const fetchTotalInventory = async () => {
     try {
-      const [pullHandlesRes, lockingProductsRes, hardwareRes] = await Promise.all([
+      const [
+        pullHandlesRes, 
+        lockingProductsRes, 
+        hardwareRes,
+        doorsD100Res,
+        doorsD6Res,
+        doorsD7Res,
+        doorsD80Res,
+        doorsD82Res,
+        doorsD88Res,
+        doorsDRhkRes,
+        frameHeads130Res,
+        frameHeads240Res,
+        frameLegs130Res,
+        frameLegs240Res,
+        inserts150Res
+      ] = await Promise.all([
         supabase.from("pull_handles_inventory").select("quantity", { count: "exact" }),
         supabase.from("locking_products_inventory").select("quantity", { count: "exact" }),
         supabase.from("hardware_inventory").select("quantity", { count: "exact" }),
+        supabase.from("doors_d100").select("total", { count: "exact" }),
+        supabase.from("doors_d6").select("total", { count: "exact" }),
+        supabase.from("doors_d7").select("total", { count: "exact" }),
+        supabase.from("doors_d80").select("total", { count: "exact" }),
+        supabase.from("doors_d82").select("total", { count: "exact" }),
+        supabase.from("doors_d88").select("total", { count: "exact" }),
+        supabase.from("doors_d_rhk").select("total", { count: "exact" }),
+        supabase.from("frame_heads_130").select("total", { count: "exact" }),
+        supabase.from("frame_heads_240").select("total", { count: "exact" }),
+        supabase.from("frame_legs_130").select("total", { count: "exact" }),
+        supabase.from("frame_legs_240").select("total", { count: "exact" }),
+        supabase.from("inserts_150").select("total", { count: "exact" }),
       ]);
 
       let total = 0;
@@ -47,6 +75,20 @@ const Index = () => {
       if (hardwareRes.data) {
         total += hardwareRes.data.reduce((sum, item) => sum + (item.quantity || 0), 0);
       }
+
+      // Add doors and components
+      const doorTables = [
+        doorsD100Res, doorsD6Res, doorsD7Res, doorsD80Res, 
+        doorsD82Res, doorsD88Res, doorsDRhkRes,
+        frameHeads130Res, frameHeads240Res, 
+        frameLegs130Res, frameLegs240Res, inserts150Res
+      ];
+
+      doorTables.forEach(res => {
+        if (res.data) {
+          total += res.data.reduce((sum, item) => sum + (item.total || 0), 0);
+        }
+      });
 
       setTotalInventoryItems(total);
     } catch (error) {
