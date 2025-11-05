@@ -54,12 +54,16 @@ interface PullHandle {
   handle_type: string;
   color: string;
   quantity: number;
+  supplier_price?: number;
+  reseller_price?: number;
 }
 
 interface LockingProduct {
   id: string;
   item_type: string;
   quantity: number;
+  supplier_price?: number;
+  reseller_price?: number;
 }
 
 interface Hardware {
@@ -67,6 +71,8 @@ interface Hardware {
   hardware_type: string;
   color: string;
   quantity: number;
+  supplier_price?: number;
+  reseller_price?: number;
 }
 
 interface DoorInventory {
@@ -80,6 +86,9 @@ interface DoorInventory {
   type_mr09: number;
   total: number;
   table_name: string;
+  supplier_price?: number;
+  reseller_price?: number;
+  hardware_addition?: number;
 }
 
 type ProductCategory = "all" | "pull-handles" | "locking-products" | "hardware" | "doors";
@@ -777,13 +786,15 @@ const Inventory = () => {
                             <TableHead className="text-right">סוג ידית</TableHead>
                             <TableHead className="text-right">צבע</TableHead>
                             <TableHead className="text-right">כמות</TableHead>
+                            <TableHead className="text-right">מחיר ספק</TableHead>
+                            <TableHead className="text-right">מחיר מפיץ</TableHead>
                             <TableHead className="text-right">פעולות</TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody>
                           {filteredPullHandles.length === 0 ? (
                             <TableRow>
-                              <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
+                              <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
                                 לא נמצאו פריטים
                               </TableCell>
                             </TableRow>
@@ -793,6 +804,8 @@ const Inventory = () => {
                                 <TableCell className="font-medium">{item.handle_type}</TableCell>
                                 <TableCell>{item.color}</TableCell>
                                 <TableCell>{item.quantity}</TableCell>
+                                <TableCell>{item.supplier_price ? `₪${item.supplier_price.toFixed(2)}` : '-'}</TableCell>
+                                <TableCell>{item.reseller_price ? `₪${item.reseller_price.toFixed(2)}` : '-'}</TableCell>
                                 <TableCell>
                                   <div className="flex gap-2">
                                     <Button
@@ -834,13 +847,15 @@ const Inventory = () => {
                           <TableRow>
                             <TableHead className="text-right">סוג פריט</TableHead>
                             <TableHead className="text-right">כמות</TableHead>
+                            <TableHead className="text-right">מחיר ספק</TableHead>
+                            <TableHead className="text-right">מחיר מפיץ</TableHead>
                             <TableHead className="text-right">פעולות</TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody>
                           {filteredLockingProducts.length === 0 ? (
                             <TableRow>
-                              <TableCell colSpan={3} className="text-center py-8 text-muted-foreground">
+                              <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
                                 לא נמצאו פריטים
                               </TableCell>
                             </TableRow>
@@ -849,6 +864,8 @@ const Inventory = () => {
                               <TableRow key={item.id}>
                                 <TableCell className="font-medium">{item.item_type}</TableCell>
                                 <TableCell>{item.quantity}</TableCell>
+                                <TableCell>{item.supplier_price ? `₪${item.supplier_price.toFixed(2)}` : '-'}</TableCell>
+                                <TableCell>{item.reseller_price ? `₪${item.reseller_price.toFixed(2)}` : '-'}</TableCell>
                                 <TableCell>
                                   <div className="flex gap-2">
                                     <Button
@@ -891,13 +908,15 @@ const Inventory = () => {
                             <TableHead className="text-right">סוג פירזול</TableHead>
                             <TableHead className="text-right">צבע</TableHead>
                             <TableHead className="text-right">כמות</TableHead>
+                            <TableHead className="text-right">מחיר ספק</TableHead>
+                            <TableHead className="text-right">מחיר מפיץ</TableHead>
                             <TableHead className="text-right">פעולות</TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody>
                           {filteredHardware.length === 0 ? (
                             <TableRow>
-                              <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
+                              <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
                                 לא נמצאו פריטים
                               </TableCell>
                             </TableRow>
@@ -907,6 +926,8 @@ const Inventory = () => {
                                 <TableCell className="font-medium">{item.hardware_type}</TableCell>
                                 <TableCell>{item.color}</TableCell>
                                 <TableCell>{item.quantity}</TableCell>
+                                <TableCell>{item.supplier_price ? `₪${item.supplier_price.toFixed(2)}` : '-'}</TableCell>
+                                <TableCell>{item.reseller_price ? `₪${item.reseller_price.toFixed(2)}` : '-'}</TableCell>
                                 <TableCell>
                                   <div className="flex gap-2">
                                     <Button
@@ -960,13 +981,16 @@ const Inventory = () => {
                                 <TableHead className="text-right">0096d</TableHead>
                                 <TableHead className="text-right">MR09</TableHead>
                                 <TableHead className="text-right font-bold">סה"כ</TableHead>
+                                <TableHead className="text-right">מחיר ספק</TableHead>
+                                <TableHead className="text-right">מחיר מפיץ</TableHead>
+                                <TableHead className="text-right">תוספת פירזול</TableHead>
                                 <TableHead className="text-right">פעולות</TableHead>
                               </TableRow>
                             </TableHeader>
                             <TableBody>
                               {tableDoors.length === 0 ? (
                                 <TableRow>
-                                  <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
+                                  <TableCell colSpan={12} className="text-center py-8 text-muted-foreground">
                                     לא נמצאו דלתות
                                   </TableCell>
                                 </TableRow>
@@ -981,6 +1005,9 @@ const Inventory = () => {
                                     <TableCell>{door.type_0096d}</TableCell>
                                     <TableCell>{door.type_mr09}</TableCell>
                                     <TableCell className="font-bold">{door.total}</TableCell>
+                                    <TableCell>{door.supplier_price ? `₪${door.supplier_price.toFixed(2)}` : '-'}</TableCell>
+                                    <TableCell>{door.reseller_price ? `₪${door.reseller_price.toFixed(2)}` : '-'}</TableCell>
+                                    <TableCell>{door.hardware_addition ? `₪${door.hardware_addition.toFixed(2)}` : '-'}</TableCell>
                                     <TableCell>
                                       <Button
                                         variant="ghost"
