@@ -21,7 +21,7 @@ interface Supplier {
   id: number;
   name: string;
   phone: string;
-  email: string;
+  email?: string;
   city: string;
   active: "פעיל" | "לא פעיל";
 }
@@ -53,7 +53,7 @@ const Suppliers = () => {
   const filteredSuppliers = suppliers.filter(supplier =>
     supplier.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     supplier.city.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    supplier.email.toLowerCase().includes(searchQuery.toLowerCase())
+    (supplier.email && supplier.email.toLowerCase().includes(searchQuery.toLowerCase()))
   );
 
   const getStatusVariant = (status: Supplier["active"]) => {
@@ -138,7 +138,7 @@ const Suppliers = () => {
                           >
                             <TableCell className="font-medium">{supplier.name}</TableCell>
                             <TableCell className="text-muted-foreground">{supplier.phone}</TableCell>
-                            <TableCell className="text-muted-foreground">{supplier.email}</TableCell>
+                            <TableCell className="text-muted-foreground">{supplier.email || "-"}</TableCell>
                             <TableCell className="text-muted-foreground">{supplier.city}</TableCell>
                             <TableCell>
                               <Badge variant="outline" className={getStatusVariant(supplier.active)}>
@@ -200,7 +200,7 @@ const Suppliers = () => {
                           </div>
                           <div className="flex justify-between">
                             <span className="text-muted-foreground">אימייל:</span>
-                            <span className="font-medium truncate mr-2">{supplier.email}</span>
+                            <span className="font-medium truncate mr-2">{supplier.email || "-"}</span>
                           </div>
                         </div>
                         

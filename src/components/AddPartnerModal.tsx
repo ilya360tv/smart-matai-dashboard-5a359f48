@@ -23,7 +23,7 @@ interface AddPartnerModalProps {
   onAdd: (partner: {
     name: string;
     phone: string;
-    email: string;
+    email?: string;
     city: string;
     status: "ספק" | "קבלן";
   }) => void;
@@ -92,14 +92,13 @@ export const AddPartnerModal = ({ isOpen, onClose, onAdd, type }: AddPartnerModa
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="email">אימייל</Label>
+            <Label htmlFor="email">אימייל (אופציונלי)</Label>
             <Input
               id="email"
               type="email"
               value={formData.email}
               onChange={(e) => setFormData({ ...formData, email: e.target.value })}
               placeholder="email@example.com"
-              required
               className="h-11"
             />
           </div>

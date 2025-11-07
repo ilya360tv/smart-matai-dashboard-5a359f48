@@ -21,7 +21,7 @@ interface Contractor {
   id: number;
   name: string;
   phone: string;
-  email: string;
+  email?: string;
   city: string;
   active: "פעיל" | "לא פעיל";
 }
@@ -37,12 +37,12 @@ const Contractors = () => {
     return () => clearInterval(timer);
   }, []);
 
-  const handleAddContractor = (newContractor: { name: string; phone: string; email: string; city: string; status: "ספק" | "קבלן" }) => {
+  const handleAddContractor = (newContractor: { name: string; phone: string; email?: string; city: string; status: "ספק" | "קבלן" }) => {
     const contractor: Contractor = {
       id: contractors.length > 0 ? Math.max(...contractors.map(c => c.id)) + 1 : 1,
       name: newContractor.name,
       phone: newContractor.phone,
-      email: newContractor.email,
+      email: newContractor.email || undefined,
       city: newContractor.city,
       active: "פעיל",
     };
@@ -56,7 +56,7 @@ const Contractors = () => {
   const filteredContractors = contractors.filter(contractor =>
     contractor.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     contractor.city.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    contractor.email.toLowerCase().includes(searchQuery.toLowerCase())
+    (contractor.email && contractor.email.toLowerCase().includes(searchQuery.toLowerCase()))
   );
 
   const getStatusVariant = (status: Contractor["active"]) => {
@@ -141,7 +141,7 @@ const Contractors = () => {
                           >
                             <TableCell className="font-medium">{contractor.name}</TableCell>
                             <TableCell className="text-muted-foreground">{contractor.phone}</TableCell>
-                            <TableCell className="text-muted-foreground">{contractor.email}</TableCell>
+                            <TableCell className="text-muted-foreground">{contractor.email || "-"}</TableCell>
                             <TableCell className="text-muted-foreground">{contractor.city}</TableCell>
                             <TableCell>
                               <Badge variant="outline" className={getStatusVariant(contractor.active)}>
@@ -203,7 +203,7 @@ const Contractors = () => {
                           </div>
                           <div className="flex justify-between">
                             <span className="text-muted-foreground">אימייל:</span>
-                            <span className="font-medium truncate mr-2">{contractor.email}</span>
+                            <span className="font-medium truncate mr-2">{contractor.email || "-"}</span>
                           </div>
                         </div>
                         
