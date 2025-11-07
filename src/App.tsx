@@ -13,6 +13,7 @@ import CustomerPayments from "./pages/CustomerPayments";
 import SupplierPayments from "./pages/SupplierPayments";
 import Customers from "./pages/Customers";
 import PartnerProfile from "./pages/PartnerProfile";
+import DataMigration from "./pages/DataMigration";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -34,6 +35,7 @@ const App = () => (
           <Route path="/contractors" element={<Contractors />} />
           <Route path="/suppliers/:id" element={<PartnerProfile />} />
           <Route path="/customers" element={<Customers />} />
+          <Route path="/data-migration" element={<DataMigration />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

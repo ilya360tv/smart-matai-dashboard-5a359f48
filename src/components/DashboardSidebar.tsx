@@ -1,4 +1,4 @@
-import { Package, Users, Building2, Menu, Home, History, DollarSign, Receipt, ShoppingCart } from "lucide-react";
+import { Package, Users, Building2, Menu, Home, History, DollarSign, Receipt, ShoppingCart, Database } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -12,6 +12,7 @@ const menuItems = [
   { icon: Receipt, label: "תשלומי ספקים", href: "/supplier-payments" },
   { icon: Building2, label: "ספקים", href: "/suppliers" },
   { icon: Users, label: "קבלנים", href: "/contractors" },
+  { icon: Database, label: "ייבוא נתונים", href: "/data-migration" },
 ];
 
 export const DashboardSidebar = () => {
