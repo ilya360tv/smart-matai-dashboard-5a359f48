@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import {
   Dialog,
@@ -65,6 +66,9 @@ export const AddOrderModal = ({
     product_category: "",
     door_type: "",
     louvre_type: "",
+    active_door_direction: "",
+    fixed_door_direction: "",
+    door_height: "",
   });
 
   useEffect(() => {
@@ -155,18 +159,14 @@ export const AddOrderModal = ({
         return;
       }
       
-      // אם בחרו כנף רפפה, עובר לשלב 4
+      // אם בחרו כנף רפפה, עובר לשלב 4 (סוג רפפה)
       if (formData.door_type === "כנף רפפה") {
         setCurrentStep(4);
         return;
       }
       
-      // אחרת, סיום
-      toast({
-        title: "פרטי ההזמנה נשמרו!",
-        description: `ספק/קבלן: ${formData.customer_name}\nמוצר: ${formData.product_category}\nסוג כנף: ${formData.door_type}`,
-      });
-      onClose();
+      // אחרת, עובר לשלב בחירת כיוון
+      setCurrentStep(5);
     } else if (currentStep === 4) {
       if (!formData.louvre_type) {
         toast({
@@ -177,9 +177,45 @@ export const AddOrderModal = ({
         return;
       }
       
+      // עובר לשלב בחירת כיוון
+      setCurrentStep(5);
+    } else if (currentStep === 5) {
+      const isOneAndHalf = formData.product_category.includes("כנף וחצי");
+      
+      if (!formData.active_door_direction) {
+        toast({
+          title: "שגיאה",
+          description: isOneAndHalf ? "נא לבחור כיוון כנף פעילה" : "נא לבחור כיוון",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      if (isOneAndHalf && !formData.fixed_door_direction) {
+        toast({
+          title: "שגיאה",
+          description: "נא לבחור כיוון כנף קבועה",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      // עובר לשלב בחירת גובה
+      setCurrentStep(6);
+    } else if (currentStep === 6) {
+      if (!formData.door_height || parseInt(formData.door_height) <= 0) {
+        toast({
+          title: "שגיאה",
+          description: "נא להזין גובה כנף תקין במילימטרים",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      // סיום - שמירת ההזמנה
       toast({
         title: "פרטי ההזמנה נשמרו!",
-        description: `ספק/קבלן: ${formData.customer_name}\nמוצר: ${formData.product_category}\nסוג כנף: ${formData.door_type} - ${formData.louvre_type}`,
+        description: `ספק/קבלן: ${formData.customer_name}\nמוצר: ${formData.product_category}\nסוג כנף: ${formData.door_type}${formData.louvre_type ? ` - ${formData.louvre_type}` : ""}\nגובה: ${formData.door_height} מ"מ`,
       });
       onClose();
     }
@@ -202,6 +238,9 @@ export const AddOrderModal = ({
       product_category: "",
       door_type: "",
       louvre_type: "",
+      active_door_direction: "",
+      fixed_door_direction: "",
+      door_height: "",
     });
     setPartnerType("supplier");
     setCurrentStep(1);
@@ -212,7 +251,7 @@ export const AddOrderModal = ({
       <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto" dir="rtl">
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold flex items-center justify-between">
-            <span>פתיחת הזמנה חדשה - שלב {currentStep} מתוך {formData.door_type === "כנף רפפה" ? "4" : "3"}</span>
+            <span>פתיחת הזמנה חדשה - שלב {currentStep} מתוך 6</span>
             <span className="text-primary">{nextOrderNumber}</span>
           </DialogTitle>
         </DialogHeader>
@@ -387,6 +426,127 @@ export const AddOrderModal = ({
                     </div>
                   ))}
                 </RadioGroup>
+              </div>
+
+              {/* Actions */}
+              <div className="flex gap-3 justify-between">
+                <Button type="button" variant="outline" onClick={handlePreviousStep}>
+                  חזור
+                </Button>
+                <div className="flex gap-3">
+                  <Button type="button" variant="outline" onClick={onClose}>
+                    ביטול
+                  </Button>
+                  <Button type="submit">המשך</Button>
+                </div>
+              </div>
+            </>
+          )}
+
+          {currentStep === 5 && (
+            <>
+              {/* Direction Selection */}
+              <div className="space-y-4 p-6 bg-muted/30 rounded-lg border-2 border-primary/20">
+                {formData.product_category.includes("כנף וחצי") ? (
+                  <>
+                    {/* כנף פעילה */}
+                    <div className="space-y-3">
+                      <Label className="text-base font-semibold">כיוון כנף פעילה *</Label>
+                      <RadioGroup
+                        value={formData.active_door_direction}
+                        onValueChange={(value) =>
+                          setFormData({ ...formData, active_door_direction: value })
+                        }
+                        className="flex gap-4 justify-center"
+                        dir="rtl"
+                      >
+                        <div className="flex items-center gap-2">
+                          <Label htmlFor="active-right" className="cursor-pointer font-normal">ימין</Label>
+                          <RadioGroupItem value="ימין" id="active-right" />
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Label htmlFor="active-left" className="cursor-pointer font-normal">שמאל</Label>
+                          <RadioGroupItem value="שמאל" id="active-left" />
+                        </div>
+                      </RadioGroup>
+                    </div>
+
+                    {/* כנף קבועה */}
+                    <div className="space-y-3 pt-4 border-t">
+                      <Label className="text-base font-semibold">כיוון כנף קבועה *</Label>
+                      <RadioGroup
+                        value={formData.fixed_door_direction}
+                        onValueChange={(value) =>
+                          setFormData({ ...formData, fixed_door_direction: value })
+                        }
+                        className="flex gap-4 justify-center"
+                        dir="rtl"
+                      >
+                        <div className="flex items-center gap-2">
+                          <Label htmlFor="fixed-right" className="cursor-pointer font-normal">ימין</Label>
+                          <RadioGroupItem value="ימין" id="fixed-right" />
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Label htmlFor="fixed-left" className="cursor-pointer font-normal">שמאל</Label>
+                          <RadioGroupItem value="שמאל" id="fixed-left" />
+                        </div>
+                      </RadioGroup>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    {/* כנף בודדת */}
+                    <Label className="text-base font-semibold">כיוון הכנף *</Label>
+                    <RadioGroup
+                      value={formData.active_door_direction}
+                      onValueChange={(value) =>
+                        setFormData({ ...formData, active_door_direction: value })
+                      }
+                      className="flex gap-4 justify-center"
+                      dir="rtl"
+                    >
+                      <div className="flex items-center gap-2">
+                        <Label htmlFor="single-right" className="cursor-pointer font-normal">ימין</Label>
+                        <RadioGroupItem value="ימין" id="single-right" />
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Label htmlFor="single-left" className="cursor-pointer font-normal">שמאל</Label>
+                        <RadioGroupItem value="שמאל" id="single-left" />
+                      </div>
+                    </RadioGroup>
+                  </>
+                )}
+              </div>
+
+              {/* Actions */}
+              <div className="flex gap-3 justify-between">
+                <Button type="button" variant="outline" onClick={handlePreviousStep}>
+                  חזור
+                </Button>
+                <div className="flex gap-3">
+                  <Button type="button" variant="outline" onClick={onClose}>
+                    ביטול
+                  </Button>
+                  <Button type="submit">המשך</Button>
+                </div>
+              </div>
+            </>
+          )}
+
+          {currentStep === 6 && (
+            <>
+              {/* Height Selection */}
+              <div className="space-y-4 p-6 bg-muted/30 rounded-lg border-2 border-primary/20">
+                <Label className="text-base font-semibold">גובה הכנף (מ"מ) *</Label>
+                <input
+                  type="number"
+                  value={formData.door_height}
+                  onChange={(e) => setFormData({ ...formData, door_height: e.target.value })}
+                  placeholder="הזן גובה במילימטרים"
+                  className="w-full px-4 py-3 border-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                  dir="rtl"
+                  min="1"
+                />
               </div>
 
               {/* Actions */}
