@@ -561,7 +561,7 @@ export const AddOrderModal = ({
             </>
           )}
 
-          {currentStep === 9 && (
+          {currentStep === 7 && (
             <>
               {/* Fixed Louvre Door Type Selection */}
               <div className="space-y-4 p-6 bg-muted/30 rounded-lg border-2 border-primary/20">
@@ -603,7 +603,7 @@ export const AddOrderModal = ({
             </>
           )}
 
-          {currentStep === 8 && (
+          {currentStep === 6 && (
             <>
               {/* Width Selection */}
               <div className="space-y-4 p-6 bg-muted/30 rounded-lg border-2 border-primary/20">
@@ -634,7 +634,7 @@ export const AddOrderModal = ({
             </>
           )}
 
-          {currentStep === 6 && (
+          {currentStep === 8 && (
             <>
               {/* Direction Selection */}
               <div className="space-y-4 p-6 bg-muted/30 rounded-lg border-2 border-primary/20">
@@ -724,7 +724,7 @@ export const AddOrderModal = ({
             </>
           )}
 
-          {currentStep === 7 && (
+          {currentStep === 9 && (
             <>
               {/* Height Selection */}
               <div className="space-y-4 p-6 bg-muted/30 rounded-lg border-2 border-primary/20">
