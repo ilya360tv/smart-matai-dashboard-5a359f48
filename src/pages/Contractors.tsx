@@ -16,9 +16,11 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { AddPartnerModal } from "@/components/AddPartnerModal";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "@/hooks/use-toast";
 
 interface Contractor {
-  id: number;
+  id: string;
   name: string;
   phone: string;
   email?: string;
@@ -37,20 +39,76 @@ const Contractors = () => {
     return () => clearInterval(timer);
   }, []);
 
-  const handleAddContractor = (newContractor: { name: string; phone: string; email?: string; city: string; status: "ספק" | "קבלן" }) => {
-    const contractor: Contractor = {
-      id: contractors.length > 0 ? Math.max(...contractors.map(c => c.id)) + 1 : 1,
-      name: newContractor.name,
-      phone: newContractor.phone,
-      email: newContractor.email || undefined,
-      city: newContractor.city,
-      active: "פעיל",
-    };
-    setContractors([contractor, ...contractors]);
+  useEffect(() => {
+    fetchContractors();
+  }, []);
+
+  const fetchContractors = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("contractors")
+        .select("*")
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+      if (data) setContractors(data as Contractor[]);
+    } catch (error) {
+      console.error("Error fetching contractors:", error);
+      toast({
+        title: "שגיאה",
+        description: "לא הצלחנו לטעון את רשימת הקבלנים",
+        variant: "destructive",
+      });
+    }
   };
 
-  const handleDeleteContractor = (id: number) => {
-    setContractors(contractors.filter(c => c.id !== id));
+  const handleAddContractor = async (newContractor: { name: string; phone: string; email?: string; city: string; status: "ספק" | "קבלן" }) => {
+    try {
+      const { error } = await supabase.from("contractors").insert({
+        name: newContractor.name,
+        phone: newContractor.phone,
+        email: newContractor.email || null,
+        city: newContractor.city,
+        active: "פעיל",
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "הקבלן נוסף בהצלחה!",
+        description: `${newContractor.name} נוסף לרשימת הקבלנים`,
+      });
+
+      fetchContractors();
+    } catch (error) {
+      console.error("Error adding contractor:", error);
+      toast({
+        title: "שגיאה",
+        description: "לא הצלחנו להוסיף את הקבלן",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleDeleteContractor = async (id: string) => {
+    try {
+      const { error } = await supabase.from("contractors").delete().eq("id", id);
+
+      if (error) throw error;
+
+      toast({
+        title: "הקבלן נמחק בהצלחה!",
+      });
+
+      fetchContractors();
+    } catch (error) {
+      console.error("Error deleting contractor:", error);
+      toast({
+        title: "שגיאה",
+        description: "לא הצלחנו למחוק את הקבלן",
+        variant: "destructive",
+      });
+    }
   };
 
   const filteredContractors = contractors.filter(contractor =>
