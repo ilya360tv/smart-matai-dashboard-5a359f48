@@ -25,16 +25,16 @@ interface AddOrderModalProps {
 }
 
 const ORDER_CATEGORIES = [
-  "כנף בודדת חלקה",
-  "כנף עם משקוף בנייה",
-  "כנף עם משקוף הלבשה",
-  "כנף וחצי בודדת",
-  "כנף וחצי משקוף בנייה",
-  "כנף וחצי משקוף הלבשה",
-  "רק משקוף בנייה",
-  "רק משקוף לבשה",
-  "רק משקוף בנייה לכנף וחצי",
-  "רק משקוף הלבשה לכנף וחצי",
+  "כנף חלקה",
+  "כנף מעוצבת",
+  "כנף מוסדית",
+  "כנף רפפה",
+];
+
+const LOUVRE_DOOR_TYPES = [
+  "כנף רפפה עליונה",
+  "כנף רפפה תחתונה",
+  "כנף רפפה ארוכה",
 ];
 
 export const AddOrderModal = ({
@@ -50,6 +50,7 @@ export const AddOrderModal = ({
   const [formData, setFormData] = useState({
     customer_name: "",
     order_category: "",
+    louvre_type: "",
   });
 
   useEffect(() => {
@@ -111,15 +112,37 @@ export const AddOrderModal = ({
       if (!formData.order_category) {
         toast({
           title: "שגיאה",
-          description: "נא לבחור קטגוריית הזמנה",
+          description: "נא לבחור סוג כנף",
           variant: "destructive",
         });
         return;
       }
-      // כאן נמשיך לשלב הבא בעתיד
+      
+      // אם בחרו כנף רפפה, עובר לשלב 3
+      if (formData.order_category === "כנף רפפה") {
+        setCurrentStep(3);
+        return;
+      }
+      
+      // אחרת, סיום
       toast({
         title: "פרטי ההזמנה נשמרו!",
-        description: `ספק/קבלן: ${formData.customer_name}\nקטגוריה: ${formData.order_category}`,
+        description: `ספק/קבלן: ${formData.customer_name}\nסוג כנף: ${formData.order_category}`,
+      });
+      onClose();
+    } else if (currentStep === 3) {
+      if (!formData.louvre_type) {
+        toast({
+          title: "שגיאה",
+          description: "נא לבחור סוג כנף רפפה",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      toast({
+        title: "פרטי ההזמנה נשמרו!",
+        description: `ספק/קבלן: ${formData.customer_name}\nסוג כנף: ${formData.order_category} - ${formData.louvre_type}`,
       });
       onClose();
     }
@@ -140,6 +163,7 @@ export const AddOrderModal = ({
     setFormData({
       customer_name: "",
       order_category: "",
+      louvre_type: "",
     });
     setPartnerType("supplier");
     setCurrentStep(1);
@@ -150,7 +174,7 @@ export const AddOrderModal = ({
       <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto" dir="rtl">
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold flex items-center justify-between">
-            <span>פתיחת הזמנה חדשה - שלב {currentStep} מתוך 2</span>
+            <span>פתיחת הזמנה חדשה - שלב {currentStep} {formData.order_category === "כנף רפפה" ? "מתוך 3" : "מתוך 2"}</span>
             <span className="text-primary">{nextOrderNumber}</span>
           </DialogTitle>
         </DialogHeader>
@@ -220,11 +244,11 @@ export const AddOrderModal = ({
             <>
               {/* Order Category Selection */}
               <div className="space-y-4 p-6 bg-muted/30 rounded-lg border-2 border-primary/20">
-                <Label className="text-base font-semibold">בחר קטגוריית הזמנה *</Label>
+                <Label className="text-base font-semibold">בחר סוג כנף *</Label>
                 <RadioGroup
                   value={formData.order_category}
                   onValueChange={(value) =>
-                    setFormData({ ...formData, order_category: value })
+                    setFormData({ ...formData, order_category: value, louvre_type: "" })
                   }
                   className="grid grid-cols-1 gap-3"
                 >
@@ -232,7 +256,7 @@ export const AddOrderModal = ({
                     <div
                       key={category}
                       className="flex items-center gap-3 p-4 border-2 rounded-lg hover:bg-muted/50 transition-colors cursor-pointer"
-                      onClick={() => setFormData({ ...formData, order_category: category })}
+                      onClick={() => setFormData({ ...formData, order_category: category, louvre_type: "" })}
                     >
                       <RadioGroupItem value={category} id={category} />
                       <Label htmlFor={category} className="cursor-pointer font-normal flex-1">
@@ -253,6 +277,48 @@ export const AddOrderModal = ({
                     ביטול
                   </Button>
                   <Button type="submit">המשך</Button>
+                </div>
+              </div>
+            </>
+          )}
+
+          {currentStep === 3 && (
+            <>
+              {/* Louvre Door Type Selection */}
+              <div className="space-y-4 p-6 bg-muted/30 rounded-lg border-2 border-primary/20">
+                <Label className="text-base font-semibold">בחר סוג כנף רפפה *</Label>
+                <RadioGroup
+                  value={formData.louvre_type}
+                  onValueChange={(value) =>
+                    setFormData({ ...formData, louvre_type: value })
+                  }
+                  className="grid grid-cols-1 gap-3"
+                >
+                  {LOUVRE_DOOR_TYPES.map((type) => (
+                    <div
+                      key={type}
+                      className="flex items-center gap-3 p-4 border-2 rounded-lg hover:bg-muted/50 transition-colors cursor-pointer"
+                      onClick={() => setFormData({ ...formData, louvre_type: type })}
+                    >
+                      <RadioGroupItem value={type} id={type} />
+                      <Label htmlFor={type} className="cursor-pointer font-normal flex-1">
+                        {type}
+                      </Label>
+                    </div>
+                  ))}
+                </RadioGroup>
+              </div>
+
+              {/* Actions */}
+              <div className="flex gap-3 justify-between">
+                <Button type="button" variant="outline" onClick={handlePreviousStep}>
+                  חזור
+                </Button>
+                <div className="flex gap-3">
+                  <Button type="button" variant="outline" onClick={onClose}>
+                    ביטול
+                  </Button>
+                  <Button type="submit">סיום</Button>
                 </div>
               </div>
             </>
