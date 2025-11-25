@@ -24,7 +24,20 @@ interface AddOrderModalProps {
   onSuccess: () => void;
 }
 
-const ORDER_CATEGORIES = [
+const PRODUCT_CATEGORIES = [
+  "כנף בודדת חלקה",
+  "כנף עם משקוף בנייה",
+  "כנף עם משקוף הלבשה",
+  "כנף וחצי בודדת",
+  "כנף וחצי משקוף בנייה/חובק",
+  "כנף וחצי הלבשה",
+  "רק משקוף בנייה",
+  "רק משקוף הלבשה",
+  "רק משקוף בנייה לכנף וחצי",
+  "רק משקוף הלבשה לכנף וחצי",
+];
+
+const DOOR_TYPES = [
   "כנף חלקה",
   "כנף מעוצבת",
   "כנף מוסדית",
@@ -49,7 +62,8 @@ export const AddOrderModal = ({
   const [contractors, setContractors] = useState<Array<{ id: string; name: string }>>([]);
   const [formData, setFormData] = useState({
     customer_name: "",
-    order_category: "",
+    product_category: "",
+    door_type: "",
     louvre_type: "",
   });
 
@@ -109,7 +123,30 @@ export const AddOrderModal = ({
       }
       setCurrentStep(2);
     } else if (currentStep === 2) {
-      if (!formData.order_category) {
+      if (!formData.product_category) {
+        toast({
+          title: "שגיאה",
+          description: "נא לבחור מוצר",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      // אם בחר "רק משקוף", דלג לשלבים אחרים בעתיד
+      const isFrameOnly = formData.product_category.includes("רק משקוף");
+      if (isFrameOnly) {
+        // TODO: יישום לוגיקת משקוף בלבד
+        toast({
+          title: "פרטי ההזמנה נשמרו!",
+          description: `ספק/קבלן: ${formData.customer_name}\nמוצר: ${formData.product_category}`,
+        });
+        onClose();
+        return;
+      }
+      
+      setCurrentStep(3);
+    } else if (currentStep === 3) {
+      if (!formData.door_type) {
         toast({
           title: "שגיאה",
           description: "נא לבחור סוג כנף",
@@ -118,19 +155,19 @@ export const AddOrderModal = ({
         return;
       }
       
-      // אם בחרו כנף רפפה, עובר לשלב 3
-      if (formData.order_category === "כנף רפפה") {
-        setCurrentStep(3);
+      // אם בחרו כנף רפפה, עובר לשלב 4
+      if (formData.door_type === "כנף רפפה") {
+        setCurrentStep(4);
         return;
       }
       
       // אחרת, סיום
       toast({
         title: "פרטי ההזמנה נשמרו!",
-        description: `ספק/קבלן: ${formData.customer_name}\nסוג כנף: ${formData.order_category}`,
+        description: `ספק/קבלן: ${formData.customer_name}\nמוצר: ${formData.product_category}\nסוג כנף: ${formData.door_type}`,
       });
       onClose();
-    } else if (currentStep === 3) {
+    } else if (currentStep === 4) {
       if (!formData.louvre_type) {
         toast({
           title: "שגיאה",
@@ -142,7 +179,7 @@ export const AddOrderModal = ({
       
       toast({
         title: "פרטי ההזמנה נשמרו!",
-        description: `ספק/קבלן: ${formData.customer_name}\nסוג כנף: ${formData.order_category} - ${formData.louvre_type}`,
+        description: `ספק/קבלן: ${formData.customer_name}\nמוצר: ${formData.product_category}\nסוג כנף: ${formData.door_type} - ${formData.louvre_type}`,
       });
       onClose();
     }
@@ -162,7 +199,8 @@ export const AddOrderModal = ({
   const resetForm = () => {
     setFormData({
       customer_name: "",
-      order_category: "",
+      product_category: "",
+      door_type: "",
       louvre_type: "",
     });
     setPartnerType("supplier");
@@ -174,7 +212,7 @@ export const AddOrderModal = ({
       <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto" dir="rtl">
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold flex items-center justify-between">
-            <span>פתיחת הזמנה חדשה - שלב {currentStep} {formData.order_category === "כנף רפפה" ? "מתוך 3" : "מתוך 2"}</span>
+            <span>פתיחת הזמנה חדשה - שלב {currentStep} מתוך {formData.door_type === "כנף רפפה" ? "4" : "3"}</span>
             <span className="text-primary">{nextOrderNumber}</span>
           </DialogTitle>
         </DialogHeader>
@@ -242,21 +280,21 @@ export const AddOrderModal = ({
 
           {currentStep === 2 && (
             <>
-              {/* Order Category Selection */}
+              {/* Product Category Selection */}
               <div className="space-y-4 p-6 bg-muted/30 rounded-lg border-2 border-primary/20">
-                <Label className="text-base font-semibold">בחר סוג כנף *</Label>
+                <Label className="text-base font-semibold">בחר מוצר *</Label>
                 <RadioGroup
-                  value={formData.order_category}
+                  value={formData.product_category}
                   onValueChange={(value) =>
-                    setFormData({ ...formData, order_category: value, louvre_type: "" })
+                    setFormData({ ...formData, product_category: value, door_type: "", louvre_type: "" })
                   }
                   className="grid grid-cols-1 gap-3"
                 >
-                  {ORDER_CATEGORIES.map((category) => (
+                  {PRODUCT_CATEGORIES.map((category) => (
                     <div
                       key={category}
                       className="flex items-center gap-3 p-4 border-2 rounded-lg hover:bg-muted/50 transition-colors cursor-pointer"
-                      onClick={() => setFormData({ ...formData, order_category: category, louvre_type: "" })}
+                      onClick={() => setFormData({ ...formData, product_category: category, door_type: "", louvre_type: "" })}
                     >
                       <RadioGroupItem value={category} id={category} />
                       <Label htmlFor={category} className="cursor-pointer font-normal flex-1">
@@ -283,6 +321,48 @@ export const AddOrderModal = ({
           )}
 
           {currentStep === 3 && (
+            <>
+              {/* Door Type Selection */}
+              <div className="space-y-4 p-6 bg-muted/30 rounded-lg border-2 border-primary/20">
+                <Label className="text-base font-semibold">בחר סוג כנף *</Label>
+                <RadioGroup
+                  value={formData.door_type}
+                  onValueChange={(value) =>
+                    setFormData({ ...formData, door_type: value, louvre_type: "" })
+                  }
+                  className="grid grid-cols-1 gap-3"
+                >
+                  {DOOR_TYPES.map((type) => (
+                    <div
+                      key={type}
+                      className="flex items-center gap-3 p-4 border-2 rounded-lg hover:bg-muted/50 transition-colors cursor-pointer"
+                      onClick={() => setFormData({ ...formData, door_type: type, louvre_type: "" })}
+                    >
+                      <RadioGroupItem value={type} id={type} />
+                      <Label htmlFor={type} className="cursor-pointer font-normal flex-1">
+                        {type}
+                      </Label>
+                    </div>
+                  ))}
+                </RadioGroup>
+              </div>
+
+              {/* Actions */}
+              <div className="flex gap-3 justify-between">
+                <Button type="button" variant="outline" onClick={handlePreviousStep}>
+                  חזור
+                </Button>
+                <div className="flex gap-3">
+                  <Button type="button" variant="outline" onClick={onClose}>
+                    ביטול
+                  </Button>
+                  <Button type="submit">המשך</Button>
+                </div>
+              </div>
+            </>
+          )}
+
+          {currentStep === 4 && (
             <>
               {/* Louvre Door Type Selection */}
               <div className="space-y-4 p-6 bg-muted/30 rounded-lg border-2 border-primary/20">
