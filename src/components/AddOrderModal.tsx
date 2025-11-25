@@ -66,6 +66,7 @@ export const AddOrderModal = ({
     product_category: "",
     door_type: "",
     louvre_type: "",
+    door_width: "",
     active_door_direction: "",
     fixed_door_direction: "",
     door_height: "",
@@ -165,7 +166,7 @@ export const AddOrderModal = ({
         return;
       }
       
-      // אחרת, עובר לשלב בחירת כיוון
+      // אחרת, עובר לשלב בחירת רוחב
       setCurrentStep(5);
     } else if (currentStep === 4) {
       if (!formData.louvre_type) {
@@ -177,9 +178,21 @@ export const AddOrderModal = ({
         return;
       }
       
-      // עובר לשלב בחירת כיוון
+      // עובר לשלב בחירת רוחב
       setCurrentStep(5);
     } else if (currentStep === 5) {
+      if (!formData.door_width || parseInt(formData.door_width) <= 0) {
+        toast({
+          title: "שגיאה",
+          description: "נא להזין רוחב כנף תקין במילימטרים",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      // עובר לשלב בחירת כיוון
+      setCurrentStep(6);
+    } else if (currentStep === 6) {
       const isOneAndHalf = formData.product_category.includes("כנף וחצי");
       
       if (!formData.active_door_direction) {
@@ -201,8 +214,8 @@ export const AddOrderModal = ({
       }
       
       // עובר לשלב בחירת גובה
-      setCurrentStep(6);
-    } else if (currentStep === 6) {
+      setCurrentStep(7);
+    } else if (currentStep === 7) {
       if (!formData.door_height || parseInt(formData.door_height) <= 0) {
         toast({
           title: "שגיאה",
@@ -215,7 +228,7 @@ export const AddOrderModal = ({
       // סיום - שמירת ההזמנה
       toast({
         title: "פרטי ההזמנה נשמרו!",
-        description: `ספק/קבלן: ${formData.customer_name}\nמוצר: ${formData.product_category}\nסוג כנף: ${formData.door_type}${formData.louvre_type ? ` - ${formData.louvre_type}` : ""}\nגובה: ${formData.door_height} מ"מ`,
+        description: `ספק/קבלן: ${formData.customer_name}\nמוצר: ${formData.product_category}\nסוג כנף: ${formData.door_type}${formData.louvre_type ? ` - ${formData.louvre_type}` : ""}\nרוחב: ${formData.door_width} מ"מ\nגובה: ${formData.door_height} מ"מ`,
       });
       onClose();
     }
@@ -238,6 +251,7 @@ export const AddOrderModal = ({
       product_category: "",
       door_type: "",
       louvre_type: "",
+      door_width: "",
       active_door_direction: "",
       fixed_door_direction: "",
       door_height: "",
@@ -251,7 +265,7 @@ export const AddOrderModal = ({
       <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto" dir="rtl">
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold flex items-center justify-between">
-            <span>פתיחת הזמנה חדשה - שלב {currentStep} מתוך 6</span>
+            <span>פתיחת הזמנה חדשה - שלב {currentStep} מתוך 7</span>
             <span className="text-primary">{nextOrderNumber}</span>
           </DialogTitle>
         </DialogHeader>
@@ -445,6 +459,37 @@ export const AddOrderModal = ({
 
           {currentStep === 5 && (
             <>
+              {/* Width Selection */}
+              <div className="space-y-4 p-6 bg-muted/30 rounded-lg border-2 border-primary/20">
+                <Label className="text-base font-semibold">רוחב הכנף (מ"מ) *</Label>
+                <Input
+                  type="number"
+                  value={formData.door_width}
+                  onChange={(e) => setFormData({ ...formData, door_width: e.target.value })}
+                  placeholder="הזן רוחב במילימטרים"
+                  className="text-right"
+                  dir="rtl"
+                  min="1"
+                />
+              </div>
+
+              {/* Actions */}
+              <div className="flex gap-3 justify-between">
+                <Button type="button" variant="outline" onClick={handlePreviousStep}>
+                  חזור
+                </Button>
+                <div className="flex gap-3">
+                  <Button type="button" variant="outline" onClick={onClose}>
+                    ביטול
+                  </Button>
+                  <Button type="submit">המשך</Button>
+                </div>
+              </div>
+            </>
+          )}
+
+          {currentStep === 6 && (
+            <>
               {/* Direction Selection */}
               <div className="space-y-4 p-6 bg-muted/30 rounded-lg border-2 border-primary/20">
                 {formData.product_category.includes("כנף וחצי") ? (
@@ -533,17 +578,17 @@ export const AddOrderModal = ({
             </>
           )}
 
-          {currentStep === 6 && (
+          {currentStep === 7 && (
             <>
               {/* Height Selection */}
               <div className="space-y-4 p-6 bg-muted/30 rounded-lg border-2 border-primary/20">
                 <Label className="text-base font-semibold">גובה הכנף (מ"מ) *</Label>
-                <input
+                <Input
                   type="number"
                   value={formData.door_height}
                   onChange={(e) => setFormData({ ...formData, door_height: e.target.value })}
                   placeholder="הזן גובה במילימטרים"
-                  className="w-full px-4 py-3 border-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                  className="text-right"
                   dir="rtl"
                   min="1"
                 />
