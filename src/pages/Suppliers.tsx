@@ -16,9 +16,11 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { AddPartnerModal } from "@/components/AddPartnerModal";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "@/hooks/use-toast";
 
 interface Supplier {
-  id: number;
+  id: string;
   name: string;
   phone: string;
   email?: string;
@@ -37,17 +39,76 @@ const Suppliers = () => {
     return () => clearInterval(timer);
   }, []);
 
-  const handleAddSupplier = (newSupplier: Omit<Supplier, "id" | "active">) => {
-    const supplier: Supplier = {
-      id: suppliers.length > 0 ? Math.max(...suppliers.map(s => s.id)) + 1 : 1,
-      ...newSupplier,
-      active: "פעיל",
-    };
-    setSuppliers([supplier, ...suppliers]);
+  useEffect(() => {
+    fetchSuppliers();
+  }, []);
+
+  const fetchSuppliers = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("suppliers")
+        .select("*")
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+      if (data) setSuppliers(data as Supplier[]);
+    } catch (error) {
+      console.error("Error fetching suppliers:", error);
+      toast({
+        title: "שגיאה",
+        description: "לא הצלחנו לטעון את רשימת הספקים",
+        variant: "destructive",
+      });
+    }
   };
 
-  const handleDeleteSupplier = (id: number) => {
-    setSuppliers(suppliers.filter(s => s.id !== id));
+  const handleAddSupplier = async (newSupplier: Omit<Supplier, "id" | "active">) => {
+    try {
+      const { error } = await supabase.from("suppliers").insert({
+        name: newSupplier.name,
+        phone: newSupplier.phone,
+        email: newSupplier.email || null,
+        city: newSupplier.city,
+        active: "פעיל",
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "הספק נוסף בהצלחה!",
+        description: `${newSupplier.name} נוסף לרשימת הספקים`,
+      });
+
+      fetchSuppliers();
+    } catch (error) {
+      console.error("Error adding supplier:", error);
+      toast({
+        title: "שגיאה",
+        description: "לא הצלחנו להוסיף את הספק",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleDeleteSupplier = async (id: string) => {
+    try {
+      const { error } = await supabase.from("suppliers").delete().eq("id", id);
+
+      if (error) throw error;
+
+      toast({
+        title: "הספק נמחק בהצלחה!",
+      });
+
+      fetchSuppliers();
+    } catch (error) {
+      console.error("Error deleting supplier:", error);
+      toast({
+        title: "שגיאה",
+        description: "לא הצלחנו למחוק את הספק",
+        variant: "destructive",
+      });
+    }
   };
 
   const filteredSuppliers = suppliers.filter(supplier =>

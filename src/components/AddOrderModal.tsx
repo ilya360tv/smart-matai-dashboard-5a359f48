@@ -3,6 +3,7 @@ import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import {
   Dialog,
   DialogContent,
@@ -32,6 +33,9 @@ export const AddOrderModal = ({
   onSuccess,
 }: AddOrderModalProps) => {
   const [nextOrderNumber, setNextOrderNumber] = useState("C47");
+  const [partnerType, setPartnerType] = useState<"supplier" | "contractor">("supplier");
+  const [suppliers, setSuppliers] = useState<Array<{ id: string; name: string }>>([]);
+  const [contractors, setContractors] = useState<Array<{ id: string; name: string }>>([]);
   const [formData, setFormData] = useState({
     customer_name: "",
     product_type: "",
@@ -54,8 +58,23 @@ export const AddOrderModal = ({
   useEffect(() => {
     if (isOpen) {
       fetchNextOrderNumber();
+      fetchPartners();
     }
   }, [isOpen]);
+
+  const fetchPartners = async () => {
+    try {
+      const [suppliersData, contractorsData] = await Promise.all([
+        supabase.from("suppliers").select("id, name").eq("active", "פעיל"),
+        supabase.from("contractors").select("id, name").eq("active", "פעיל"),
+      ]);
+
+      if (suppliersData.data) setSuppliers(suppliersData.data);
+      if (contractorsData.data) setContractors(contractorsData.data);
+    } catch (error) {
+      console.error("Error fetching partners:", error);
+    }
+  };
 
   const fetchNextOrderNumber = async () => {
     try {
@@ -169,20 +188,54 @@ export const AddOrderModal = ({
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Customer Name */}
-            <div className="space-y-2">
-              <Label htmlFor="customer_name">שם לקוח *</Label>
-              <Input
-                id="customer_name"
-                value={formData.customer_name}
-                onChange={(e) =>
-                  setFormData({ ...formData, customer_name: e.target.value })
-                }
-                placeholder="שם הלקוח"
-                required
-              />
+          {/* Partner Selection */}
+          <div className="space-y-4 p-4 bg-muted/30 rounded-lg border-2 border-primary/20">
+            <div className="space-y-3">
+              <Label className="text-base font-semibold">בחר ספק / קבלן *</Label>
+              <RadioGroup
+                value={partnerType}
+                onValueChange={(value: "supplier" | "contractor") => {
+                  setPartnerType(value);
+                  setFormData({ ...formData, customer_name: "" });
+                }}
+                className="flex gap-6"
+              >
+                <div className="flex items-center space-x-2 space-x-reverse">
+                  <RadioGroupItem value="supplier" id="supplier" />
+                  <Label htmlFor="supplier" className="cursor-pointer font-normal">ספק</Label>
+                </div>
+                <div className="flex items-center space-x-2 space-x-reverse">
+                  <RadioGroupItem value="contractor" id="contractor" />
+                  <Label htmlFor="contractor" className="cursor-pointer font-normal">קבלן</Label>
+                </div>
+              </RadioGroup>
             </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="customer_name">
+                {partnerType === "supplier" ? "בחר ספק" : "בחר קבלן"} *
+              </Label>
+              <Select
+                value={formData.customer_name}
+                onValueChange={(value) =>
+                  setFormData({ ...formData, customer_name: value })
+                }
+              >
+                <SelectTrigger className="bg-background">
+                  <SelectValue placeholder={partnerType === "supplier" ? "בחר ספק מהרשימה" : "בחר קבלן מהרשימה"} />
+                </SelectTrigger>
+                <SelectContent className="bg-background z-50">
+                  {(partnerType === "supplier" ? suppliers : contractors).map((partner) => (
+                    <SelectItem key={partner.id} value={partner.name}>
+                      {partner.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 
             {/* Product Type */}
             <div className="space-y-2">

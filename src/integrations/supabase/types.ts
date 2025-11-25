@@ -14,6 +14,39 @@ export type Database = {
   }
   public: {
     Tables: {
+      contractors: {
+        Row: {
+          active: string
+          city: string
+          created_at: string
+          email: string | null
+          id: string
+          name: string
+          phone: string
+          updated_at: string
+        }
+        Insert: {
+          active?: string
+          city: string
+          created_at?: string
+          email?: string | null
+          id?: string
+          name: string
+          phone: string
+          updated_at?: string
+        }
+        Update: {
+          active?: string
+          city?: string
+          created_at?: string
+          email?: string | null
+          id?: string
+          name?: string
+          phone?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       doors_d_rhk: {
         Row: {
           created_at: string
@@ -709,6 +742,39 @@ export type Database = {
           quantity?: number
           reseller_price?: number | null
           supplier_price?: number | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      suppliers: {
+        Row: {
+          active: string
+          city: string
+          created_at: string
+          email: string | null
+          id: string
+          name: string
+          phone: string
+          updated_at: string
+        }
+        Insert: {
+          active?: string
+          city: string
+          created_at?: string
+          email?: string | null
+          id?: string
+          name: string
+          phone: string
+          updated_at?: string
+        }
+        Update: {
+          active?: string
+          city?: string
+          created_at?: string
+          email?: string | null
+          id?: string
+          name?: string
+          phone?: string
           updated_at?: string
         }
         Relationships: []
