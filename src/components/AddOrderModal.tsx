@@ -471,8 +471,8 @@ export const AddOrderModal = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-5xl w-[95vw] max-h-[95vh] overflow-y-auto" dir="rtl">
-        <DialogHeader>
+      <DialogContent className="max-w-5xl w-[95vw] h-[90vh] flex flex-col overflow-hidden" dir="rtl">
+        <DialogHeader className="flex-shrink-0">
           <DialogTitle className="text-2xl font-bold flex items-center justify-between">
             <span>פתיחת הזמנה חדשה - שלב {currentStep} מתוך 7</span>
             <span className="text-primary">{nextOrderNumber}</span>
@@ -480,7 +480,7 @@ export const AddOrderModal = ({
         </DialogHeader>
 
         {hasDraft && currentStep === 1 && (
-          <div className="bg-blue-50 border-2 border-blue-200 rounded-lg p-4 space-y-3">
+          <div className="bg-blue-50 border-2 border-blue-200 rounded-lg p-4 space-y-3 flex-shrink-0">
             <p className="font-semibold text-blue-900">נמצאה טיוטה שמורה</p>
             <div className="flex gap-2">
               <Button type="button" variant="default" onClick={loadDraft} className="flex-1">
@@ -493,9 +493,9 @@ export const AddOrderModal = ({
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="flex-1 flex flex-col min-h-0">
           {currentStep === 1 && (
-            <>
+            <div className="flex-1 flex flex-col justify-between">
               {/* Partner Selection */}
               <div className="space-y-4 p-6 bg-muted/30 rounded-lg border-2 border-primary/20">
                 <div className="space-y-3">
@@ -545,7 +545,7 @@ export const AddOrderModal = ({
               </div>
 
               {/* Actions */}
-              <div className="flex gap-3 justify-end">
+              <div className="flex gap-3 justify-end mt-6">
                 <Button type="button" variant="ghost" onClick={saveDraft}>
                   שמור כטיוטה
                 </Button>
@@ -554,7 +554,7 @@ export const AddOrderModal = ({
                 </Button>
                 <Button type="submit">המשך</Button>
               </div>
-            </>
+            </div>
           )}
 
           {currentStep === 2 && (
