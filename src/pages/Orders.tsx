@@ -37,10 +37,12 @@ interface SubOrder {
   fixed_door_type: string | null;
   active_louvre_type: string | null;
   fixed_louvre_type: string | null;
-  door_width: number | null;
+  active_door_width: number | null;
+  active_door_height: number | null;
   active_door_direction: string | null;
+  fixed_door_width: number | null;
+  fixed_door_height: number | null;
   fixed_door_direction: string | null;
-  door_height: number | null;
   quantity: number;
   price: number;
   installer_price: number;
@@ -353,7 +355,7 @@ const Orders = () => {
                                           </TableCell>
                                           <TableCell className="text-muted-foreground text-sm">
                                             {order.product_category}
-                                            {order.door_width && ` - ${order.door_width}מ"מ`}
+                                            {order.active_door_width && ` - ${order.active_door_width}מ"מ`}
                                           </TableCell>
                                           <TableCell>
                                             <Badge variant="secondary" className="text-xs">

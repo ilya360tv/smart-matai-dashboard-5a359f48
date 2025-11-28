@@ -773,13 +773,15 @@ export type Database = {
       sub_orders: {
         Row: {
           active_door_direction: string | null
+          active_door_height: number | null
           active_door_type: string | null
+          active_door_width: number | null
           active_louvre_type: string | null
           created_at: string
-          door_height: number | null
-          door_width: number | null
           fixed_door_direction: string | null
+          fixed_door_height: number | null
           fixed_door_type: string | null
+          fixed_door_width: number | null
           fixed_louvre_type: string | null
           full_order_number: string
           id: string
@@ -796,13 +798,15 @@ export type Database = {
         }
         Insert: {
           active_door_direction?: string | null
+          active_door_height?: number | null
           active_door_type?: string | null
+          active_door_width?: number | null
           active_louvre_type?: string | null
           created_at?: string
-          door_height?: number | null
-          door_width?: number | null
           fixed_door_direction?: string | null
+          fixed_door_height?: number | null
           fixed_door_type?: string | null
+          fixed_door_width?: number | null
           fixed_louvre_type?: string | null
           full_order_number: string
           id?: string
@@ -819,13 +823,15 @@ export type Database = {
         }
         Update: {
           active_door_direction?: string | null
+          active_door_height?: number | null
           active_door_type?: string | null
+          active_door_width?: number | null
           active_louvre_type?: string | null
           created_at?: string
-          door_height?: number | null
-          door_width?: number | null
           fixed_door_direction?: string | null
+          fixed_door_height?: number | null
           fixed_door_type?: string | null
+          fixed_door_width?: number | null
           fixed_louvre_type?: string | null
           full_order_number?: string
           id?: string
