@@ -62,6 +62,7 @@ export const AddOrderModal = ({
   const [partnerType, setPartnerType] = useState<"supplier" | "marketer">("supplier");
   const [suppliers, setSuppliers] = useState<Array<{ id: string; name: string }>>([]);
   const [marketers, setMarketers] = useState<Array<{ id: string; name: string }>>([]);
+  const [hasDraft, setHasDraft] = useState(false);
   const [formData, setFormData] = useState({
     customer_name: "",
     product_category: "",
@@ -81,6 +82,7 @@ export const AddOrderModal = ({
     if (isOpen) {
       fetchNextOrderNumber();
       fetchPartners();
+      checkForDraft();
     }
   }, [isOpen]);
 
@@ -96,6 +98,50 @@ export const AddOrderModal = ({
     } catch (error) {
       console.error("Error fetching partners:", error);
     }
+  };
+
+  const checkForDraft = () => {
+    const draft = localStorage.getItem("order_draft");
+    setHasDraft(!!draft);
+  };
+
+  const saveDraft = () => {
+    const draft = {
+      formData,
+      currentStep,
+      partnerType,
+      timestamp: new Date().toISOString(),
+    };
+    localStorage.setItem("order_draft", JSON.stringify(draft));
+    toast({
+      title: "טיוטה נשמרה!",
+      description: "תוכל לחזור להזמנה זו בכל עת",
+    });
+    onClose();
+  };
+
+  const loadDraft = () => {
+    const draft = localStorage.getItem("order_draft");
+    if (draft) {
+      const { formData: savedFormData, currentStep: savedStep, partnerType: savedPartnerType } = JSON.parse(draft);
+      setFormData(savedFormData);
+      setCurrentStep(savedStep);
+      setPartnerType(savedPartnerType);
+      setHasDraft(false);
+      toast({
+        title: "טיוטה נטענה!",
+        description: "ממשיך מהמקום שבו עצרת",
+      });
+    }
+  };
+
+  const deleteDraft = () => {
+    localStorage.removeItem("order_draft");
+    setHasDraft(false);
+    toast({
+      title: "טיוטה נמחקה",
+      description: "הטיוטה הוסרה מהמערכת",
+    });
   };
 
   const fetchNextOrderNumber = async () => {
@@ -419,6 +465,8 @@ export const AddOrderModal = ({
     });
     setPartnerType("supplier");
     setCurrentStep(1);
+    localStorage.removeItem("order_draft");
+    setHasDraft(false);
   };
 
   return (
@@ -430,6 +478,20 @@ export const AddOrderModal = ({
             <span className="text-primary">{nextOrderNumber}</span>
           </DialogTitle>
         </DialogHeader>
+
+        {hasDraft && currentStep === 1 && (
+          <div className="bg-blue-50 border-2 border-blue-200 rounded-lg p-4 space-y-3">
+            <p className="font-semibold text-blue-900">נמצאה טיוטה שמורה</p>
+            <div className="flex gap-2">
+              <Button type="button" variant="default" onClick={loadDraft} className="flex-1">
+                המשך מהטיוטה
+              </Button>
+              <Button type="button" variant="outline" onClick={deleteDraft}>
+                התחל מחדש
+              </Button>
+            </div>
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="space-y-6">
           {currentStep === 1 && (
@@ -484,6 +546,9 @@ export const AddOrderModal = ({
 
               {/* Actions */}
               <div className="flex gap-3 justify-end">
+                <Button type="button" variant="ghost" onClick={saveDraft}>
+                  שמור כטיוטה
+                </Button>
                 <Button type="button" variant="outline" onClick={onClose}>
                   ביטול
                 </Button>
@@ -525,6 +590,9 @@ export const AddOrderModal = ({
                   חזור
                 </Button>
                 <div className="flex gap-3">
+                  <Button type="button" variant="ghost" onClick={saveDraft}>
+                    שמור כטיוטה
+                  </Button>
                   <Button type="button" variant="outline" onClick={onClose}>
                     ביטול
                   </Button>
@@ -569,6 +637,9 @@ export const AddOrderModal = ({
                   חזור
                 </Button>
                 <div className="flex gap-3">
+                  <Button type="button" variant="ghost" onClick={saveDraft}>
+                    שמור כטיוטה
+                  </Button>
                   <Button type="button" variant="outline" onClick={onClose}>
                     ביטול
                   </Button>
@@ -611,6 +682,9 @@ export const AddOrderModal = ({
                   חזור
                 </Button>
                 <div className="flex gap-3">
+                  <Button type="button" variant="ghost" onClick={saveDraft}>
+                    שמור כטיוטה
+                  </Button>
                   <Button type="button" variant="outline" onClick={onClose}>
                     ביטול
                   </Button>
@@ -655,6 +729,9 @@ export const AddOrderModal = ({
                   חזור
                 </Button>
                 <div className="flex gap-3">
+                  <Button type="button" variant="ghost" onClick={saveDraft}>
+                    שמור כטיוטה
+                  </Button>
                   <Button type="button" variant="outline" onClick={onClose}>
                     ביטול
                   </Button>
@@ -697,6 +774,9 @@ export const AddOrderModal = ({
                   חזור
                 </Button>
                 <div className="flex gap-3">
+                  <Button type="button" variant="ghost" onClick={saveDraft}>
+                    שמור כטיוטה
+                  </Button>
                   <Button type="button" variant="outline" onClick={onClose}>
                     ביטול
                   </Button>
@@ -899,6 +979,9 @@ export const AddOrderModal = ({
                   חזור
                 </Button>
                 <div className="flex gap-3">
+                  <Button type="button" variant="ghost" onClick={saveDraft}>
+                    שמור כטיוטה
+                  </Button>
                   <Button type="button" variant="outline" onClick={onClose}>
                     ביטול
                   </Button>
