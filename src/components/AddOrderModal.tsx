@@ -105,17 +105,59 @@ export const AddOrderModal = ({
         .from("order_groups")
         .select("id, group_number")
         .eq("status", "פעיל")
-        .single();
+        .maybeSingle();
 
       if (groupError) throw groupError;
       
-      setActiveGroup(groupData);
+      let activeGroupData = groupData;
+      
+      // If no active group exists, create one
+      if (!activeGroupData) {
+        // Get the latest group number to determine the next one
+        const { data: allGroups, error: allGroupsError } = await supabase
+          .from("order_groups")
+          .select("group_number")
+          .order("created_at", { ascending: false })
+          .limit(1);
+
+        if (allGroupsError) throw allGroupsError;
+
+        // Calculate next group number
+        let nextGroupNum = 48; // Default starting number
+        if (allGroups && allGroups.length > 0) {
+          const match = allGroups[0].group_number.match(/C(\d+)/);
+          nextGroupNum = match ? parseInt(match[1]) + 1 : 48;
+        }
+
+        const newGroupNumber = `C${nextGroupNum}`;
+
+        // Create new active group
+        const { data: newGroup, error: createError } = await supabase
+          .from("order_groups")
+          .insert({
+            group_number: newGroupNumber,
+            status: "פעיל",
+          })
+          .select("id, group_number")
+          .single();
+
+        if (createError) throw createError;
+        
+        activeGroupData = newGroup;
+        
+        toast({
+          title: "הזמנה חדשה נוצרה!",
+          description: `קבוצה ${newGroupNumber} נפתחה אוטומטית`,
+        });
+      }
+      
+      setActiveGroup(activeGroupData);
 
       // Get the next sub-order number for this group
       const { data: subOrdersData, error: subOrdersError } = await supabase
         .from("sub_orders")
         .select("sub_number")
-        .eq("order_group_id", groupData.id)
+        .eq("order_group_id", activeGroupData.id)
         .order("sub_number", { ascending: false })
         .limit(1);
 
@@ -125,9 +167,14 @@ export const AddOrderModal = ({
         ? subOrdersData[0].sub_number + 1 
         : 1;
       
-      setNextOrderNumber(`${groupData.group_number}-${nextSubNumber}`);
+      setNextOrderNumber(`${activeGroupData.group_number}-${nextSubNumber}`);
     } catch (error) {
       console.error("Error fetching next order number:", error);
+      toast({
+        title: "שגיאה",
+        description: "לא הצלחנו לטעון את מספר ההזמנה הבא",
+        variant: "destructive",
+      });
     }
   };
 
