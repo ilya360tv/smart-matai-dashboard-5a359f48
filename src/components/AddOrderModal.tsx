@@ -666,133 +666,137 @@ export const AddOrderModal = ({
                 {formData.product_category.includes("כנף וחצי") ? (
                   <>
                     {/* כנף פעילה */}
-                    <div className="space-y-4 pb-4 border-b-2 border-primary/20">
-                      <h3 className="text-lg font-bold text-primary">כנף פעילה</h3>
+                    <div className="pb-4 border-b-2 border-primary/20">
+                      <h3 className="text-lg font-bold text-primary mb-4">כנף פעילה</h3>
                       
-                      <div className="space-y-2">
-                        <Label htmlFor="active-width">רוחב כנף פעילה (מ"מ) *</Label>
-                        <Input
-                          id="active-width"
-                          type="number"
-                          value={formData.active_door_width}
-                          onChange={(e) => setFormData({ ...formData, active_door_width: e.target.value })}
-                          placeholder="הזן רוחב במילימטרים"
-                          className="text-right"
-                          dir="rtl"
-                          min="1"
-                        />
-                      </div>
+                      <div className="grid grid-cols-3 gap-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="active-width">רוחב (מ"מ) *</Label>
+                          <Input
+                            id="active-width"
+                            type="number"
+                            value={formData.active_door_width}
+                            onChange={(e) => setFormData({ ...formData, active_door_width: e.target.value })}
+                            placeholder="רוחב"
+                            className="text-right"
+                            dir="rtl"
+                            min="1"
+                          />
+                        </div>
 
-                      <div className="space-y-2">
-                        <Label htmlFor="active-height">גובה כנף פעילה (מ"מ) *</Label>
-                        <Input
-                          id="active-height"
-                          type="number"
-                          value={formData.active_door_height}
-                          onChange={(e) => setFormData({ ...formData, active_door_height: e.target.value })}
-                          placeholder="הזן גובה במילימטרים"
-                          className="text-right"
-                          dir="rtl"
-                          min="1"
-                        />
-                      </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="active-height">גובה (מ"מ) *</Label>
+                          <Input
+                            id="active-height"
+                            type="number"
+                            value={formData.active_door_height}
+                            onChange={(e) => setFormData({ ...formData, active_door_height: e.target.value })}
+                            placeholder="גובה"
+                            className="text-right"
+                            dir="rtl"
+                            min="1"
+                          />
+                        </div>
 
-                      <div className="space-y-2">
-                        <Label>כיוון כנף פעילה *</Label>
-                        <RadioGroup
-                          value={formData.active_door_direction}
-                          onValueChange={(value) =>
-                            setFormData({ ...formData, active_door_direction: value })
-                          }
-                          className="flex gap-6 justify-center"
-                          dir="rtl"
-                        >
-                          <div className="flex items-center gap-2">
-                            <Label htmlFor="active-right-combined" className="cursor-pointer font-normal">
-                              ימין (R)
-                            </Label>
-                            <RadioGroupItem value="ימין" id="active-right-combined" />
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <Label htmlFor="active-left-combined" className="cursor-pointer font-normal">
-                              שמאל (L)
-                            </Label>
-                            <RadioGroupItem value="שמאל" id="active-left-combined" />
-                          </div>
-                        </RadioGroup>
+                        <div className="space-y-2">
+                          <Label>כיוון *</Label>
+                          <RadioGroup
+                            value={formData.active_door_direction}
+                            onValueChange={(value) =>
+                              setFormData({ ...formData, active_door_direction: value })
+                            }
+                            className="flex gap-4 justify-center h-10 items-center"
+                            dir="rtl"
+                          >
+                            <div className="flex items-center gap-2">
+                              <Label htmlFor="active-right-combined" className="cursor-pointer font-normal">
+                                R
+                              </Label>
+                              <RadioGroupItem value="ימין" id="active-right-combined" />
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Label htmlFor="active-left-combined" className="cursor-pointer font-normal">
+                                L
+                              </Label>
+                              <RadioGroupItem value="שמאל" id="active-left-combined" />
+                            </div>
+                          </RadioGroup>
+                        </div>
                       </div>
                     </div>
 
                     {/* כנף קבועה */}
-                    <div className="space-y-4">
-                      <h3 className="text-lg font-bold text-primary">כנף קבועה</h3>
+                    <div>
+                      <h3 className="text-lg font-bold text-primary mb-4">כנף קבועה</h3>
                       
-                      <div className="space-y-2">
-                        <Label htmlFor="fixed-width">רוחב כנף קבועה (מ"מ) *</Label>
-                        <Input
-                          id="fixed-width"
-                          type="number"
-                          value={formData.fixed_door_width}
-                          onChange={(e) => setFormData({ ...formData, fixed_door_width: e.target.value })}
-                          placeholder="הזן רוחב במילימטרים"
-                          className="text-right"
-                          dir="rtl"
-                          min="1"
-                        />
-                      </div>
+                      <div className="grid grid-cols-3 gap-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="fixed-width">רוחב (מ"מ) *</Label>
+                          <Input
+                            id="fixed-width"
+                            type="number"
+                            value={formData.fixed_door_width}
+                            onChange={(e) => setFormData({ ...formData, fixed_door_width: e.target.value })}
+                            placeholder="רוחב"
+                            className="text-right"
+                            dir="rtl"
+                            min="1"
+                          />
+                        </div>
 
-                      <div className="space-y-2">
-                        <Label htmlFor="fixed-height">גובה כנף קבועה (מ"מ) *</Label>
-                        <Input
-                          id="fixed-height"
-                          type="number"
-                          value={formData.fixed_door_height}
-                          onChange={(e) => setFormData({ ...formData, fixed_door_height: e.target.value })}
-                          placeholder="הזן גובה במילימטרים"
-                          className="text-right"
-                          dir="rtl"
-                          min="1"
-                        />
-                      </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="fixed-height">גובה (מ"מ) *</Label>
+                          <Input
+                            id="fixed-height"
+                            type="number"
+                            value={formData.fixed_door_height}
+                            onChange={(e) => setFormData({ ...formData, fixed_door_height: e.target.value })}
+                            placeholder="גובה"
+                            className="text-right"
+                            dir="rtl"
+                            min="1"
+                          />
+                        </div>
 
-                      <div className="space-y-2">
-                        <Label>כיוון כנף קבועה *</Label>
-                        <RadioGroup
-                          value={formData.fixed_door_direction}
-                          onValueChange={(value) =>
-                            setFormData({ ...formData, fixed_door_direction: value })
-                          }
-                          className="flex gap-6 justify-center"
-                          dir="rtl"
-                        >
-                          <div className="flex items-center gap-2">
-                            <Label htmlFor="fixed-right-combined" className="cursor-pointer font-normal">
-                              ימין (R)
-                            </Label>
-                            <RadioGroupItem value="ימין" id="fixed-right-combined" />
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <Label htmlFor="fixed-left-combined" className="cursor-pointer font-normal">
-                              שמאל (L)
-                            </Label>
-                            <RadioGroupItem value="שמאל" id="fixed-left-combined" />
-                          </div>
-                        </RadioGroup>
+                        <div className="space-y-2">
+                          <Label>כיוון *</Label>
+                          <RadioGroup
+                            value={formData.fixed_door_direction}
+                            onValueChange={(value) =>
+                              setFormData({ ...formData, fixed_door_direction: value })
+                            }
+                            className="flex gap-4 justify-center h-10 items-center"
+                            dir="rtl"
+                          >
+                            <div className="flex items-center gap-2">
+                              <Label htmlFor="fixed-right-combined" className="cursor-pointer font-normal">
+                                R
+                              </Label>
+                              <RadioGroupItem value="ימין" id="fixed-right-combined" />
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Label htmlFor="fixed-left-combined" className="cursor-pointer font-normal">
+                                L
+                              </Label>
+                              <RadioGroupItem value="שמאל" id="fixed-left-combined" />
+                            </div>
+                          </RadioGroup>
+                        </div>
                       </div>
                     </div>
                   </>
                 ) : (
                   <>
                     {/* כנף בודדת */}
-                    <div className="space-y-4">
+                    <div className="grid grid-cols-3 gap-4">
                       <div className="space-y-2">
-                        <Label htmlFor="single-width">רוחב כנף פעילה (מ"מ) *</Label>
+                        <Label htmlFor="single-width">רוחב (מ"מ) *</Label>
                         <Input
                           id="single-width"
                           type="number"
                           value={formData.active_door_width}
                           onChange={(e) => setFormData({ ...formData, active_door_width: e.target.value })}
-                          placeholder="הזן רוחב במילימטרים"
+                          placeholder="רוחב"
                           className="text-right"
                           dir="rtl"
                           min="1"
@@ -800,13 +804,13 @@ export const AddOrderModal = ({
                       </div>
 
                       <div className="space-y-2">
-                        <Label htmlFor="single-height">גובה כנף פעילה (מ"מ) *</Label>
+                        <Label htmlFor="single-height">גובה (מ"מ) *</Label>
                         <Input
                           id="single-height"
                           type="number"
                           value={formData.active_door_height}
                           onChange={(e) => setFormData({ ...formData, active_door_height: e.target.value })}
-                          placeholder="הזן גובה במילימטרים"
+                          placeholder="גובה"
                           className="text-right"
                           dir="rtl"
                           min="1"
@@ -814,24 +818,24 @@ export const AddOrderModal = ({
                       </div>
 
                       <div className="space-y-2">
-                        <Label>כיוון כנף פעילה *</Label>
+                        <Label>כיוון *</Label>
                         <RadioGroup
                           value={formData.active_door_direction}
                           onValueChange={(value) =>
                             setFormData({ ...formData, active_door_direction: value })
                           }
-                          className="flex gap-6 justify-center"
+                          className="flex gap-4 justify-center h-10 items-center"
                           dir="rtl"
                         >
                           <div className="flex items-center gap-2">
                             <Label htmlFor="single-right-combined" className="cursor-pointer font-normal">
-                              ימין (R)
+                              R
                             </Label>
                             <RadioGroupItem value="ימין" id="single-right-combined" />
                           </div>
                           <div className="flex items-center gap-2">
                             <Label htmlFor="single-left-combined" className="cursor-pointer font-normal">
-                              שמאל (L)
+                              L
                             </Label>
                             <RadioGroupItem value="שמאל" id="single-left-combined" />
                           </div>
