@@ -56,13 +56,13 @@ const Contractors = () => {
       console.error("Error fetching contractors:", error);
       toast({
         title: "שגיאה",
-        description: "לא הצלחנו לטעון את רשימת הקבלנים",
+        description: "לא הצלחנו לטעון את רשימת המשווקים",
         variant: "destructive",
       });
     }
   };
 
-  const handleAddContractor = async (newContractor: { name: string; phone: string; email?: string; city: string; status: "ספק" | "קבלן" }) => {
+  const handleAddContractor = async (newContractor: { name: string; phone: string; email?: string; city: string; status: "ספק" | "משווק" }) => {
     try {
       const { error } = await supabase.from("contractors").insert({
         name: newContractor.name,
@@ -75,8 +75,8 @@ const Contractors = () => {
       if (error) throw error;
 
       toast({
-        title: "הקבלן נוסף בהצלחה!",
-        description: `${newContractor.name} נוסף לרשימת הקבלנים`,
+        title: "המשווק נוסף בהצלחה!",
+        description: `${newContractor.name} נוסף לרשימת המשווקים`,
       });
 
       fetchContractors();
@@ -84,7 +84,7 @@ const Contractors = () => {
       console.error("Error adding contractor:", error);
       toast({
         title: "שגיאה",
-        description: "לא הצלחנו להוסיף את הקבלן",
+        description: "לא הצלחנו להוסיף את המשווק",
         variant: "destructive",
       });
     }
@@ -97,7 +97,7 @@ const Contractors = () => {
       if (error) throw error;
 
       toast({
-        title: "הקבלן נמחק בהצלחה!",
+        title: "המשווק נמחק בהצלחה!",
       });
 
       fetchContractors();
@@ -105,7 +105,7 @@ const Contractors = () => {
       console.error("Error deleting contractor:", error);
       toast({
         title: "שגיאה",
-        description: "לא הצלחנו למחוק את הקבלן",
+        description: "לא הצלחנו למחוק את המשווק",
         variant: "destructive",
       });
     }
@@ -130,7 +130,7 @@ const Contractors = () => {
       <div className="flex-1 flex flex-col">
         {/* Header */}
         <header className="flex h-14 items-center gap-2 border-b bg-card px-3 lg:h-[60px] lg:px-6 sticky top-0 z-10 shadow-sm">
-          <h1 className="text-lg lg:text-2xl font-bold flex-1">ניהול קבלנים</h1>
+          <h1 className="text-lg lg:text-2xl font-bold flex-1">ניהול משווקים</h1>
           <div className="flex items-center gap-1.5 lg:gap-2 text-muted-foreground">
             <Clock className="h-3.5 w-3.5 lg:h-4 lg:w-4" />
             <div className="flex flex-col items-end">
@@ -150,7 +150,7 @@ const Contractors = () => {
                   <div className="relative flex-1">
                     <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
-                      placeholder="חיפוש קבלן..."
+                      placeholder="חיפוש משווק..."
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                       className="pr-10 h-11"
@@ -162,7 +162,7 @@ const Contractors = () => {
                     size="lg"
                   >
                     <Plus className="h-5 w-5" />
-                    הוסף קבלן חדש
+                    הוסף משווק חדש
                   </Button>
                 </div>
               </CardContent>
@@ -299,7 +299,7 @@ const Contractors = () => {
         isOpen={isAddModalOpen}
         onClose={() => setIsAddModalOpen(false)}
         onAdd={handleAddContractor}
-        type="קבלן"
+        type="משווק"
       />
     </div>
   );

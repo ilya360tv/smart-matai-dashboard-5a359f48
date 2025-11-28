@@ -11,7 +11,7 @@ const menuItems = [
   { icon: DollarSign, label: "תשלומי לקוחות", href: "/customer-payments" },
   { icon: Receipt, label: "תשלומי ספקים", href: "/supplier-payments" },
   { icon: Building2, label: "ספקים", href: "/suppliers" },
-  { icon: Users, label: "קבלנים", href: "/contractors" },
+  { icon: Users, label: "משווקים", href: "/contractors" },
   { icon: Database, label: "ייבוא נתונים", href: "/data-migration" },
 ];
 

@@ -25,9 +25,9 @@ interface AddPartnerModalProps {
     phone: string;
     email?: string;
     city: string;
-    status: "ספק" | "קבלן";
+    status: "ספק" | "משווק";
   }) => void;
-  type: "ספק" | "קבלן";
+  type: "ספק" | "משווק";
 }
 
 export const AddPartnerModal = ({ isOpen, onClose, onAdd, type }: AddPartnerModalProps) => {
