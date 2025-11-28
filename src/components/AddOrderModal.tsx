@@ -423,7 +423,7 @@ export const AddOrderModal = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto" dir="rtl">
+      <DialogContent className="max-w-5xl w-[95vw] max-h-[95vh] overflow-y-auto" dir="rtl">
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold flex items-center justify-between">
             <span>פתיחת הזמנה חדשה - שלב {currentStep} מתוך 7</span>
