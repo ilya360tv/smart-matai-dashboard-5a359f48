@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
-import { Search, Plus, Pencil, Trash2, Clock, ChevronDown, ChevronRight, PackagePlus } from "lucide-react";
+import { Search, Plus, Pencil, Trash2, Clock, ChevronDown, ChevronRight, PackagePlus, Lock, X } from "lucide-react";
 import { format } from "date-fns";
 import { he } from "date-fns/locale";
 import { DashboardSidebar } from "@/components/DashboardSidebar";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -15,7 +15,18 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { AddOrderModal } from "@/components/AddOrderModal";
+import { EditSubOrderModal } from "@/components/EditSubOrderModal";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -24,6 +35,7 @@ interface OrderGroup {
   group_number: string;
   status: string;
   created_at: string;
+  updated_at: string;
 }
 
 interface SubOrder {
@@ -47,6 +59,7 @@ interface SubOrder {
   price: number;
   installer_price: number;
   notes: string | null;
+  status: string;
   created_at: string;
 }
 
@@ -58,10 +71,17 @@ const Orders = () => {
   const [currentTime, setCurrentTime] = useState(new Date());
   const [searchQuery, setSearchQuery] = useState("");
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editingSubOrder, setEditingSubOrder] = useState<SubOrder | null>(null);
   const [groupedOrders, setGroupedOrders] = useState<GroupedOrder[]>([]);
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
   const [activeGroup, setActiveGroup] = useState<OrderGroup | null>(null);
+  
+  // Alert dialogs state
+  const [deleteGroupDialog, setDeleteGroupDialog] = useState<{ open: boolean; groupId: string | null }>({ open: false, groupId: null });
+  const [closeGroupDialog, setCloseGroupDialog] = useState<{ open: boolean; groupId: string | null }>({ open: false, groupId: null });
+  const [cancelSubOrderDialog, setCancelSubOrderDialog] = useState<{ open: boolean; subOrderId: string | null; groupId: string | null }>({ open: false, subOrderId: null, groupId: null });
 
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
@@ -76,7 +96,6 @@ const Orders = () => {
     try {
       setLoading(true);
       
-      // Fetch all order groups
       const { data: groups, error: groupsError } = await supabase
         .from("order_groups")
         .select("*")
@@ -84,7 +103,6 @@ const Orders = () => {
 
       if (groupsError) throw groupsError;
 
-      // Fetch all sub-orders
       const { data: subOrders, error: subOrdersError } = await supabase
         .from("sub_orders")
         .select("*")
@@ -92,11 +110,9 @@ const Orders = () => {
 
       if (subOrdersError) throw subOrdersError;
 
-      // Find active group
       const active = groups?.find(g => g.status === "פעיל") || null;
       setActiveGroup(active);
 
-      // Group sub-orders by order_group_id
       const grouped: GroupedOrder[] = (groups || []).map((group) => ({
         ...group,
         subOrders: (subOrders || []).filter((sub) => sub.order_group_id === group.id),
@@ -104,7 +120,6 @@ const Orders = () => {
 
       setGroupedOrders(grouped);
       
-      // Auto-expand active group
       if (active) {
         setExpandedGroups(new Set([active.id]));
       }
@@ -122,7 +137,6 @@ const Orders = () => {
 
   const handleCreateNewGroup = async () => {
     try {
-      // Close current active group
       if (activeGroup) {
         const { error: updateError } = await supabase
           .from("order_groups")
@@ -132,13 +146,11 @@ const Orders = () => {
         if (updateError) throw updateError;
       }
 
-      // Get the next group number
       const currentNumber = activeGroup?.group_number || "C47";
       const match = currentNumber.match(/C(\d+)/);
       const nextNum = match ? parseInt(match[1]) + 1 : 48;
       const newGroupNumber = `C${nextNum}`;
 
-      // Create new group
       const { error: insertError } = await supabase
         .from("order_groups")
         .insert({
@@ -164,13 +176,107 @@ const Orders = () => {
     }
   };
 
+  const handleDeleteGroup = async (groupId: string) => {
+    try {
+      // Delete all sub-orders first
+      const { error: subOrdersError } = await supabase
+        .from("sub_orders")
+        .delete()
+        .eq("order_group_id", groupId);
+
+      if (subOrdersError) throw subOrdersError;
+
+      // Then delete the group
+      const { error: groupError } = await supabase
+        .from("order_groups")
+        .delete()
+        .eq("id", groupId);
+
+      if (groupError) throw groupError;
+
+      toast({
+        title: "הקבוצה נמחקה בהצלחה",
+        description: "הקבוצה וכל התת-הזמנות שלה הוסרו מהמערכת",
+      });
+
+      fetchGroupedOrders();
+    } catch (error) {
+      console.error("Error deleting group:", error);
+      toast({
+        title: "שגיאה במחיקת הקבוצה",
+        description: "לא הצלחנו למחוק את הקבוצה",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleCloseGroup = async (groupId: string) => {
+    try {
+      const { error } = await supabase
+        .from("order_groups")
+        .update({ status: "סגור" })
+        .eq("id", groupId);
+
+      if (error) throw error;
+
+      toast({
+        title: "ההזמנה נסגרה בהצלחה",
+        description: "סטטוס ההזמנה שונה ל'סגור'",
+      });
+
+      fetchGroupedOrders();
+    } catch (error) {
+      console.error("Error closing group:", error);
+      toast({
+        title: "שגיאה בסגירת ההזמנה",
+        description: "לא הצלחנו לסגור את ההזמנה",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleCancelSubOrder = async (subOrderId: string, groupId: string) => {
+    try {
+      const { error } = await supabase
+        .from("sub_orders")
+        .update({ status: "בוטל" })
+        .eq("id", subOrderId);
+
+      if (error) throw error;
+
+      setGroupedOrders(
+        groupedOrders.map((group) =>
+          group.id === groupId
+            ? {
+                ...group,
+                subOrders: group.subOrders.map((o) =>
+                  o.id === subOrderId ? { ...o, status: "בוטל" } : o
+                ),
+              }
+            : group
+        )
+      );
+
+      toast({
+        title: "תת-ההזמנה בוטלה",
+        description: "תת-ההזמנה סומנה כבוטלה במערכת",
+      });
+    } catch (error) {
+      console.error("Error cancelling sub-order:", error);
+      toast({
+        title: "שגיאה בביטול תת-ההזמנה",
+        description: "לא הצלחנו לבטל את תת-ההזמנה",
+        variant: "destructive",
+      });
+    }
+  };
+
   const handleDeleteSubOrder = async (id: string, groupId: string) => {
     try {
       const { error } = await supabase.from("sub_orders").delete().eq("id", id);
 
       if (error) throw error;
 
-      // Update local state
       setGroupedOrders(
         groupedOrders.map((group) =>
           group.id === groupId
@@ -191,6 +297,11 @@ const Orders = () => {
         variant: "destructive",
       });
     }
+  };
+
+  const handleEditSubOrder = (subOrder: SubOrder) => {
+    setEditingSubOrder(subOrder);
+    setIsEditModalOpen(true);
   };
 
   const toggleGroup = (groupId: string) => {
@@ -295,11 +406,8 @@ const Orders = () => {
                         filteredGroupedOrders.map((group) => (
                           <div key={group.id} className="border-b last:border-b-0">
                             {/* Group Header */}
-                            <div
-                              className="flex items-center justify-between p-4 hover:bg-muted/30 cursor-pointer transition-colors"
-                              onClick={() => toggleGroup(group.id)}
-                            >
-                              <div className="flex items-center gap-3">
+                            <div className="flex items-center justify-between p-4 hover:bg-muted/30 transition-colors">
+                              <div className="flex items-center gap-3 flex-1 cursor-pointer" onClick={() => toggleGroup(group.id)}>
                                 {expandedGroups.has(group.id) ? (
                                   <ChevronDown className="h-5 w-5 text-muted-foreground" />
                                 ) : (
@@ -308,17 +416,40 @@ const Orders = () => {
                                 <div>
                                   <h3 className="font-bold text-xl flex items-center gap-2">
                                     {group.group_number}
-                                    {group.status === "פעיל" && (
-                                      <Badge variant="default" className="text-xs">פעיל</Badge>
-                                    )}
+                                    <Badge 
+                                      variant={group.status === "פעיל" ? "default" : "destructive"}
+                                      className={group.status === "פעיל" ? "bg-blue-500 hover:bg-blue-600" : "bg-red-500 hover:bg-red-600"}
+                                    >
+                                      {group.status}
+                                    </Badge>
                                   </h3>
                                   <p className="text-sm text-muted-foreground">
-                                    {group.subOrders.length} תת-הזמנות
+                                    {group.subOrders.length} תת-הזמנות | נוצר: {format(new Date(group.created_at), "dd/MM/yyyy HH:mm")}
+                                    {group.status === "סגור" && ` | סגור: ${format(new Date(group.updated_at), "dd/MM/yyyy HH:mm")}`}
                                   </p>
                                 </div>
                               </div>
-                              <div className="text-sm text-muted-foreground">
-                                {format(new Date(group.created_at), "dd/MM/yyyy")}
+                              <div className="flex gap-2">
+                                {group.status === "פעיל" && (
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    className="gap-2"
+                                    onClick={() => setCloseGroupDialog({ open: true, groupId: group.id })}
+                                  >
+                                    <Lock className="h-4 w-4" />
+                                    סגור
+                                  </Button>
+                                )}
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="gap-2 hover:bg-destructive/10 hover:text-destructive hover:border-destructive"
+                                  onClick={() => setDeleteGroupDialog({ open: true, groupId: group.id })}
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                  מחק
+                                </Button>
                               </div>
                             </div>
 
@@ -334,6 +465,7 @@ const Orders = () => {
                                     <TableHeader>
                                       <TableRow className="bg-muted/30">
                                         <TableHead className="text-right font-bold">מספר</TableHead>
+                                        <TableHead className="text-right font-bold">סטטוס</TableHead>
                                         <TableHead className="text-right font-bold">שותף</TableHead>
                                         <TableHead className="text-right font-bold">מוצר</TableHead>
                                         <TableHead className="text-right font-bold">R/L</TableHead>
@@ -346,14 +478,25 @@ const Orders = () => {
                                     </TableHeader>
                                     <TableBody>
                                       {group.subOrders.map((order) => (
-                                        <TableRow key={order.id} className="hover:bg-muted/20">
-                                          <TableCell className="font-bold text-primary">
+                                        <TableRow 
+                                          key={order.id} 
+                                          className={`hover:bg-muted/20 ${order.status === "בוטל" ? "opacity-50" : ""}`}
+                                        >
+                                          <TableCell className={`font-bold ${order.status === "בוטל" ? "line-through text-muted-foreground" : "text-primary"}`}>
                                             {order.full_order_number}
                                           </TableCell>
-                                          <TableCell className="font-medium">
+                                          <TableCell>
+                                            <Badge 
+                                              variant={order.status === "פעיל" ? "default" : "secondary"}
+                                              className={order.status === "בוטל" ? "bg-gray-400" : ""}
+                                            >
+                                              {order.status}
+                                            </Badge>
+                                          </TableCell>
+                                          <TableCell className={`font-medium ${order.status === "בוטל" ? "line-through" : ""}`}>
                                             {order.partner_name}
                                           </TableCell>
-                                          <TableCell className="text-muted-foreground text-sm">
+                                          <TableCell className={`text-muted-foreground text-sm ${order.status === "בוטל" ? "line-through" : ""}`}>
                                             {order.product_category}
                                             {order.active_door_width && ` - ${order.active_door_width}מ"מ`}
                                           </TableCell>
@@ -362,13 +505,13 @@ const Orders = () => {
                                               {order.active_door_direction || "-"}
                                             </Badge>
                                           </TableCell>
-                                          <TableCell className="font-semibold">
+                                          <TableCell className={`font-semibold ${order.status === "בוטל" ? "line-through" : ""}`}>
                                             {order.quantity}
                                           </TableCell>
-                                          <TableCell className="font-medium">
+                                          <TableCell className={`font-medium ${order.status === "בוטל" ? "line-through" : ""}`}>
                                             ₪{order.price.toFixed(2)}
                                           </TableCell>
-                                          <TableCell className="font-bold text-primary">
+                                          <TableCell className={`font-bold ${order.status === "בוטל" ? "line-through text-muted-foreground" : "text-primary"}`}>
                                             ₪{order.installer_price.toFixed(2)}
                                           </TableCell>
                                           <TableCell className="text-muted-foreground text-xs">
@@ -380,9 +523,21 @@ const Orders = () => {
                                                 size="sm"
                                                 variant="ghost"
                                                 className="h-8 w-8 p-0 hover:bg-primary/10"
+                                                onClick={() => handleEditSubOrder(order)}
+                                                disabled={order.status === "בוטל"}
                                               >
                                                 <Pencil className="h-3.5 w-3.5" />
                                               </Button>
+                                              {order.status === "פעיל" && (
+                                                <Button
+                                                  size="sm"
+                                                  variant="ghost"
+                                                  className="h-8 w-8 p-0 hover:bg-orange-500/10 hover:text-orange-600"
+                                                  onClick={() => setCancelSubOrderDialog({ open: true, subOrderId: order.id, groupId: group.id })}
+                                                >
+                                                  <X className="h-3.5 w-3.5" />
+                                                </Button>
+                                              )}
                                               <Button
                                                 size="sm"
                                                 variant="ghost"
@@ -415,89 +570,136 @@ const Orders = () => {
                         filteredGroupedOrders.map((group) => (
                           <div key={group.id} className="border rounded-lg overflow-hidden">
                             {/* Group Header */}
-                            <div
-                              className="p-4 bg-muted/30 cursor-pointer"
-                              onClick={() => toggleGroup(group.id)}
-                            >
-                              <div className="flex items-center justify-between">
+                            <div className="bg-muted/30 p-3">
+                              <div className="flex items-center justify-between mb-2" onClick={() => toggleGroup(group.id)}>
                                 <div className="flex items-center gap-2">
                                   {expandedGroups.has(group.id) ? (
-                                    <ChevronDown className="h-5 w-5" />
+                                    <ChevronDown className="h-4 w-4 text-muted-foreground" />
                                   ) : (
-                                    <ChevronRight className="h-5 w-5" />
+                                    <ChevronRight className="h-4 w-4 text-muted-foreground" />
                                   )}
-                                  <div>
-                                    <h3 className="font-bold text-lg flex items-center gap-2">
-                                      {group.group_number}
-                                      {group.status === "פעיל" && (
-                                        <Badge variant="default" className="text-xs">פעיל</Badge>
-                                      )}
-                                    </h3>
-                                    <p className="text-xs text-muted-foreground">
-                                      {group.subOrders.length} תת-הזמנות
-                                    </p>
-                                  </div>
+                                  <h3 className="font-bold text-lg">{group.group_number}</h3>
+                                  <Badge 
+                                    variant={group.status === "פעיל" ? "default" : "destructive"}
+                                    className={`text-xs ${group.status === "פעיל" ? "bg-blue-500" : "bg-red-500"}`}
+                                  >
+                                    {group.status}
+                                  </Badge>
                                 </div>
+                              </div>
+                              <p className="text-xs text-muted-foreground mb-2">
+                                {group.subOrders.length} תת-הזמנות | {format(new Date(group.created_at), "dd/MM/yyyy")}
+                              </p>
+                              <div className="flex gap-2">
+                                {group.status === "פעיל" && (
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    className="gap-1 text-xs"
+                                    onClick={() => setCloseGroupDialog({ open: true, groupId: group.id })}
+                                  >
+                                    <Lock className="h-3 w-3" />
+                                    סגור
+                                  </Button>
+                                )}
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="gap-1 text-xs hover:bg-destructive/10 hover:text-destructive"
+                                  onClick={() => setDeleteGroupDialog({ open: true, groupId: group.id })}
+                                >
+                                  <Trash2 className="h-3 w-3" />
+                                  מחק
+                                </Button>
                               </div>
                             </div>
 
-                            {/* Sub-orders */}
+                            {/* Sub-orders Mobile Cards */}
                             {expandedGroups.has(group.id) && (
-                              <div className="p-3 space-y-3 bg-background">
+                              <div className="p-2 space-y-2">
                                 {group.subOrders.length === 0 ? (
                                   <div className="text-center py-4 text-muted-foreground text-sm">
-                                    אין תת-הזמנות
+                                    אין תת-הזמנות בקבוצה זו
                                   </div>
                                 ) : (
                                   group.subOrders.map((order) => (
-                                    <div
-                                      key={order.id}
-                                      className="p-3 rounded border bg-card"
+                                    <div 
+                                      key={order.id} 
+                                      className={`border rounded-lg p-3 space-y-2 ${order.status === "בוטל" ? "opacity-50 bg-muted/20" : ""}`}
                                     >
-                                      <div className="flex items-start justify-between mb-2">
+                                      <div className="flex items-start justify-between">
                                         <div className="flex-1">
-                                          <h4 className="font-bold text-primary">
-                                            {order.full_order_number}
-                                          </h4>
-                                          <p className="text-sm font-medium">{order.partner_name}</p>
-                                          <p className="text-xs text-muted-foreground">
+                                          <div className="flex items-center gap-2 mb-1">
+                                            <span className={`font-bold text-sm ${order.status === "בוטל" ? "line-through text-muted-foreground" : "text-primary"}`}>
+                                              {order.full_order_number}
+                                            </span>
+                                            <Badge 
+                                              variant={order.status === "פעיל" ? "default" : "secondary"}
+                                              className={`text-xs ${order.status === "בוטל" ? "bg-gray-400" : ""}`}
+                                            >
+                                              {order.status}
+                                            </Badge>
+                                          </div>
+                                          <p className={`text-sm font-medium ${order.status === "בוטל" ? "line-through" : ""}`}>{order.partner_name}</p>
+                                          <p className={`text-xs text-muted-foreground ${order.status === "בוטל" ? "line-through" : ""}`}>
                                             {order.product_category}
+                                            {order.active_door_width && ` - ${order.active_door_width}מ"מ`}
                                           </p>
                                         </div>
-                                        <Badge variant="secondary" className="text-xs">
-                                          {order.active_door_direction || "-"}
-                                        </Badge>
                                       </div>
-
-                                      <div className="space-y-1 text-xs mb-2">
-                                        <div className="flex justify-between">
-                                          <span className="text-muted-foreground">כמות:</span>
-                                          <span className="font-semibold">{order.quantity}</span>
+                                      
+                                      <div className="grid grid-cols-2 gap-2 text-xs">
+                                        <div>
+                                          <span className="text-muted-foreground">כיוון: </span>
+                                          <Badge variant="secondary" className="text-xs">
+                                            {order.active_door_direction || "-"}
+                                          </Badge>
                                         </div>
-                                        <div className="flex justify-between">
-                                          <span className="text-muted-foreground">מחיר:</span>
-                                          <span className="font-medium">₪{order.price.toFixed(2)}</span>
+                                        <div>
+                                          <span className="text-muted-foreground">כמות: </span>
+                                          <span className={`font-semibold ${order.status === "בוטל" ? "line-through" : ""}`}>{order.quantity}</span>
                                         </div>
-                                        <div className="flex justify-between border-t pt-1">
-                                          <span className="text-muted-foreground">מתקין:</span>
-                                          <span className="font-bold text-primary">
+                                        <div>
+                                          <span className="text-muted-foreground">מחיר: </span>
+                                          <span className={`font-medium ${order.status === "בוטל" ? "line-through" : ""}`}>₪{order.price.toFixed(2)}</span>
+                                        </div>
+                                        <div>
+                                          <span className="text-muted-foreground">מתקין: </span>
+                                          <span className={`font-bold ${order.status === "בוטל" ? "line-through text-muted-foreground" : "text-primary"}`}>
                                             ₪{order.installer_price.toFixed(2)}
                                           </span>
                                         </div>
                                       </div>
 
-                                      <div className="flex gap-2">
-                                        <Button size="sm" variant="outline" className="flex-1 h-8 text-xs">
-                                          <Pencil className="h-3 w-3 ml-1" />
-                                          ערוך
-                                        </Button>
+                                      <div className="flex gap-1 pt-2 border-t">
                                         <Button
                                           size="sm"
-                                          variant="outline"
-                                          className="flex-1 h-8 text-xs hover:bg-destructive/10 hover:text-destructive"
+                                          variant="ghost"
+                                          className="flex-1 gap-1 text-xs h-8"
+                                          onClick={() => handleEditSubOrder(order)}
+                                          disabled={order.status === "בוטל"}
+                                        >
+                                          <Pencil className="h-3 w-3" />
+                                          ערוך
+                                        </Button>
+                                        {order.status === "פעיל" && (
+                                          <Button
+                                            size="sm"
+                                            variant="ghost"
+                                            className="flex-1 gap-1 text-xs h-8 hover:bg-orange-500/10 hover:text-orange-600"
+                                            onClick={() => setCancelSubOrderDialog({ open: true, subOrderId: order.id, groupId: group.id })}
+                                          >
+                                            <X className="h-3 w-3" />
+                                            בטל
+                                          </Button>
+                                        )}
+                                        <Button
+                                          size="sm"
+                                          variant="ghost"
+                                          className="flex-1 gap-1 text-xs h-8 hover:bg-destructive/10 hover:text-destructive"
                                           onClick={() => handleDeleteSubOrder(order.id, group.id)}
                                         >
-                                          <Trash2 className="h-3 w-3 ml-1" />
+                                          <Trash2 className="h-3 w-3" />
                                           מחק
                                         </Button>
                                       </div>
@@ -518,12 +720,98 @@ const Orders = () => {
         </main>
       </div>
 
-      {/* Add Sub-Order Modal */}
       <AddOrderModal
         isOpen={isAddModalOpen}
         onClose={() => setIsAddModalOpen(false)}
         onSuccess={fetchGroupedOrders}
       />
+
+      <EditSubOrderModal
+        isOpen={isEditModalOpen}
+        onClose={() => {
+          setIsEditModalOpen(false);
+          setEditingSubOrder(null);
+        }}
+        onSuccess={fetchGroupedOrders}
+        subOrder={editingSubOrder}
+      />
+
+      {/* Delete Group Confirmation */}
+      <AlertDialog open={deleteGroupDialog.open} onOpenChange={(open) => setDeleteGroupDialog({ open, groupId: null })}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>האם אתה בטוח?</AlertDialogTitle>
+            <AlertDialogDescription>
+              פעולה זו תמחק את הקבוצה וכל התת-הזמנות שלה לצמיתות. לא ניתן לבטל פעולה זו.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>ביטול</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (deleteGroupDialog.groupId) {
+                  handleDeleteGroup(deleteGroupDialog.groupId);
+                  setDeleteGroupDialog({ open: false, groupId: null });
+                }
+              }}
+              className="bg-destructive hover:bg-destructive/90"
+            >
+              מחק
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Close Group Confirmation */}
+      <AlertDialog open={closeGroupDialog.open} onOpenChange={(open) => setCloseGroupDialog({ open, groupId: null })}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>סגירת הזמנה</AlertDialogTitle>
+            <AlertDialogDescription>
+              האם אתה בטוח שברצונך לסגור הזמנה זו? ניתן יהיה לפתוח אותה מחדש במידת הצורך.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>ביטול</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (closeGroupDialog.groupId) {
+                  handleCloseGroup(closeGroupDialog.groupId);
+                  setCloseGroupDialog({ open: false, groupId: null });
+                }
+              }}
+            >
+              סגור הזמנה
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Cancel Sub-Order Confirmation */}
+      <AlertDialog open={cancelSubOrderDialog.open} onOpenChange={(open) => setCancelSubOrderDialog({ open, subOrderId: null, groupId: null })}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>ביטול תת-הזמנה</AlertDialogTitle>
+            <AlertDialogDescription>
+              האם אתה בטוח שברצונך לבטל תת-הזמנה זו? היא תסומן כבוטלה אך תישאר במערכת.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>ביטול</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (cancelSubOrderDialog.subOrderId && cancelSubOrderDialog.groupId) {
+                  handleCancelSubOrder(cancelSubOrderDialog.subOrderId, cancelSubOrderDialog.groupId);
+                  setCancelSubOrderDialog({ open: false, subOrderId: null, groupId: null });
+                }
+              }}
+              className="bg-orange-500 hover:bg-orange-600"
+            >
+              בטל תת-הזמנה
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
