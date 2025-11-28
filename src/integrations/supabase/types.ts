@@ -791,6 +791,7 @@ export type Database = {
           insert_width: number | null
           installer_price: number
           notes: string | null
+          opening_direction: string | null
           order_group_id: string
           partner_name: string
           partner_type: string
@@ -821,6 +822,7 @@ export type Database = {
           insert_width?: number | null
           installer_price?: number
           notes?: string | null
+          opening_direction?: string | null
           order_group_id: string
           partner_name: string
           partner_type: string
@@ -851,6 +853,7 @@ export type Database = {
           insert_width?: number | null
           installer_price?: number
           notes?: string | null
+          opening_direction?: string | null
           order_group_id?: string
           partner_name?: string
           partner_type?: string

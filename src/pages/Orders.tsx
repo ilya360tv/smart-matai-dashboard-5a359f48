@@ -52,6 +52,7 @@ interface SubOrder {
   active_door_width: number | null;
   active_door_height: number | null;
   active_door_direction: string | null;
+  opening_direction: string | null;
   fixed_door_width: number | null;
   fixed_door_height: number | null;
   fixed_door_direction: string | null;
@@ -466,10 +467,23 @@ const Orders = () => {
                                               order.active_door_width ? ` - ${order.active_door_width}מ"מ` : ''
                                             )}
                                           </TableCell>
-                                          <TableCell>
-                                            <Badge variant="secondary" className="text-xs">
-                                              {order.product_category === "אינסרט" ? "-" : (order.active_door_direction || "-")}
-                                            </Badge>
+                                           <TableCell>
+                                            {order.product_category === "אינסרט" ? (
+                                              <Badge variant="secondary" className="text-xs">
+                                                -
+                                              </Badge>
+                                            ) : (
+                                              <div className="flex flex-col gap-1">
+                                                <Badge variant="secondary" className="text-xs">
+                                                  {order.active_door_direction || "-"}
+                                                </Badge>
+                                                {order.opening_direction && (
+                                                  <Badge variant="outline" className="text-xs">
+                                                    {order.opening_direction}
+                                                  </Badge>
+                                                )}
+                                              </div>
+                                            )}
                                           </TableCell>
                                           <TableCell className={`font-semibold ${order.status === "בוטל" ? "line-through" : ""}`}>
                                             {order.quantity}
@@ -618,12 +632,22 @@ const Orders = () => {
                                       
                                       <div className="grid grid-cols-2 gap-2 text-xs">
                                         {order.product_category !== "אינסרט" && (
-                                          <div>
-                                            <span className="text-muted-foreground">כיוון: </span>
-                                            <Badge variant="secondary" className="text-xs">
-                                              {order.active_door_direction || "-"}
-                                            </Badge>
-                                          </div>
+                                          <>
+                                            <div>
+                                              <span className="text-muted-foreground">כיוון: </span>
+                                              <Badge variant="secondary" className="text-xs">
+                                                {order.active_door_direction || "-"}
+                                              </Badge>
+                                            </div>
+                                            {order.opening_direction && (
+                                              <div>
+                                                <span className="text-muted-foreground">פתיחה: </span>
+                                                <Badge variant="outline" className="text-xs">
+                                                  {order.opening_direction}
+                                                </Badge>
+                                              </div>
+                                            )}
+                                          </>
                                         )}
                                         <div>
                                           <span className="text-muted-foreground">כמות: </span>

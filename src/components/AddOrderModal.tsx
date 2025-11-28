@@ -82,6 +82,7 @@ export const AddOrderModal = ({
     active_door_width: "",
     active_door_height: "",
     active_door_direction: "",
+    opening_direction: "",
     fixed_door_width: "",
     fixed_door_height: "",
     fixed_door_direction: "",
@@ -387,6 +388,15 @@ export const AddOrderModal = ({
         return;
       }
       
+      if (!formData.opening_direction) {
+        toast({
+          title: "שגיאה",
+          description: "נא לבחור כיוון פתיחה (פנים/חוץ)",
+          variant: "destructive",
+        });
+        return;
+      }
+      
       // בדיקת כנף קבועה (אם כנף וחצי)
       if (isOneAndHalf) {
         if (!formData.fixed_door_width || parseInt(formData.fixed_door_width) <= 0) {
@@ -476,6 +486,7 @@ export const AddOrderModal = ({
         active_door_width: formData.active_door_width ? parseFloat(formData.active_door_width) : null,
         active_door_height: formData.active_door_height ? parseFloat(formData.active_door_height) : null,
         active_door_direction: formData.active_door_direction || null,
+        opening_direction: formData.opening_direction || null,
         fixed_door_width: formData.fixed_door_width ? parseFloat(formData.fixed_door_width) : null,
         fixed_door_height: formData.fixed_door_height ? parseFloat(formData.fixed_door_height) : null,
         fixed_door_direction: formData.fixed_door_direction || null,
@@ -516,6 +527,7 @@ export const AddOrderModal = ({
       active_door_width: "",
       active_door_height: "",
       active_door_direction: "",
+      opening_direction: "",
       fixed_door_width: "",
       fixed_door_height: "",
       fixed_door_direction: "",
@@ -532,7 +544,7 @@ export const AddOrderModal = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-5xl w-[95vw] h-[90vh] flex flex-col overflow-hidden" dir="rtl">
+      <DialogContent className="max-w-5xl w-[95vw] max-h-[90vh] flex flex-col" dir="rtl">
         <DialogHeader className="flex-shrink-0">
           <DialogTitle className="text-2xl font-bold flex items-center justify-between">
             <span>פתיחת הזמנה חדשה - שלב {currentStep} מתוך 7</span>
@@ -554,11 +566,11 @@ export const AddOrderModal = ({
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="flex-1 flex flex-col min-h-0">
+        <form onSubmit={handleSubmit} className="flex-1 flex flex-col overflow-y-auto">
           {currentStep === 1 && (
-            <div className="flex-1 flex flex-col justify-between">
+            <div className="flex-1 flex flex-col justify-between p-4">
               {/* Partner Selection */}
-              <div className="space-y-4 p-6 bg-muted/30 rounded-lg border-2 border-primary/20">
+              <div className="space-y-4 p-4 bg-muted/30 rounded-lg border-2 border-primary/20">
                 <div className="space-y-3">
                   <Label className="text-base font-semibold">בחר ספק / משווק *</Label>
                   <RadioGroup
@@ -619,25 +631,25 @@ export const AddOrderModal = ({
           )}
 
           {currentStep === 2 && (
-            <>
+            <div className="p-4 space-y-4">
               {/* Product Category Selection */}
-              <div className="space-y-4 p-6 bg-muted/30 rounded-lg border-2 border-primary/20">
+              <div className="space-y-4 p-4 bg-muted/30 rounded-lg border-2 border-primary/20">
                 <Label className="text-base font-semibold">בחר מוצר *</Label>
                 <RadioGroup
                   value={formData.product_category}
                   onValueChange={(value) =>
                     setFormData({ ...formData, product_category: value, active_door_type: "", fixed_door_type: "", active_louvre_type: "", fixed_louvre_type: "" })
                   }
-                  className="grid grid-cols-1 gap-3"
+                  className="grid grid-cols-2 gap-3"
                 >
                   {PRODUCT_CATEGORIES.map((category) => (
                     <div
                       key={category}
-                      className="flex items-center gap-3 p-4 border-2 rounded-lg hover:bg-muted/50 transition-colors cursor-pointer"
+                      className="flex items-center gap-3 p-3 border-2 rounded-lg hover:bg-muted/50 transition-colors cursor-pointer"
                       onClick={() => setFormData({ ...formData, product_category: category, active_door_type: "", fixed_door_type: "", active_louvre_type: "", fixed_louvre_type: "" })}
                     >
                       <RadioGroupItem value={category} id={category} />
-                      <Label htmlFor={category} className="cursor-pointer font-normal flex-1">
+                      <Label htmlFor={category} className="cursor-pointer font-normal flex-1 text-sm">
                         {category}
                       </Label>
                     </div>
@@ -660,7 +672,7 @@ export const AddOrderModal = ({
                   <Button type="submit">המשך</Button>
                 </div>
               </div>
-            </>
+            </div>
           )}
 
           {currentStep === 3 && (
@@ -848,46 +860,48 @@ export const AddOrderModal = ({
           )}
 
           {currentStep === 6 && (
-            <>
+            <div className="p-4 space-y-4">
               {/* Combined Dimensions & Direction */}
-              <div className="space-y-6 p-6 bg-muted/30 rounded-lg border-2 border-primary/20">
+              <div className="space-y-4 p-4 bg-muted/30 rounded-lg border-2 border-primary/20">
                 {formData.product_category.includes("כנף וחצי") ? (
                   <>
                     {/* כנף פעילה */}
                     <div className="pb-4 border-b-2 border-primary/20">
-                      <h3 className="text-lg font-bold text-primary mb-4">כנף פעילה</h3>
+                      <h3 className="text-lg font-bold text-primary mb-3">כנף פעילה</h3>
                       
-                      <div className="grid grid-cols-3 gap-4">
+                      <div className="grid grid-cols-4 gap-3">
                         <div className="space-y-2">
-                          <Label htmlFor="active-width">רוחב (מ"מ) *</Label>
+                          <Label htmlFor="active-width" className="text-sm">רוחב (מ"מ) *</Label>
                           <Input
                             id="active-width"
                             type="number"
                             value={formData.active_door_width}
                             onChange={(e) => setFormData({ ...formData, active_door_width: e.target.value })}
                             placeholder="רוחב"
-                            className="text-right"
+                            className="text-right w-24"
                             dir="rtl"
                             min="1"
+                            max="9999"
                           />
                         </div>
 
                         <div className="space-y-2">
-                          <Label htmlFor="active-height">גובה (מ"מ) *</Label>
+                          <Label htmlFor="active-height" className="text-sm">גובה (מ"מ) *</Label>
                           <Input
                             id="active-height"
                             type="number"
                             value={formData.active_door_height}
                             onChange={(e) => setFormData({ ...formData, active_door_height: e.target.value })}
                             placeholder="גובה"
-                            className="text-right"
+                            className="text-right w-24"
                             dir="rtl"
                             min="1"
+                            max="9999"
                           />
                         </div>
 
                         <div className="space-y-2">
-                          <Label>כיוון *</Label>
+                          <Label className="text-sm">כיוון *</Label>
                           <RadioGroup
                             value={formData.active_door_direction}
                             onValueChange={(value) =>
@@ -910,44 +924,71 @@ export const AddOrderModal = ({
                             </div>
                           </RadioGroup>
                         </div>
+
+                        <div className="space-y-2">
+                          <Label className="text-sm">פתיחה *</Label>
+                          <RadioGroup
+                            value={formData.opening_direction}
+                            onValueChange={(value) =>
+                              setFormData({ ...formData, opening_direction: value })
+                            }
+                            className="flex gap-2 justify-center h-10 items-center"
+                            dir="rtl"
+                          >
+                            <div className="flex items-center gap-1">
+                              <Label htmlFor="outside" className="cursor-pointer font-normal text-sm">
+                                חוץ
+                              </Label>
+                              <RadioGroupItem value="חוץ" id="outside" />
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <Label htmlFor="inside" className="cursor-pointer font-normal text-sm">
+                                פנים
+                              </Label>
+                              <RadioGroupItem value="פנים" id="inside" />
+                            </div>
+                          </RadioGroup>
+                        </div>
                       </div>
                     </div>
 
                     {/* כנף קבועה */}
                     <div>
-                      <h3 className="text-lg font-bold text-primary mb-4">כנף קבועה</h3>
+                      <h3 className="text-lg font-bold text-primary mb-3">כנף קבועה</h3>
                       
-                      <div className="grid grid-cols-3 gap-4">
+                      <div className="grid grid-cols-3 gap-3">
                         <div className="space-y-2">
-                          <Label htmlFor="fixed-width">רוחב (מ"מ) *</Label>
+                          <Label htmlFor="fixed-width" className="text-sm">רוחב (מ"מ) *</Label>
                           <Input
                             id="fixed-width"
                             type="number"
                             value={formData.fixed_door_width}
                             onChange={(e) => setFormData({ ...formData, fixed_door_width: e.target.value })}
                             placeholder="רוחב"
-                            className="text-right"
+                            className="text-right w-24"
                             dir="rtl"
                             min="1"
+                            max="9999"
                           />
                         </div>
 
                         <div className="space-y-2">
-                          <Label htmlFor="fixed-height">גובה (מ"מ) *</Label>
+                          <Label htmlFor="fixed-height" className="text-sm">גובה (מ"מ) *</Label>
                           <Input
                             id="fixed-height"
                             type="number"
                             value={formData.fixed_door_height}
                             onChange={(e) => setFormData({ ...formData, fixed_door_height: e.target.value })}
                             placeholder="גובה"
-                            className="text-right"
+                            className="text-right w-24"
                             dir="rtl"
                             min="1"
+                            max="9999"
                           />
                         </div>
 
                         <div className="space-y-2">
-                          <Label>כיוון *</Label>
+                          <Label className="text-sm">כיוון *</Label>
                           <RadioGroup
                             value={formData.fixed_door_direction}
                             onValueChange={(value) =>
@@ -976,37 +1017,39 @@ export const AddOrderModal = ({
                 ) : (
                   <>
                     {/* כנף בודדת */}
-                    <div className="grid grid-cols-3 gap-4">
+                    <div className="grid grid-cols-4 gap-3">
                       <div className="space-y-2">
-                        <Label htmlFor="single-width">רוחב (מ"מ) *</Label>
+                        <Label htmlFor="single-width" className="text-sm">רוחב (מ"מ) *</Label>
                         <Input
                           id="single-width"
                           type="number"
                           value={formData.active_door_width}
                           onChange={(e) => setFormData({ ...formData, active_door_width: e.target.value })}
                           placeholder="רוחב"
-                          className="text-right"
+                          className="text-right w-24"
                           dir="rtl"
                           min="1"
+                          max="9999"
                         />
                       </div>
 
                       <div className="space-y-2">
-                        <Label htmlFor="single-height">גובה (מ"מ) *</Label>
+                        <Label htmlFor="single-height" className="text-sm">גובה (מ"מ) *</Label>
                         <Input
                           id="single-height"
                           type="number"
                           value={formData.active_door_height}
                           onChange={(e) => setFormData({ ...formData, active_door_height: e.target.value })}
                           placeholder="גובה"
-                          className="text-right"
+                          className="text-right w-24"
                           dir="rtl"
                           min="1"
+                          max="9999"
                         />
                       </div>
 
                       <div className="space-y-2">
-                        <Label>כיוון *</Label>
+                        <Label className="text-sm">כיוון *</Label>
                         <RadioGroup
                           value={formData.active_door_direction}
                           onValueChange={(value) =>
@@ -1026,6 +1069,31 @@ export const AddOrderModal = ({
                               L
                             </Label>
                             <RadioGroupItem value="שמאל" id="single-left-combined" />
+                          </div>
+                        </RadioGroup>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label className="text-sm">פתיחה *</Label>
+                        <RadioGroup
+                          value={formData.opening_direction}
+                          onValueChange={(value) =>
+                            setFormData({ ...formData, opening_direction: value })
+                          }
+                          className="flex gap-2 justify-center h-10 items-center"
+                          dir="rtl"
+                        >
+                          <div className="flex items-center gap-1">
+                            <Label htmlFor="single-outside" className="cursor-pointer font-normal text-sm">
+                              חוץ
+                            </Label>
+                            <RadioGroupItem value="חוץ" id="single-outside" />
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <Label htmlFor="single-inside" className="cursor-pointer font-normal text-sm">
+                              פנים
+                            </Label>
+                            <RadioGroupItem value="פנים" id="single-inside" />
                           </div>
                         </RadioGroup>
                       </div>
@@ -1049,41 +1117,43 @@ export const AddOrderModal = ({
                   <Button type="submit">סיום</Button>
                 </div>
               </div>
-            </>
+            </div>
           )}
 
           {currentStep === 8 && (
-            <div className="flex-1 flex flex-col justify-between">
+            <div className="p-4 space-y-4">
               {/* Insert Selection */}
-              <div className="space-y-6 p-6 bg-muted/30 rounded-lg border-2 border-primary/20">
+              <div className="space-y-4 p-4 bg-muted/30 rounded-lg border-2 border-primary/20">
                 <h3 className="text-lg font-bold text-primary">פרטי אינסרט</h3>
                 
-                <div className="grid grid-cols-3 gap-4">
+                <div className="grid grid-cols-3 gap-3">
                   <div className="space-y-2">
-                    <Label htmlFor="insert-width">רוחב (מ"מ) *</Label>
+                    <Label htmlFor="insert-width" className="text-sm">רוחב (מ"מ) *</Label>
                     <Input
                       id="insert-width"
                       type="number"
                       value={formData.insert_width}
                       onChange={(e) => setFormData({ ...formData, insert_width: e.target.value })}
                       placeholder="רוחב"
-                      className="text-right"
+                      className="text-right w-24"
                       dir="rtl"
                       min="1"
+                      max="9999"
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="insert-height">גובה (מ"מ) *</Label>
+                    <Label htmlFor="insert-height" className="text-sm">גובה (מ"מ) *</Label>
                     <Input
                       id="insert-height"
                       type="number"
                       value={formData.insert_height}
                       onChange={(e) => setFormData({ ...formData, insert_height: e.target.value })}
                       placeholder="גובה"
-                      className="text-right"
+                      className="text-right w-24"
                       dir="rtl"
                       min="1"
+                      max="9999"
                     />
                   </div>
 
@@ -1133,7 +1203,7 @@ export const AddOrderModal = ({
               </div>
 
               {/* Actions */}
-              <div className="flex gap-3 justify-between mt-6">
+              <div className="flex gap-3 justify-between">
                 <Button type="button" variant="outline" onClick={handlePreviousStep}>
                   חזור
                 </Button>
