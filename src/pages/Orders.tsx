@@ -44,6 +44,7 @@ interface SubOrder {
   full_order_number: string;
   partner_type: string;
   partner_name: string;
+  frame_option: string | null;
   product_category: string;
   active_door_type: string | null;
   fixed_door_type: string | null;
@@ -458,6 +459,11 @@ const Orders = () => {
                                             {order.partner_name}
                                           </TableCell>
                                           <TableCell className={`text-muted-foreground text-sm ${order.status === "בוטל" ? "line-through" : ""}`}>
+                                            {order.frame_option && (
+                                              <Badge variant="outline" className="text-xs ml-1">
+                                                {order.frame_option}
+                                              </Badge>
+                                            )}
                                             {order.product_category}
                                             {order.product_category === "אינסרט" ? (
                                               order.insert_width && order.insert_height 
@@ -612,6 +618,11 @@ const Orders = () => {
                                             </Badge>
                                           </div>
                                           <p className={`text-sm font-medium ${order.status === "בוטל" ? "line-through" : ""}`}>{order.partner_name}</p>
+                                          {order.frame_option && (
+                                            <Badge variant="outline" className="text-xs mb-1 inline-block">
+                                              {order.frame_option}
+                                            </Badge>
+                                          )}
                                           <p className={`text-xs text-muted-foreground ${order.status === "בוטל" ? "line-through" : ""}`}>
                                             {order.product_category}
                                             {order.product_category === "אינסרט" ? (

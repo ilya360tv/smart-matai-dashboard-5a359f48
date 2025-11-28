@@ -26,6 +26,7 @@ interface SubOrder {
   full_order_number: string;
   partner_type: string;
   partner_name: string;
+  frame_option: string | null;
   product_category: string;
   active_door_type: string | null;
   fixed_door_type: string | null;
@@ -65,6 +66,7 @@ export function EditSubOrderModal({
   const [formData, setFormData] = useState({
     partner_type: "",
     partner_name: "",
+    frame_option: "",
     product_category: "",
     active_door_width: "",
     active_door_height: "",
@@ -90,6 +92,7 @@ export function EditSubOrderModal({
       setFormData({
         partner_type: subOrder.partner_type || "",
         partner_name: subOrder.partner_name || "",
+        frame_option: subOrder.frame_option || "",
         product_category: subOrder.product_category || "",
         active_door_width: subOrder.active_door_width?.toString() || "",
         active_door_height: subOrder.active_door_height?.toString() || "",
@@ -119,6 +122,7 @@ export function EditSubOrderModal({
       const updateData = {
         partner_type: formData.partner_type,
         partner_name: formData.partner_name,
+        frame_option: formData.frame_option || null,
         product_category: formData.product_category,
         active_door_width: formData.active_door_width ? parseFloat(formData.active_door_width) : null,
         active_door_height: formData.active_door_height ? parseFloat(formData.active_door_height) : null,
@@ -210,6 +214,16 @@ export function EditSubOrderModal({
           {/* Product Section */}
           <div className="space-y-4">
             <h3 className="font-semibold text-lg border-b pb-2">מוצר</h3>
+            <div className="space-y-2">
+              <Label>סוג הרכבה</Label>
+              <Input
+                value={formData.frame_option}
+                onChange={(e) =>
+                  setFormData({ ...formData, frame_option: e.target.value })
+                }
+                placeholder="סוג הרכבה"
+              />
+            </div>
             <div className="space-y-2">
               <Label>קטגוריית מוצר</Label>
               <Select

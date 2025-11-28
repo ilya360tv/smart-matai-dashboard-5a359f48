@@ -783,6 +783,7 @@ export type Database = {
           fixed_door_type: string | null
           fixed_door_width: number | null
           fixed_louvre_type: string | null
+          frame_option: string | null
           full_order_number: string
           id: string
           insert_color_1: string | null
@@ -814,6 +815,7 @@ export type Database = {
           fixed_door_type?: string | null
           fixed_door_width?: number | null
           fixed_louvre_type?: string | null
+          frame_option?: string | null
           full_order_number: string
           id?: string
           insert_color_1?: string | null
@@ -845,6 +847,7 @@ export type Database = {
           fixed_door_type?: string | null
           fixed_door_width?: number | null
           fixed_louvre_type?: string | null
+          frame_option?: string | null
           full_order_number?: string
           id?: string
           insert_color_1?: string | null
