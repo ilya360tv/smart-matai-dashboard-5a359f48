@@ -36,6 +36,7 @@ const PRODUCT_CATEGORIES = [
   "רק משקוף הלבשה",
   "רק משקוף בנייה לכנף וחצי",
   "רק משקוף הלבשה לכנף וחצי",
+  "אינסרט",
 ];
 
 const DOOR_TYPES = [
@@ -49,6 +50,14 @@ const LOUVRE_DOOR_TYPES = [
   "כנף רפפה עליונה",
   "כנף רפפה תחתונה",
   "כנף רפפה ארוכה",
+];
+
+const INSERT_COLORS = [
+  "9016T - לבן תנועה",
+  "9001T - לבן שמנת",
+  "7126D - חום",
+  "0096D - כסף",
+  "MR09 - אפור כהה",
 ];
 
 export const AddOrderModal = ({
@@ -76,6 +85,10 @@ export const AddOrderModal = ({
     fixed_door_width: "",
     fixed_door_height: "",
     fixed_door_direction: "",
+    insert_width: "",
+    insert_height: "",
+    insert_color_1: "",
+    insert_color_2: "",
   });
 
   useEffect(() => {
@@ -258,7 +271,44 @@ export const AddOrderModal = ({
         return;
       }
       
+      // אם בחר אינסרט, עבור לשלב אינסרט
+      if (formData.product_category === "אינסרט") {
+        setCurrentStep(8); // שלב חדש לאינסרט
+        return;
+      }
+      
       setCurrentStep(3);
+    } else if (currentStep === 8) {
+      // שלב אינסרט - בדיקת שדות
+      if (!formData.insert_width || parseFloat(formData.insert_width) <= 0) {
+        toast({
+          title: "שגיאה",
+          description: "נא להזין רוחב תקין במילימטרים",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      if (!formData.insert_height || parseFloat(formData.insert_height) <= 0) {
+        toast({
+          title: "שגיאה",
+          description: "נא להזין גובה תקין במילימטרים",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      if (!formData.insert_color_1) {
+        toast({
+          title: "שגיאה",
+          description: "נא לבחור צבע",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      // סיום - שמירת ההזמנה
+      await saveSubOrder();
     } else if (currentStep === 3) {
       if (!formData.active_door_type) {
         toast({
@@ -373,7 +423,10 @@ export const AddOrderModal = ({
   };
 
   const handlePreviousStep = () => {
-    if (currentStep > 1) {
+    if (currentStep === 8) {
+      // חזרה משלב אינסרט לבחירת מוצר
+      setCurrentStep(2);
+    } else if (currentStep > 1) {
       setCurrentStep(currentStep - 1);
     }
   };
@@ -426,6 +479,10 @@ export const AddOrderModal = ({
         fixed_door_width: formData.fixed_door_width ? parseFloat(formData.fixed_door_width) : null,
         fixed_door_height: formData.fixed_door_height ? parseFloat(formData.fixed_door_height) : null,
         fixed_door_direction: formData.fixed_door_direction || null,
+        insert_width: formData.insert_width ? parseFloat(formData.insert_width) : null,
+        insert_height: formData.insert_height ? parseFloat(formData.insert_height) : null,
+        insert_color_1: formData.insert_color_1 || null,
+        insert_color_2: formData.insert_color_2 || null,
       });
 
       if (error) throw error;
@@ -462,6 +519,10 @@ export const AddOrderModal = ({
       fixed_door_width: "",
       fixed_door_height: "",
       fixed_door_direction: "",
+      insert_width: "",
+      insert_height: "",
+      insert_color_1: "",
+      insert_color_2: "",
     });
     setPartnerType("supplier");
     setCurrentStep(1);
@@ -992,93 +1053,101 @@ export const AddOrderModal = ({
           )}
 
           {currentStep === 8 && (
-            <>
-              {/* Direction Selection */}
-              <div className="space-y-4 p-6 bg-muted/30 rounded-lg border-2 border-primary/20">
-                {formData.product_category.includes("כנף וחצי") ? (
-                  <>
-                    {/* כנף פעילה */}
-                    <div className="space-y-3">
-                      <Label className="text-base font-semibold">כיוון כנף פעילה *</Label>
-                      <RadioGroup
-                        value={formData.active_door_direction}
-                        onValueChange={(value) =>
-                          setFormData({ ...formData, active_door_direction: value })
-                        }
-                        className="flex gap-4 justify-center"
-                        dir="rtl"
-                      >
-                        <div className="flex items-center gap-2">
-                          <Label htmlFor="active-right" className="cursor-pointer font-normal">ימין</Label>
-                          <RadioGroupItem value="ימין" id="active-right" />
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Label htmlFor="active-left" className="cursor-pointer font-normal">שמאל</Label>
-                          <RadioGroupItem value="שמאל" id="active-left" />
-                        </div>
-                      </RadioGroup>
-                    </div>
-
-                    {/* כנף קבועה */}
-                    <div className="space-y-3 pt-4 border-t">
-                      <Label className="text-base font-semibold">כיוון כנף קבועה *</Label>
-                      <RadioGroup
-                        value={formData.fixed_door_direction}
-                        onValueChange={(value) =>
-                          setFormData({ ...formData, fixed_door_direction: value })
-                        }
-                        className="flex gap-4 justify-center"
-                        dir="rtl"
-                      >
-                        <div className="flex items-center gap-2">
-                          <Label htmlFor="fixed-right" className="cursor-pointer font-normal">ימין</Label>
-                          <RadioGroupItem value="ימין" id="fixed-right" />
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Label htmlFor="fixed-left" className="cursor-pointer font-normal">שמאל</Label>
-                          <RadioGroupItem value="שמאל" id="fixed-left" />
-                        </div>
-                      </RadioGroup>
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    {/* כנף בודדת */}
-                    <Label className="text-base font-semibold">כיוון הכנף *</Label>
-                    <RadioGroup
-                      value={formData.active_door_direction}
-                      onValueChange={(value) =>
-                        setFormData({ ...formData, active_door_direction: value })
-                      }
-                      className="flex gap-4 justify-center"
+            <div className="flex-1 flex flex-col justify-between">
+              {/* Insert Selection */}
+              <div className="space-y-6 p-6 bg-muted/30 rounded-lg border-2 border-primary/20">
+                <h3 className="text-lg font-bold text-primary">פרטי אינסרט</h3>
+                
+                <div className="grid grid-cols-3 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="insert-width">רוחב (מ"מ) *</Label>
+                    <Input
+                      id="insert-width"
+                      type="number"
+                      value={formData.insert_width}
+                      onChange={(e) => setFormData({ ...formData, insert_width: e.target.value })}
+                      placeholder="רוחב"
+                      className="text-right"
                       dir="rtl"
+                      min="1"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="insert-height">גובה (מ"מ) *</Label>
+                    <Input
+                      id="insert-height"
+                      type="number"
+                      value={formData.insert_height}
+                      onChange={(e) => setFormData({ ...formData, insert_height: e.target.value })}
+                      placeholder="גובה"
+                      className="text-right"
+                      dir="rtl"
+                      min="1"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="insert-color-1">צבע *</Label>
+                    <Select
+                      value={formData.insert_color_1}
+                      onValueChange={(value) =>
+                        setFormData({ ...formData, insert_color_1: value })
+                      }
                     >
-                      <div className="flex items-center gap-2">
-                        <Label htmlFor="single-right" className="cursor-pointer font-normal">ימין</Label>
-                        <RadioGroupItem value="ימין" id="single-right" />
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Label htmlFor="single-left" className="cursor-pointer font-normal">שמאל</Label>
-                        <RadioGroupItem value="שמאל" id="single-left" />
-                      </div>
-                    </RadioGroup>
-                  </>
-                )}
+                      <SelectTrigger id="insert-color-1" className="bg-background">
+                        <SelectValue placeholder="בחר צבע" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-background z-50">
+                        {INSERT_COLORS.map((color) => (
+                          <SelectItem key={color} value={color}>
+                            {color}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="insert-color-2">צבע שני (אופציונלי)</Label>
+                  <Select
+                    value={formData.insert_color_2}
+                    onValueChange={(value) =>
+                      setFormData({ ...formData, insert_color_2: value })
+                    }
+                  >
+                    <SelectTrigger id="insert-color-2" className="bg-background">
+                      <SelectValue placeholder="בחר צבע שני (לא חובה)" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-background z-50">
+                      <SelectItem value="">ללא צבע שני</SelectItem>
+                      {INSERT_COLORS.map((color) => (
+                        <SelectItem key={color} value={color}>
+                          {color}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
 
               {/* Actions */}
-              <div className="flex gap-3 justify-between">
+              <div className="flex gap-3 justify-between mt-6">
                 <Button type="button" variant="outline" onClick={handlePreviousStep}>
                   חזור
                 </Button>
                 <div className="flex gap-3">
+                  <Button type="button" variant="ghost" onClick={saveDraft}>
+                    שמור כטיוטה
+                  </Button>
                   <Button type="button" variant="outline" onClick={onClose}>
                     ביטול
                   </Button>
-                  <Button type="submit">המשך</Button>
+                  <Button type="submit">סיום</Button>
                 </div>
               </div>
-            </>
+            </div>
           )}
 
         </form>

@@ -785,6 +785,10 @@ export type Database = {
           fixed_louvre_type: string | null
           full_order_number: string
           id: string
+          insert_color_1: string | null
+          insert_color_2: string | null
+          insert_height: number | null
+          insert_width: number | null
           installer_price: number
           notes: string | null
           order_group_id: string
@@ -811,6 +815,10 @@ export type Database = {
           fixed_louvre_type?: string | null
           full_order_number: string
           id?: string
+          insert_color_1?: string | null
+          insert_color_2?: string | null
+          insert_height?: number | null
+          insert_width?: number | null
           installer_price?: number
           notes?: string | null
           order_group_id: string
@@ -837,6 +845,10 @@ export type Database = {
           fixed_louvre_type?: string | null
           full_order_number?: string
           id?: string
+          insert_color_1?: string | null
+          insert_color_2?: string | null
+          insert_height?: number | null
+          insert_width?: number | null
           installer_price?: number
           notes?: string | null
           order_group_id?: string

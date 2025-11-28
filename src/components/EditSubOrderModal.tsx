@@ -37,6 +37,10 @@ interface SubOrder {
   fixed_door_width: number | null;
   fixed_door_height: number | null;
   fixed_door_direction: string | null;
+  insert_width: number | null;
+  insert_height: number | null;
+  insert_color_1: string | null;
+  insert_color_2: string | null;
   quantity: number;
   price: number;
   installer_price: number;
@@ -67,6 +71,10 @@ export function EditSubOrderModal({
     fixed_door_width: "",
     fixed_door_height: "",
     fixed_door_direction: "",
+    insert_width: "",
+    insert_height: "",
+    insert_color_1: "",
+    insert_color_2: "",
     quantity: "1",
     price: "0",
     installer_price: "0",
@@ -87,6 +95,10 @@ export function EditSubOrderModal({
         fixed_door_width: subOrder.fixed_door_width?.toString() || "",
         fixed_door_height: subOrder.fixed_door_height?.toString() || "",
         fixed_door_direction: subOrder.fixed_door_direction || "",
+        insert_width: subOrder.insert_width?.toString() || "",
+        insert_height: subOrder.insert_height?.toString() || "",
+        insert_color_1: subOrder.insert_color_1 || "",
+        insert_color_2: subOrder.insert_color_2 || "",
         quantity: subOrder.quantity.toString(),
         price: subOrder.price.toString(),
         installer_price: subOrder.installer_price.toString(),
@@ -111,6 +123,10 @@ export function EditSubOrderModal({
         fixed_door_width: formData.fixed_door_width ? parseFloat(formData.fixed_door_width) : null,
         fixed_door_height: formData.fixed_door_height ? parseFloat(formData.fixed_door_height) : null,
         fixed_door_direction: formData.fixed_door_direction || null,
+        insert_width: formData.insert_width ? parseFloat(formData.insert_width) : null,
+        insert_height: formData.insert_height ? parseFloat(formData.insert_height) : null,
+        insert_color_1: formData.insert_color_1 || null,
+        insert_color_2: formData.insert_color_2 || null,
         quantity: parseInt(formData.quantity),
         price: parseFloat(formData.price),
         installer_price: parseFloat(formData.installer_price),
@@ -209,6 +225,7 @@ export function EditSubOrderModal({
                   <SelectItem value="דלת RHK">דלת RHK</SelectItem>
                   <SelectItem value="כנף וחצי">כנף וחצי</SelectItem>
                   <SelectItem value="כנף כפולה">כנף כפולה</SelectItem>
+                  <SelectItem value="אינסרט">אינסרט</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -217,90 +234,140 @@ export function EditSubOrderModal({
           {/* Dimensions Section */}
           <div className="space-y-4">
             <h3 className="font-semibold text-lg border-b pb-2">מידות</h3>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>רוחב כנף פעילה (מ"מ)</Label>
-                <Input
-                  type="number"
-                  value={formData.active_door_width}
-                  onChange={(e) =>
-                    setFormData({ ...formData, active_door_width: e.target.value })
-                  }
-                  placeholder="רוחב"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>גובה כנף פעילה (מ"מ)</Label>
-                <Input
-                  type="number"
-                  value={formData.active_door_height}
-                  onChange={(e) =>
-                    setFormData({ ...formData, active_door_height: e.target.value })
-                  }
-                  placeholder="גובה"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>כיוון כנף פעילה</Label>
-                <Select
-                  value={formData.active_door_direction}
-                  onValueChange={(value) =>
-                    setFormData({ ...formData, active_door_direction: value })
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="בחר כיוון" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="R">R - ימין</SelectItem>
-                    <SelectItem value="L">L - שמאל</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            {(formData.product_category === "כנף וחצי" || formData.product_category === "כנף כפולה") && (
-              <div className="grid grid-cols-2 gap-4">
+            
+            {formData.product_category === "אינסרט" ? (
+              <div className="grid grid-cols-3 gap-4">
                 <div className="space-y-2">
-                  <Label>רוחב כנף קבועה (מ"מ)</Label>
+                  <Label>רוחב (מ"מ)</Label>
                   <Input
                     type="number"
-                    value={formData.fixed_door_width}
+                    value={formData.insert_width}
                     onChange={(e) =>
-                      setFormData({ ...formData, fixed_door_width: e.target.value })
+                      setFormData({ ...formData, insert_width: e.target.value })
                     }
                     placeholder="רוחב"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label>גובה כנף קבועה (מ"מ)</Label>
+                  <Label>גובה (מ"מ)</Label>
                   <Input
                     type="number"
-                    value={formData.fixed_door_height}
+                    value={formData.insert_height}
                     onChange={(e) =>
-                      setFormData({ ...formData, fixed_door_height: e.target.value })
+                      setFormData({ ...formData, insert_height: e.target.value })
                     }
                     placeholder="גובה"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label>כיוון כנף קבועה</Label>
-                  <Select
-                    value={formData.fixed_door_direction}
-                    onValueChange={(value) =>
-                      setFormData({ ...formData, fixed_door_direction: value })
+                  <Label>צבע</Label>
+                  <Input
+                    value={formData.insert_color_1}
+                    onChange={(e) =>
+                      setFormData({ ...formData, insert_color_1: e.target.value })
                     }
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="בחר כיוון" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="R">R - ימין</SelectItem>
-                      <SelectItem value="L">L - שמאל</SelectItem>
-                    </SelectContent>
-                  </Select>
+                    placeholder="צבע"
+                  />
+                </div>
+                <div className="space-y-2 col-span-3">
+                  <Label>צבע שני (אופציונלי)</Label>
+                  <Input
+                    value={formData.insert_color_2}
+                    onChange={(e) =>
+                      setFormData({ ...formData, insert_color_2: e.target.value })
+                    }
+                    placeholder="צבע שני"
+                  />
                 </div>
               </div>
+            ) : (
+              <>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>רוחב כנף פעילה (מ"מ)</Label>
+                    <Input
+                      type="number"
+                      value={formData.active_door_width}
+                      onChange={(e) =>
+                        setFormData({ ...formData, active_door_width: e.target.value })
+                      }
+                      placeholder="רוחב"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>גובה כנף פעילה (מ"מ)</Label>
+                    <Input
+                      type="number"
+                      value={formData.active_door_height}
+                      onChange={(e) =>
+                        setFormData({ ...formData, active_door_height: e.target.value })
+                      }
+                      placeholder="גובה"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>כיוון כנף פעילה</Label>
+                    <Select
+                      value={formData.active_door_direction}
+                      onValueChange={(value) =>
+                        setFormData({ ...formData, active_door_direction: value })
+                      }
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="בחר כיוון" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="R">R - ימין</SelectItem>
+                        <SelectItem value="L">L - שמאל</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                {(formData.product_category === "כנף וחצי" || formData.product_category === "כנף כפולה") && (
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label>רוחב כנף קבועה (מ"מ)</Label>
+                      <Input
+                        type="number"
+                        value={formData.fixed_door_width}
+                        onChange={(e) =>
+                          setFormData({ ...formData, fixed_door_width: e.target.value })
+                        }
+                        placeholder="רוחב"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>גובה כנף קבועה (מ"מ)</Label>
+                      <Input
+                        type="number"
+                        value={formData.fixed_door_height}
+                        onChange={(e) =>
+                          setFormData({ ...formData, fixed_door_height: e.target.value })
+                        }
+                        placeholder="גובה"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>כיוון כנף קבועה</Label>
+                      <Select
+                        value={formData.fixed_door_direction}
+                        onValueChange={(value) =>
+                          setFormData({ ...formData, fixed_door_direction: value })
+                        }
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="בחר כיוון" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="R">R - ימין</SelectItem>
+                          <SelectItem value="L">L - שמאל</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                )}
+              </>
             )}
           </div>
 

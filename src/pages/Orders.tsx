@@ -55,6 +55,10 @@ interface SubOrder {
   fixed_door_width: number | null;
   fixed_door_height: number | null;
   fixed_door_direction: string | null;
+  insert_width: number | null;
+  insert_height: number | null;
+  insert_color_1: string | null;
+  insert_color_2: string | null;
   quantity: number;
   price: number;
   installer_price: number;
@@ -454,11 +458,17 @@ const Orders = () => {
                                           </TableCell>
                                           <TableCell className={`text-muted-foreground text-sm ${order.status === "בוטל" ? "line-through" : ""}`}>
                                             {order.product_category}
-                                            {order.active_door_width && ` - ${order.active_door_width}מ"מ`}
+                                            {order.product_category === "אינסרט" ? (
+                                              order.insert_width && order.insert_height 
+                                                ? ` - ${order.insert_width}×${order.insert_height}מ"מ | ${order.insert_color_1}${order.insert_color_2 ? ` + ${order.insert_color_2}` : ''}`
+                                                : ''
+                                            ) : (
+                                              order.active_door_width ? ` - ${order.active_door_width}מ"מ` : ''
+                                            )}
                                           </TableCell>
                                           <TableCell>
                                             <Badge variant="secondary" className="text-xs">
-                                              {order.active_door_direction || "-"}
+                                              {order.product_category === "אינסרט" ? "-" : (order.active_door_direction || "-")}
                                             </Badge>
                                           </TableCell>
                                           <TableCell className={`font-semibold ${order.status === "בוטל" ? "line-through" : ""}`}>
@@ -590,18 +600,31 @@ const Orders = () => {
                                           <p className={`text-sm font-medium ${order.status === "בוטל" ? "line-through" : ""}`}>{order.partner_name}</p>
                                           <p className={`text-xs text-muted-foreground ${order.status === "בוטל" ? "line-through" : ""}`}>
                                             {order.product_category}
-                                            {order.active_door_width && ` - ${order.active_door_width}מ"מ`}
+                                            {order.product_category === "אינסרט" ? (
+                                              order.insert_width && order.insert_height 
+                                                ? ` - ${order.insert_width}×${order.insert_height}מ"מ`
+                                                : ''
+                                            ) : (
+                                              order.active_door_width ? ` - ${order.active_door_width}מ"מ` : ''
+                                            )}
                                           </p>
+                                          {order.product_category === "אינסרט" && order.insert_color_1 && (
+                                            <p className="text-xs text-muted-foreground">
+                                              {order.insert_color_1}{order.insert_color_2 ? ` + ${order.insert_color_2}` : ''}
+                                            </p>
+                                          )}
                                         </div>
                                       </div>
                                       
                                       <div className="grid grid-cols-2 gap-2 text-xs">
-                                        <div>
-                                          <span className="text-muted-foreground">כיוון: </span>
-                                          <Badge variant="secondary" className="text-xs">
-                                            {order.active_door_direction || "-"}
-                                          </Badge>
-                                        </div>
+                                        {order.product_category !== "אינסרט" && (
+                                          <div>
+                                            <span className="text-muted-foreground">כיוון: </span>
+                                            <Badge variant="secondary" className="text-xs">
+                                              {order.active_door_direction || "-"}
+                                            </Badge>
+                                          </div>
+                                        )}
                                         <div>
                                           <span className="text-muted-foreground">כמות: </span>
                                           <span className={`font-semibold ${order.status === "בוטל" ? "line-through" : ""}`}>{order.quantity}</span>
