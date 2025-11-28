@@ -79,7 +79,6 @@ const Orders = () => {
   const [activeGroup, setActiveGroup] = useState<OrderGroup | null>(null);
   
   // Alert dialogs state
-  const [deleteGroupDialog, setDeleteGroupDialog] = useState<{ open: boolean; groupId: string | null }>({ open: false, groupId: null });
   const [closeGroupDialog, setCloseGroupDialog] = useState<{ open: boolean; groupId: string | null }>({ open: false, groupId: null });
   const [cancelSubOrderDialog, setCancelSubOrderDialog] = useState<{ open: boolean; subOrderId: string | null; groupId: string | null }>({ open: false, subOrderId: null, groupId: null });
 
@@ -171,40 +170,6 @@ const Orders = () => {
       toast({
         title: "שגיאה ביצירת הזמנה חדשה",
         description: "לא הצלחנו ליצור קבוצת הזמנות חדשה",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const handleDeleteGroup = async (groupId: string) => {
-    try {
-      // Delete all sub-orders first
-      const { error: subOrdersError } = await supabase
-        .from("sub_orders")
-        .delete()
-        .eq("order_group_id", groupId);
-
-      if (subOrdersError) throw subOrdersError;
-
-      // Then delete the group
-      const { error: groupError } = await supabase
-        .from("order_groups")
-        .delete()
-        .eq("id", groupId);
-
-      if (groupError) throw groupError;
-
-      toast({
-        title: "הקבוצה נמחקה בהצלחה",
-        description: "הקבוצה וכל התת-הזמנות שלה הוסרו מהמערכת",
-      });
-
-      fetchGroupedOrders();
-    } catch (error) {
-      console.error("Error deleting group:", error);
-      toast({
-        title: "שגיאה במחיקת הקבוצה",
-        description: "לא הצלחנו למחוק את הקבוצה",
         variant: "destructive",
       });
     }
@@ -441,15 +406,6 @@ const Orders = () => {
                                     סגור
                                   </Button>
                                 )}
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  className="gap-2 hover:bg-destructive/10 hover:text-destructive hover:border-destructive"
-                                  onClick={() => setDeleteGroupDialog({ open: true, groupId: group.id })}
-                                >
-                                  <Trash2 className="h-4 w-4" />
-                                  מחק
-                                </Button>
                               </div>
                             </div>
 
@@ -602,15 +558,6 @@ const Orders = () => {
                                     סגור
                                   </Button>
                                 )}
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  className="gap-1 text-xs hover:bg-destructive/10 hover:text-destructive"
-                                  onClick={() => setDeleteGroupDialog({ open: true, groupId: group.id })}
-                                >
-                                  <Trash2 className="h-3 w-3" />
-                                  מחק
-                                </Button>
                               </div>
                             </div>
 
@@ -735,32 +682,6 @@ const Orders = () => {
         onSuccess={fetchGroupedOrders}
         subOrder={editingSubOrder}
       />
-
-      {/* Delete Group Confirmation */}
-      <AlertDialog open={deleteGroupDialog.open} onOpenChange={(open) => setDeleteGroupDialog({ open, groupId: null })}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>האם אתה בטוח?</AlertDialogTitle>
-            <AlertDialogDescription>
-              פעולה זו תמחק את הקבוצה וכל התת-הזמנות שלה לצמיתות. לא ניתן לבטל פעולה זו.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>ביטול</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={() => {
-                if (deleteGroupDialog.groupId) {
-                  handleDeleteGroup(deleteGroupDialog.groupId);
-                  setDeleteGroupDialog({ open: false, groupId: null });
-                }
-              }}
-              className="bg-destructive hover:bg-destructive/90"
-            >
-              מחק
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
 
       {/* Close Group Confirmation */}
       <AlertDialog open={closeGroupDialog.open} onOpenChange={(open) => setCloseGroupDialog({ open, groupId: null })}>
