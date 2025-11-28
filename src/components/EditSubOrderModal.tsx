@@ -34,6 +34,7 @@ interface SubOrder {
   active_door_width: number | null;
   active_door_height: number | null;
   active_door_direction: string | null;
+  opening_direction: string | null;
   fixed_door_width: number | null;
   fixed_door_height: number | null;
   fixed_door_direction: string | null;
@@ -68,6 +69,7 @@ export function EditSubOrderModal({
     active_door_width: "",
     active_door_height: "",
     active_door_direction: "",
+    opening_direction: "",
     fixed_door_width: "",
     fixed_door_height: "",
     fixed_door_direction: "",
@@ -92,6 +94,7 @@ export function EditSubOrderModal({
         active_door_width: subOrder.active_door_width?.toString() || "",
         active_door_height: subOrder.active_door_height?.toString() || "",
         active_door_direction: subOrder.active_door_direction || "",
+        opening_direction: subOrder.opening_direction || "",
         fixed_door_width: subOrder.fixed_door_width?.toString() || "",
         fixed_door_height: subOrder.fixed_door_height?.toString() || "",
         fixed_door_direction: subOrder.fixed_door_direction || "",
@@ -120,6 +123,7 @@ export function EditSubOrderModal({
         active_door_width: formData.active_door_width ? parseFloat(formData.active_door_width) : null,
         active_door_height: formData.active_door_height ? parseFloat(formData.active_door_height) : null,
         active_door_direction: formData.active_door_direction || null,
+        opening_direction: formData.opening_direction || null,
         fixed_door_width: formData.fixed_door_width ? parseFloat(formData.fixed_door_width) : null,
         fixed_door_height: formData.fixed_door_height ? parseFloat(formData.fixed_door_height) : null,
         fixed_door_direction: formData.fixed_door_direction || null,
@@ -319,6 +323,23 @@ export function EditSubOrderModal({
                       <SelectContent>
                         <SelectItem value="R">R - ימין</SelectItem>
                         <SelectItem value="L">L - שמאל</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>כיוון פתיחה</Label>
+                    <Select
+                      value={formData.opening_direction}
+                      onValueChange={(value) =>
+                        setFormData({ ...formData, opening_direction: value })
+                      }
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="בחר כיוון פתיחה" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="פנים">פנים</SelectItem>
+                        <SelectItem value="חוץ">חוץ</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
