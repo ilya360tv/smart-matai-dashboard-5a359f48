@@ -25,25 +25,24 @@ interface AddOrderModalProps {
   onSuccess: () => void;
 }
 
-const PRODUCT_CATEGORIES = [
-  "כנף בודדת חלקה",
-  "כנף עם משקוף בנייה",
-  "כנף עם משקוף הלבשה",
-  "כנף וחצי בודדת (בלי משקוף)",
-  "כנף וחצי משקוף בנייה/חובק",
-  "כנף וחצי הלבשה",
-  "רק משקוף בנייה",
-  "רק משקוף הלבשה",
-  "רק משקוף בנייה לכנף וחצי",
-  "רק משקוף הלבשה לכנף וחצי",
-  "אינסרט",
+const FRAME_OPTIONS = [
+  "כנף עם משקוף",
+  "כנף בלי משקוף",
+  "רק משקוף",
 ];
 
-const DOOR_TYPES = [
+const SINGLE_DOOR_TYPES = [
   "כנף חלקה",
   "כנף מעוצבת",
   "כנף מוסדית",
   "כנף רפפה",
+];
+
+const ONE_AND_HALF_DOOR_TYPES = [
+  "כנף וחצי חלקה",
+  "כנף וחצי מעוצבת",
+  "כנף וחצי מוסדית",
+  "כנף וחצי רפפה",
 ];
 
 const LOUVRE_DOOR_TYPES = [
@@ -74,6 +73,7 @@ export const AddOrderModal = ({
   const [hasDraft, setHasDraft] = useState(false);
   const [formData, setFormData] = useState({
     customer_name: "",
+    frame_option: "",
     product_category: "",
     active_door_type: "",
     fixed_door_type: "",
@@ -250,68 +250,22 @@ export const AddOrderModal = ({
         });
         return;
       }
+      if (!formData.frame_option) {
+        toast({
+          title: "שגיאה",
+          description: "נא לבחור סוג הרכבה",
+          variant: "destructive",
+        });
+        return;
+      }
+      // אם בחר "רק משקוף", סיום הזמנה
+      if (formData.frame_option === "רק משקוף") {
+        await saveSubOrder();
+        return;
+      }
       setCurrentStep(2);
     } else if (currentStep === 2) {
       if (!formData.product_category) {
-        toast({
-          title: "שגיאה",
-          description: "נא לבחור מוצר",
-          variant: "destructive",
-        });
-        return;
-      }
-      
-      // אם בחר "רק משקוף", דלג לשלבים אחרים בעתיד
-      const isFrameOnly = formData.product_category.includes("רק משקוף");
-      if (isFrameOnly) {
-        toast({
-          title: "פרטי ההזמנה נשמרו!",
-          description: `ספק/משווק: ${formData.customer_name}\nמוצר: ${formData.product_category}`,
-        });
-        onClose();
-        return;
-      }
-      
-      // אם בחר אינסרט, עבור לשלב אינסרט
-      if (formData.product_category === "אינסרט") {
-        setCurrentStep(8); // שלב חדש לאינסרט
-        return;
-      }
-      
-      setCurrentStep(3);
-    } else if (currentStep === 8) {
-      // שלב אינסרט - בדיקת שדות
-      if (!formData.insert_width || parseFloat(formData.insert_width) <= 0) {
-        toast({
-          title: "שגיאה",
-          description: "נא להזין רוחב תקין במילימטרים",
-          variant: "destructive",
-        });
-        return;
-      }
-      
-      if (!formData.insert_height || parseFloat(formData.insert_height) <= 0) {
-        toast({
-          title: "שגיאה",
-          description: "נא להזין גובה תקין במילימטרים",
-          variant: "destructive",
-        });
-        return;
-      }
-      
-      if (!formData.insert_color_1) {
-        toast({
-          title: "שגיאה",
-          description: "נא לבחור צבע",
-          variant: "destructive",
-        });
-        return;
-      }
-      
-      // סיום - שמירת ההזמנה
-      await saveSubOrder();
-    } else if (currentStep === 3) {
-      if (!formData.active_door_type) {
         toast({
           title: "שגיאה",
           description: "נא לבחור סוג כנף",
@@ -320,24 +274,16 @@ export const AddOrderModal = ({
         return;
       }
       
-      // אם כנף וחצי, מעתיק אוטומטית את הכנף הפעילה לכנף הקבועה
-      if (isOneAndHalf) {
-        setFormData(prev => ({ 
-          ...prev, 
-          fixed_door_type: prev.active_door_type 
-        }));
-      }
-      
       // אם בחרו כנף רפפה, עובר לשלב בחירת סוג רפפה
-      if (formData.active_door_type === "כנף רפפה") {
-        setCurrentStep(5);
+      if (formData.product_category === "כנף רפפה" || formData.product_category === "כנף וחצי רפפה") {
+        setCurrentStep(3);
         return;
       }
       
       // אחרת, עובר לשלב מידות וכיוון משולב
-      setCurrentStep(6);
-    } else if (currentStep === 5) {
-      // בחירת סוג רפפה לכנף פעילה
+      setCurrentStep(4);
+    } else if (currentStep === 3) {
+      // בחירת סוג רפפה
       if (!formData.active_louvre_type) {
         toast({
           title: "שגיאה",
@@ -356,8 +302,8 @@ export const AddOrderModal = ({
       }
       
       // עובר לשלב מידות וכיוון משולב
-      setCurrentStep(6);
-    } else if (currentStep === 6) {
+      setCurrentStep(4);
+    } else if (currentStep === 4) {
       // שלב משולב: רוחב, גובה, כיוון
       
       // בדיקת כנף פעילה
@@ -433,10 +379,7 @@ export const AddOrderModal = ({
   };
 
   const handlePreviousStep = () => {
-    if (currentStep === 8) {
-      // חזרה משלב אינסרט לבחירת מוצר
-      setCurrentStep(2);
-    } else if (currentStep > 1) {
+    if (currentStep > 1) {
       setCurrentStep(currentStep - 1);
     }
   };
@@ -478,6 +421,7 @@ export const AddOrderModal = ({
         full_order_number: fullOrderNumber,
         partner_type: partnerType,
         partner_name: formData.customer_name,
+        frame_option: formData.frame_option || null,
         product_category: formData.product_category,
         active_door_type: formData.active_door_type || null,
         fixed_door_type: formData.fixed_door_type || null,
@@ -519,6 +463,7 @@ export const AddOrderModal = ({
   const resetForm = () => {
     setFormData({
       customer_name: "",
+      frame_option: "",
       product_category: "",
       active_door_type: "",
       fixed_door_type: "",
@@ -570,50 +515,77 @@ export const AddOrderModal = ({
           {currentStep === 1 && (
             <div className="flex-1 flex flex-col justify-between p-4">
               {/* Partner Selection */}
-              <div className="space-y-4 p-4 bg-muted/30 rounded-lg border-2 border-primary/20">
-                <div className="space-y-3">
-                  <Label className="text-base font-semibold">בחר ספק / משווק *</Label>
-                  <RadioGroup
-                    value={partnerType}
-                    onValueChange={(value: "supplier" | "marketer") => {
-                      setPartnerType(value);
-                      setFormData({ ...formData, customer_name: "" });
-                    }}
-                    className="flex flex-row-reverse gap-8 justify-end"
-                    dir="rtl"
-                  >
-                    <div className="flex items-center gap-2">
-                      <Label htmlFor="marketer" className="cursor-pointer font-normal">משווק</Label>
-                      <RadioGroupItem value="marketer" id="marketer" />
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Label htmlFor="supplier" className="cursor-pointer font-normal">ספק</Label>
-                      <RadioGroupItem value="supplier" id="supplier" />
-                    </div>
-                  </RadioGroup>
+              <div className="space-y-6">
+                <div className="space-y-4 p-4 bg-muted/30 rounded-lg border-2 border-primary/20">
+                  <div className="space-y-3">
+                    <Label className="text-base font-semibold">בחר ספק / משווק *</Label>
+                    <RadioGroup
+                      value={partnerType}
+                      onValueChange={(value: "supplier" | "marketer") => {
+                        setPartnerType(value);
+                        setFormData({ ...formData, customer_name: "" });
+                      }}
+                      className="flex flex-row-reverse gap-8 justify-end"
+                      dir="rtl"
+                    >
+                      <div className="flex items-center gap-2">
+                        <Label htmlFor="marketer" className="cursor-pointer font-normal">משווק</Label>
+                        <RadioGroupItem value="marketer" id="marketer" />
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Label htmlFor="supplier" className="cursor-pointer font-normal">ספק</Label>
+                        <RadioGroupItem value="supplier" id="supplier" />
+                      </div>
+                    </RadioGroup>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="customer_name">
+                      {partnerType === "supplier" ? "בחר ספק" : "בחר משווק"} *
+                    </Label>
+                    <Select
+                      value={formData.customer_name}
+                      onValueChange={(value) =>
+                        setFormData({ ...formData, customer_name: value })
+                      }
+                    >
+                      <SelectTrigger className="bg-background">
+                        <SelectValue placeholder={partnerType === "supplier" ? "בחר ספק מהרשימה" : "בחר משווק מהרשימה"} />
+                      </SelectTrigger>
+                      <SelectContent className="bg-background z-50">
+                        {(partnerType === "supplier" ? suppliers : marketers).map((partner) => (
+                          <SelectItem key={partner.id} value={partner.name}>
+                            {partner.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="customer_name">
-                    {partnerType === "supplier" ? "בחר ספק" : "בחר משווק"} *
-                  </Label>
-                  <Select
-                    value={formData.customer_name}
+                {/* Frame Option Selection */}
+                <div className="space-y-4 p-4 bg-muted/30 rounded-lg border-2 border-primary/20">
+                  <Label className="text-base font-semibold">סוג הרכבה *</Label>
+                  <RadioGroup
+                    value={formData.frame_option}
                     onValueChange={(value) =>
-                      setFormData({ ...formData, customer_name: value })
+                      setFormData({ ...formData, frame_option: value })
                     }
+                    className="grid grid-cols-1 gap-3"
                   >
-                    <SelectTrigger className="bg-background">
-                      <SelectValue placeholder={partnerType === "supplier" ? "בחר ספק מהרשימה" : "בחר משווק מהרשימה"} />
-                    </SelectTrigger>
-                    <SelectContent className="bg-background z-50">
-                      {(partnerType === "supplier" ? suppliers : marketers).map((partner) => (
-                        <SelectItem key={partner.id} value={partner.name}>
-                          {partner.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                    {FRAME_OPTIONS.map((option) => (
+                      <div
+                        key={option}
+                        className="flex items-center gap-3 p-4 border-2 rounded-lg hover:bg-muted/50 transition-colors cursor-pointer"
+                        onClick={() => setFormData({ ...formData, frame_option: option })}
+                      >
+                        <RadioGroupItem value={option} id={option} />
+                        <Label htmlFor={option} className="cursor-pointer font-normal flex-1">
+                          {option}
+                        </Label>
+                      </div>
+                    ))}
+                  </RadioGroup>
                 </div>
               </div>
 
@@ -632,29 +604,60 @@ export const AddOrderModal = ({
 
           {currentStep === 2 && (
             <div className="p-4 space-y-4">
-              {/* Product Category Selection */}
+              {/* Door Type Selection - Two Columns */}
               <div className="space-y-4 p-4 bg-muted/30 rounded-lg border-2 border-primary/20">
-                <Label className="text-base font-semibold">בחר מוצר *</Label>
-                <RadioGroup
-                  value={formData.product_category}
-                  onValueChange={(value) =>
-                    setFormData({ ...formData, product_category: value, active_door_type: "", fixed_door_type: "", active_louvre_type: "", fixed_louvre_type: "" })
-                  }
-                  className="grid grid-cols-2 gap-3"
-                >
-                  {PRODUCT_CATEGORIES.map((category) => (
-                    <div
-                      key={category}
-                      className="flex items-center gap-3 p-3 border-2 rounded-lg hover:bg-muted/50 transition-colors cursor-pointer"
-                      onClick={() => setFormData({ ...formData, product_category: category, active_door_type: "", fixed_door_type: "", active_louvre_type: "", fixed_louvre_type: "" })}
+                <Label className="text-base font-semibold">בחר סוג כנף *</Label>
+                <div className="grid grid-cols-2 gap-6">
+                  {/* Single Door Types */}
+                  <div className="space-y-3">
+                    <h3 className="font-semibold text-sm text-center pb-2 border-b">כנף בודדת</h3>
+                    <RadioGroup
+                      value={formData.product_category}
+                      onValueChange={(value) =>
+                        setFormData({ ...formData, product_category: value, active_door_type: "", fixed_door_type: "", active_louvre_type: "", fixed_louvre_type: "" })
+                      }
+                      className="space-y-2"
                     >
-                      <RadioGroupItem value={category} id={category} />
-                      <Label htmlFor={category} className="cursor-pointer font-normal flex-1 text-sm">
-                        {category}
-                      </Label>
-                    </div>
-                  ))}
-                </RadioGroup>
+                      {SINGLE_DOOR_TYPES.map((type) => (
+                        <div
+                          key={type}
+                          className="flex items-center gap-3 p-3 border-2 rounded-lg hover:bg-muted/50 transition-colors cursor-pointer"
+                          onClick={() => setFormData({ ...formData, product_category: type, active_door_type: "", fixed_door_type: "", active_louvre_type: "", fixed_louvre_type: "" })}
+                        >
+                          <RadioGroupItem value={type} id={type} />
+                          <Label htmlFor={type} className="cursor-pointer font-normal flex-1">
+                            {type}
+                          </Label>
+                        </div>
+                      ))}
+                    </RadioGroup>
+                  </div>
+
+                  {/* One and Half Door Types */}
+                  <div className="space-y-3">
+                    <h3 className="font-semibold text-sm text-center pb-2 border-b">כנף וחצי</h3>
+                    <RadioGroup
+                      value={formData.product_category}
+                      onValueChange={(value) =>
+                        setFormData({ ...formData, product_category: value, active_door_type: "", fixed_door_type: "", active_louvre_type: "", fixed_louvre_type: "" })
+                      }
+                      className="space-y-2"
+                    >
+                      {ONE_AND_HALF_DOOR_TYPES.map((type) => (
+                        <div
+                          key={type}
+                          className="flex items-center gap-3 p-3 border-2 rounded-lg hover:bg-muted/50 transition-colors cursor-pointer"
+                          onClick={() => setFormData({ ...formData, product_category: type, active_door_type: "", fixed_door_type: "", active_louvre_type: "", fixed_louvre_type: "" })}
+                        >
+                          <RadioGroupItem value={type} id={type} />
+                          <Label htmlFor={type} className="cursor-pointer font-normal flex-1">
+                            {type}
+                          </Label>
+                        </div>
+                      ))}
+                    </RadioGroup>
+                  </div>
+                </div>
               </div>
 
               {/* Actions */}
@@ -677,99 +680,7 @@ export const AddOrderModal = ({
 
           {currentStep === 3 && (
             <>
-              {/* Door Type Selection - Active Door or Single Door */}
-              <div className="space-y-4 p-6 bg-muted/30 rounded-lg border-2 border-primary/20">
-                <Label className="text-base font-semibold">
-                  {formData.product_category.includes("כנף וחצי") ? "בחר סוג כנף (הכנף הקבועה תהיה זהה) *" : "בחר סוג כנף *"}
-                </Label>
-                <RadioGroup
-                  value={formData.active_door_type}
-                  onValueChange={(value) =>
-                    setFormData({ ...formData, active_door_type: value, active_louvre_type: "", fixed_door_type: formData.product_category.includes("כנף וחצי") ? value : "" })
-                  }
-                  className="grid grid-cols-1 gap-3"
-                >
-                  {DOOR_TYPES.map((type) => (
-                    <div
-                      key={type}
-                      className="flex items-center gap-3 p-4 border-2 rounded-lg hover:bg-muted/50 transition-colors cursor-pointer"
-                      onClick={() => setFormData({ ...formData, active_door_type: type, active_louvre_type: "", fixed_door_type: formData.product_category.includes("כנף וחצי") ? type : "" })}
-                    >
-                      <RadioGroupItem value={type} id={`active-${type}`} />
-                      <Label htmlFor={`active-${type}`} className="cursor-pointer font-normal flex-1">
-                        {type}
-                      </Label>
-                    </div>
-                  ))}
-                </RadioGroup>
-              </div>
-
-              {/* Actions */}
-              <div className="flex gap-3 justify-between">
-                <Button type="button" variant="outline" onClick={handlePreviousStep}>
-                  חזור
-                </Button>
-                <div className="flex gap-3">
-                  <Button type="button" variant="ghost" onClick={saveDraft}>
-                    שמור כטיוטה
-                  </Button>
-                  <Button type="button" variant="outline" onClick={onClose}>
-                    ביטול
-                  </Button>
-                  <Button type="submit">המשך</Button>
-                </div>
-              </div>
-            </>
-          )}
-
-          {currentStep === 4 && (
-            <>
-              {/* Fixed Door Type Selection - Only for כנף וחצי */}
-              <div className="space-y-4 p-6 bg-muted/30 rounded-lg border-2 border-primary/20">
-                <Label className="text-base font-semibold">בחר סוג כנף קבועה *</Label>
-                <RadioGroup
-                  value={formData.fixed_door_type}
-                  onValueChange={(value) =>
-                    setFormData({ ...formData, fixed_door_type: value, fixed_louvre_type: "" })
-                  }
-                  className="grid grid-cols-1 gap-3"
-                >
-                  {DOOR_TYPES.map((type) => (
-                    <div
-                      key={type}
-                      className="flex items-center gap-3 p-4 border-2 rounded-lg hover:bg-muted/50 transition-colors cursor-pointer"
-                      onClick={() => setFormData({ ...formData, fixed_door_type: type, fixed_louvre_type: "" })}
-                    >
-                      <RadioGroupItem value={type} id={`fixed-${type}`} />
-                      <Label htmlFor={`fixed-${type}`} className="cursor-pointer font-normal flex-1">
-                        {type}
-                      </Label>
-                    </div>
-                  ))}
-                </RadioGroup>
-              </div>
-
-              {/* Actions */}
-              <div className="flex gap-3 justify-between">
-                <Button type="button" variant="outline" onClick={handlePreviousStep}>
-                  חזור
-                </Button>
-                <div className="flex gap-3">
-                  <Button type="button" variant="ghost" onClick={saveDraft}>
-                    שמור כטיוטה
-                  </Button>
-                  <Button type="button" variant="outline" onClick={onClose}>
-                    ביטול
-                  </Button>
-                  <Button type="submit">המשך</Button>
-                </div>
-              </div>
-            </>
-          )}
-
-          {currentStep === 5 && (
-            <>
-              {/* Active Louvre Door Type Selection */}
+              {/* Louvre Door Type Selection */}
               <div className="space-y-4 p-6 bg-muted/30 rounded-lg border-2 border-primary/20">
                 <Label className="text-base font-semibold">
                   {formData.product_category.includes("כנף וחצי") ? "בחר סוג כנף רפפה (הכנף הקבועה תהיה זהה) *" : "בחר סוג כנף רפפה *"}
@@ -814,52 +725,7 @@ export const AddOrderModal = ({
             </>
           )}
 
-          {currentStep === 7 && (
-            <>
-              {/* Fixed Louvre Door Type Selection */}
-              <div className="space-y-4 p-6 bg-muted/30 rounded-lg border-2 border-primary/20">
-                <Label className="text-base font-semibold">בחר סוג כנף רפפה קבועה *</Label>
-                <RadioGroup
-                  value={formData.fixed_louvre_type}
-                  onValueChange={(value) =>
-                    setFormData({ ...formData, fixed_louvre_type: value })
-                  }
-                  className="grid grid-cols-1 gap-3"
-                >
-                  {LOUVRE_DOOR_TYPES.map((type) => (
-                    <div
-                      key={type}
-                      className="flex items-center gap-3 p-4 border-2 rounded-lg hover:bg-muted/50 transition-colors cursor-pointer"
-                      onClick={() => setFormData({ ...formData, fixed_louvre_type: type })}
-                    >
-                      <RadioGroupItem value={type} id={`fixed-louvre-${type}`} />
-                      <Label htmlFor={`fixed-louvre-${type}`} className="cursor-pointer font-normal flex-1">
-                        {type}
-                      </Label>
-                    </div>
-                  ))}
-                </RadioGroup>
-              </div>
-
-              {/* Actions */}
-              <div className="flex gap-3 justify-between">
-                <Button type="button" variant="outline" onClick={handlePreviousStep}>
-                  חזור
-                </Button>
-                <div className="flex gap-3">
-                  <Button type="button" variant="ghost" onClick={saveDraft}>
-                    שמור כטיוטה
-                  </Button>
-                  <Button type="button" variant="outline" onClick={onClose}>
-                    ביטול
-                  </Button>
-                  <Button type="submit">המשך</Button>
-                </div>
-              </div>
-            </>
-          )}
-
-          {currentStep === 6 && (
+          {currentStep === 4 && (
             <div className="p-4 space-y-4">
               {/* Combined Dimensions & Direction */}
               <div className="space-y-4 p-4 bg-muted/30 rounded-lg border-2 border-primary/20">
