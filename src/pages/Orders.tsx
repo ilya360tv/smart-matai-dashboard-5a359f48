@@ -19,25 +19,24 @@ import { AddOrderModal } from "@/components/AddOrderModal";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
-interface Order {
+interface SubOrder {
   id: string;
-  order_number: string;
-  customer_name: string;
-  product_type: string;
-  product_width: number | null;
-  side: string | null;
-  drilling: string | null;
-  katif_blocker: string | null;
-  door_color: string | null;
-  construction_frame: string | null;
-  frame_height: number | null;
-  cover_frame: string | null;
-  electric_lock: boolean;
-  handle_hole: boolean;
-  clamp_holes: string | null;
+  full_order_number: string;
+  partner_type: string;
+  partner_name: string;
+  product_category: string;
+  active_door_type: string | null;
+  fixed_door_type: string | null;
+  active_louvre_type: string | null;
+  fixed_louvre_type: string | null;
+  door_width: number | null;
+  active_door_direction: string | null;
+  fixed_door_direction: string | null;
+  door_height: number | null;
   quantity: number;
   price: number;
   installer_price: number;
+  notes: string | null;
   created_at: string;
 }
 
@@ -45,7 +44,7 @@ const Orders = () => {
   const [currentTime, setCurrentTime] = useState(new Date());
   const [searchQuery, setSearchQuery] = useState("");
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [orders, setOrders] = useState<Order[]>([]);
+  const [subOrders, setSubOrders] = useState<SubOrder[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -54,24 +53,24 @@ const Orders = () => {
   }, []);
 
   useEffect(() => {
-    fetchOrders();
+    fetchSubOrders();
   }, []);
 
-  const fetchOrders = async () => {
+  const fetchSubOrders = async () => {
     try {
       setLoading(true);
       const { data, error } = await supabase
-        .from("orders")
+        .from("sub_orders")
         .select("*")
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-      setOrders(data || []);
+      setSubOrders(data || []);
     } catch (error) {
-      console.error("Error fetching orders:", error);
+      console.error("Error fetching sub-orders:", error);
       toast({
-        title: "שגיאה בטעינת ההזמנות",
-        description: "לא הצלחנו לטעון את ההזמנות",
+        title: "שגיאה בטעינת תת-ההזמנות",
+        description: "לא הצלחנו לטעון את תת-ההזמנות",
         variant: "destructive",
       });
     } finally {
@@ -79,32 +78,32 @@ const Orders = () => {
     }
   };
 
-  const handleDeleteOrder = async (id: string) => {
+  const handleDeleteSubOrder = async (id: string) => {
     try {
-      const { error } = await supabase.from("orders").delete().eq("id", id);
+      const { error } = await supabase.from("sub_orders").delete().eq("id", id);
 
       if (error) throw error;
 
-      setOrders(orders.filter((o) => o.id !== id));
+      setSubOrders(subOrders.filter((o) => o.id !== id));
       toast({
-        title: "ההזמנה נמחקה בהצלחה",
-        description: "ההזמנה הוסרה מהמערכת",
+        title: "תת-ההזמנה נמחקה בהצלחה",
+        description: "תת-ההזמנה הוסרה מהמערכת",
       });
     } catch (error) {
-      console.error("Error deleting order:", error);
+      console.error("Error deleting sub-order:", error);
       toast({
-        title: "שגיאה במחיקת ההזמנה",
-        description: "לא הצלחנו למחוק את ההזמנה",
+        title: "שגיאה במחיקת תת-ההזמנה",
+        description: "לא הצלחנו למחוק את תת-ההזמנה",
         variant: "destructive",
       });
     }
   };
 
-  const filteredOrders = orders.filter(
+  const filteredSubOrders = subOrders.filter(
     (order) =>
-      order.customer_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      order.order_number.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      order.product_type.toLowerCase().includes(searchQuery.toLowerCase())
+      order.partner_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      order.full_order_number.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      order.product_category.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   return (
@@ -150,7 +149,7 @@ const Orders = () => {
                     size="lg"
                   >
                     <Plus className="h-5 w-5" />
-                    פתיחת הזמנה חדשה
+                    תת-הזמנה חדשה
                   </Button>
                 </div>
               </CardContent>
@@ -200,34 +199,34 @@ const Orders = () => {
                           </TableRow>
                         </TableHeader>
                         <TableBody>
-                          {filteredOrders.length === 0 ? (
+                          {filteredSubOrders.length === 0 ? (
                             <TableRow>
                               <TableCell
                                 colSpan={9}
                                 className="text-center py-8 text-muted-foreground"
                               >
-                                לא נמצאו הזמנות
+                                לא נמצאו תת-הזמנות
                               </TableCell>
                             </TableRow>
                           ) : (
-                            filteredOrders.map((order) => (
+                            filteredSubOrders.map((order) => (
                               <TableRow
                                 key={order.id}
                                 className="hover:bg-muted/30 transition-colors"
                               >
                                 <TableCell className="font-bold text-primary">
-                                  {order.order_number}
+                                  {order.full_order_number}
                                 </TableCell>
                                 <TableCell className="font-medium">
-                                  {order.customer_name}
+                                  {order.partner_name}
                                 </TableCell>
                                 <TableCell className="text-muted-foreground">
-                                  {order.product_type}
-                                  {order.product_width && ` - ${order.product_width}ס״מ`}
+                                  {order.product_category}
+                                  {order.door_width && ` - ${order.door_width}מ"מ`}
                                 </TableCell>
                                 <TableCell>
                                   <Badge variant="secondary">
-                                    {order.side || "-"}
+                                    {order.active_door_direction || "-"}
                                   </Badge>
                                 </TableCell>
                                 <TableCell className="font-semibold">
@@ -258,7 +257,7 @@ const Orders = () => {
                                       size="sm"
                                       variant="ghost"
                                       className="h-8 w-8 p-0 hover:bg-destructive/10 hover:text-destructive"
-                                      onClick={() => handleDeleteOrder(order.id)}
+                                      onClick={() => handleDeleteSubOrder(order.id)}
                                     >
                                       <Trash2 className="h-4 w-4" />
                                     </Button>
@@ -273,12 +272,12 @@ const Orders = () => {
 
                     {/* Mobile Cards */}
                     <div className="lg:hidden p-3 space-y-3">
-                      {filteredOrders.length === 0 ? (
+                      {filteredSubOrders.length === 0 ? (
                         <div className="text-center py-8 text-muted-foreground">
-                          לא נמצאו הזמנות
+                          לא נמצאו תת-הזמנות
                         </div>
                       ) : (
-                        filteredOrders.map((order) => (
+                        filteredSubOrders.map((order) => (
                           <div
                             key={order.id}
                             className="p-4 rounded-lg border bg-card shadow-sm hover:shadow-md transition-shadow"
@@ -286,14 +285,14 @@ const Orders = () => {
                             <div className="flex items-start justify-between mb-3">
                               <div className="flex-1">
                                 <h3 className="font-bold text-primary text-lg mb-1">
-                                  {order.order_number}
+                                  {order.full_order_number}
                                 </h3>
-                                <p className="font-medium">{order.customer_name}</p>
+                                <p className="font-medium">{order.partner_name}</p>
                                 <p className="text-sm text-muted-foreground">
-                                  {order.product_type}
+                                  {order.product_category}
                                 </p>
                               </div>
-                              <Badge variant="secondary">{order.side || "-"}</Badge>
+                              <Badge variant="secondary">{order.active_door_direction || "-"}</Badge>
                             </div>
 
                             <div className="space-y-2 text-sm mb-3">
@@ -330,7 +329,7 @@ const Orders = () => {
                                 size="lg"
                                 variant="outline"
                                 className="flex-1 gap-2 hover:bg-destructive/10 hover:text-destructive hover:border-destructive"
-                                onClick={() => handleDeleteOrder(order.id)}
+                                onClick={() => handleDeleteSubOrder(order.id)}
                               >
                                 <Trash2 className="h-4 w-4" />
                                 מחק
@@ -348,11 +347,11 @@ const Orders = () => {
         </main>
       </div>
 
-      {/* Add Order Modal */}
+      {/* Add Sub-Order Modal */}
       <AddOrderModal
         isOpen={isAddModalOpen}
         onClose={() => setIsAddModalOpen(false)}
-        onSuccess={fetchOrders}
+        onSuccess={fetchSubOrders}
       />
     </div>
   );

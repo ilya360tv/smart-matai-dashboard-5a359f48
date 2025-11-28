@@ -644,6 +644,30 @@ export type Database = {
         }
         Relationships: []
       }
+      order_groups: {
+        Row: {
+          created_at: string
+          group_number: string
+          id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          group_number: string
+          id?: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          group_number?: string
+          id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       orders: {
         Row: {
           clamp_holes: string | null
@@ -745,6 +769,86 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      sub_orders: {
+        Row: {
+          active_door_direction: string | null
+          active_door_type: string | null
+          active_louvre_type: string | null
+          created_at: string
+          door_height: number | null
+          door_width: number | null
+          fixed_door_direction: string | null
+          fixed_door_type: string | null
+          fixed_louvre_type: string | null
+          full_order_number: string
+          id: string
+          installer_price: number
+          notes: string | null
+          order_group_id: string
+          partner_name: string
+          partner_type: string
+          price: number
+          product_category: string
+          quantity: number
+          sub_number: number
+          updated_at: string
+        }
+        Insert: {
+          active_door_direction?: string | null
+          active_door_type?: string | null
+          active_louvre_type?: string | null
+          created_at?: string
+          door_height?: number | null
+          door_width?: number | null
+          fixed_door_direction?: string | null
+          fixed_door_type?: string | null
+          fixed_louvre_type?: string | null
+          full_order_number: string
+          id?: string
+          installer_price?: number
+          notes?: string | null
+          order_group_id: string
+          partner_name: string
+          partner_type: string
+          price?: number
+          product_category: string
+          quantity?: number
+          sub_number: number
+          updated_at?: string
+        }
+        Update: {
+          active_door_direction?: string | null
+          active_door_type?: string | null
+          active_louvre_type?: string | null
+          created_at?: string
+          door_height?: number | null
+          door_width?: number | null
+          fixed_door_direction?: string | null
+          fixed_door_type?: string | null
+          fixed_louvre_type?: string | null
+          full_order_number?: string
+          id?: string
+          installer_price?: number
+          notes?: string | null
+          order_group_id?: string
+          partner_name?: string
+          partner_type?: string
+          price?: number
+          product_category?: string
+          quantity?: number
+          sub_number?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sub_orders_order_group_id_fkey"
+            columns: ["order_group_id"]
+            isOneToOne: false
+            referencedRelation: "order_groups"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       suppliers: {
         Row: {

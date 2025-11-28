@@ -56,7 +56,8 @@ export const AddOrderModal = ({
   onClose,
   onSuccess,
 }: AddOrderModalProps) => {
-  const [nextOrderNumber, setNextOrderNumber] = useState("C47");
+  const [nextOrderNumber, setNextOrderNumber] = useState("C47-1");
+  const [activeGroup, setActiveGroup] = useState<{ id: string; group_number: string } | null>(null);
   const [currentStep, setCurrentStep] = useState(1);
   const [partnerType, setPartnerType] = useState<"supplier" | "marketer">("supplier");
   const [suppliers, setSuppliers] = useState<Array<{ id: string; name: string }>>([]);
@@ -97,28 +98,38 @@ export const AddOrderModal = ({
 
   const fetchNextOrderNumber = async () => {
     try {
-      const { data, error } = await supabase
-        .from("orders")
-        .select("order_number")
-        .order("created_at", { ascending: false })
+      // Get active order group
+      const { data: groupData, error: groupError } = await supabase
+        .from("order_groups")
+        .select("id, group_number")
+        .eq("status", "פעיל")
+        .single();
+
+      if (groupError) throw groupError;
+      
+      setActiveGroup(groupData);
+
+      // Get the next sub-order number for this group
+      const { data: subOrdersData, error: subOrdersError } = await supabase
+        .from("sub_orders")
+        .select("sub_number")
+        .eq("order_group_id", groupData.id)
+        .order("sub_number", { ascending: false })
         .limit(1);
 
-      if (error) throw error;
+      if (subOrdersError) throw subOrdersError;
 
-      if (data && data.length > 0) {
-        const lastNumber = data[0].order_number;
-        const match = lastNumber.match(/C(\d+)/);
-        if (match) {
-          const nextNum = parseInt(match[1]) + 1;
-          setNextOrderNumber(`C${nextNum}`);
-        }
-      }
+      const nextSubNumber = subOrdersData && subOrdersData.length > 0 
+        ? subOrdersData[0].sub_number + 1 
+        : 1;
+      
+      setNextOrderNumber(`${groupData.group_number}-${nextSubNumber}`);
     } catch (error) {
       console.error("Error fetching next order number:", error);
     }
   };
 
-  const handleNextStep = () => {
+  const handleNextStep = async () => {
     const isOneAndHalf = formData.product_category.includes("כנף וחצי");
     
     if (currentStep === 1) {
@@ -278,15 +289,7 @@ export const AddOrderModal = ({
       }
       
       // סיום - שמירת ההזמנה
-      const doorTypeDesc = isOneAndHalf 
-        ? `כנף פעילה: ${formData.active_door_type}${formData.active_louvre_type ? ` - ${formData.active_louvre_type}` : ""}\nכנף קבועה: ${formData.fixed_door_type}${formData.fixed_louvre_type ? ` - ${formData.fixed_louvre_type}` : ""}`
-        : `סוג כנף: ${formData.active_door_type}${formData.active_louvre_type ? ` - ${formData.active_louvre_type}` : ""}`;
-      
-      toast({
-        title: "פרטי ההזמנה נשמרו!",
-        description: `ספק/משווק: ${formData.customer_name}\nמוצר: ${formData.product_category}\n${doorTypeDesc}\nרוחב: ${formData.door_width} מ"מ\nגובה: ${formData.door_height} מ"מ`,
-      });
-      onClose();
+      await saveSubOrder();
     }
   };
 
@@ -299,6 +302,69 @@ export const AddOrderModal = ({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     handleNextStep();
+  };
+
+  const saveSubOrder = async () => {
+    if (!activeGroup) {
+      toast({
+        title: "שגיאה",
+        description: "לא נמצאה קבוצת הזמנות פעילה",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      // Get the next sub number
+      const { data: lastSubOrder } = await supabase
+        .from("sub_orders")
+        .select("sub_number")
+        .eq("order_group_id", activeGroup.id)
+        .order("sub_number", { ascending: false })
+        .limit(1);
+
+      const nextSubNumber = lastSubOrder && lastSubOrder.length > 0 
+        ? lastSubOrder[0].sub_number + 1 
+        : 1;
+
+      const fullOrderNumber = `${activeGroup.group_number}-${nextSubNumber}`;
+
+      // Insert the sub-order
+      const { error } = await supabase.from("sub_orders").insert({
+        order_group_id: activeGroup.id,
+        sub_number: nextSubNumber,
+        full_order_number: fullOrderNumber,
+        partner_type: partnerType,
+        partner_name: formData.customer_name,
+        product_category: formData.product_category,
+        active_door_type: formData.active_door_type || null,
+        fixed_door_type: formData.fixed_door_type || null,
+        active_louvre_type: formData.active_louvre_type || null,
+        fixed_louvre_type: formData.fixed_louvre_type || null,
+        door_width: formData.door_width ? parseFloat(formData.door_width) : null,
+        active_door_direction: formData.active_door_direction || null,
+        fixed_door_direction: formData.fixed_door_direction || null,
+        door_height: formData.door_height ? parseFloat(formData.door_height) : null,
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "תת-הזמנה נשמרה בהצלחה!",
+        description: `הזמנה מספר ${fullOrderNumber} נוספה`,
+      });
+
+      resetForm();
+      onClose();
+      onSuccess();
+    } catch (error) {
+      console.error("Error saving sub-order:", error);
+      toast({
+        title: "שגיאה",
+        description: "לא הצלחנו לשמור את תת-ההזמנה",
+        variant: "destructive",
+      });
+    }
   };
 
   const resetForm = () => {
