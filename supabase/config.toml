@@ -2,3 +2,6 @@ project_id = "jztaeouyebjqkktjgztq"
 
 [functions.inventory-assistant]
 verify_jwt = false
+
+[functions.reports-assistant]
+verify_jwt = false
