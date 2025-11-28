@@ -793,6 +793,7 @@ export type Database = {
           price: number
           product_category: string
           quantity: number
+          status: string
           sub_number: number
           updated_at: string
         }
@@ -818,6 +819,7 @@ export type Database = {
           price?: number
           product_category: string
           quantity?: number
+          status?: string
           sub_number: number
           updated_at?: string
         }
@@ -843,6 +845,7 @@ export type Database = {
           price?: number
           product_category?: string
           quantity?: number
+          status?: string
           sub_number?: number
           updated_at?: string
         }
