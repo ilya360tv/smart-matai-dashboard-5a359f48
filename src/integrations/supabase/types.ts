@@ -872,6 +872,72 @@ export type Database = {
         }
         Relationships: []
       }
+      stock_orders: {
+        Row: {
+          construction_frame: string | null
+          cover_frame: string | null
+          created_at: string
+          direction: string | null
+          door_color: string | null
+          drilling: string | null
+          frame_height: number | null
+          id: string
+          installer_price: number
+          notes: string | null
+          partner_name: string
+          partner_type: string
+          price: number
+          quantity: number
+          row_number: number
+          status: string
+          updated_at: string
+          wing_height: number | null
+          wing_width: number | null
+        }
+        Insert: {
+          construction_frame?: string | null
+          cover_frame?: string | null
+          created_at?: string
+          direction?: string | null
+          door_color?: string | null
+          drilling?: string | null
+          frame_height?: number | null
+          id?: string
+          installer_price?: number
+          notes?: string | null
+          partner_name: string
+          partner_type: string
+          price?: number
+          quantity?: number
+          row_number: number
+          status?: string
+          updated_at?: string
+          wing_height?: number | null
+          wing_width?: number | null
+        }
+        Update: {
+          construction_frame?: string | null
+          cover_frame?: string | null
+          created_at?: string
+          direction?: string | null
+          door_color?: string | null
+          drilling?: string | null
+          frame_height?: number | null
+          id?: string
+          installer_price?: number
+          notes?: string | null
+          partner_name?: string
+          partner_type?: string
+          price?: number
+          quantity?: number
+          row_number?: number
+          status?: string
+          updated_at?: string
+          wing_height?: number | null
+          wing_width?: number | null
+        }
+        Relationships: []
+      }
       sub_orders: {
         Row: {
           active_door_direction: string | null

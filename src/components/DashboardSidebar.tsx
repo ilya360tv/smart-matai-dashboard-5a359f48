@@ -6,7 +6,8 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 const menuItems = [
   { icon: Home, label: "דף הבית", href: "/" },
   { icon: Package, label: "מלאי", href: "/inventory" },
-  { icon: ShoppingCart, label: "הזמנות", href: "/orders" },
+  { icon: ShoppingCart, label: "הזמנת מלאי", href: "/stock-orders" },
+  { icon: ShoppingCart, label: "הזמנות ספקים", href: "/orders" },
   { icon: FileText, label: "דוחות ועוזר AI", href: "/reports" },
   { icon: History, label: "תנועות מלאי", href: "/stock-movements" },
   { icon: DollarSign, label: "תשלומי לקוחות", href: "/customer-payments" },
