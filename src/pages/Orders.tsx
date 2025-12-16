@@ -107,20 +107,62 @@ const Orders = () => {
 
   const exportToExcel = async () => {
     try {
-      const { data: subOrders } = await supabase.from("sub_orders").select("*").order("created_at", { ascending: false });
+      const { data: subOrders } = await supabase.from("sub_orders").select("*").order("sub_number", { ascending: true });
       const { data: orderGroups } = await supabase.from("order_groups").select("*").order("created_at", { ascending: false });
       
       const wb = XLSX.utils.book_new();
       
-      if (subOrders && subOrders.length > 0) {
-        const ws = XLSX.utils.json_to_sheet(subOrders);
-        XLSX.utils.book_append_sheet(wb, ws, "תת-הזמנות");
-      }
-      
-      if (orderGroups && orderGroups.length > 0) {
-        const ws2 = XLSX.utils.json_to_sheet(orderGroups);
-        XLSX.utils.book_append_sheet(wb, ws2, "קבוצות הזמנה");
-      }
+      // Group sub_orders by order_group_id
+      const groupedByOrder: { [key: string]: any[] } = {};
+      subOrders?.forEach(order => {
+        const group = orderGroups?.find(g => g.id === order.order_group_id);
+        const groupNumber = group?.group_number || "ללא קבוצה";
+        if (!groupedByOrder[groupNumber]) {
+          groupedByOrder[groupNumber] = [];
+        }
+        groupedByOrder[groupNumber].push(order);
+      });
+
+      // Create a sheet for each order group in the template format
+      Object.entries(groupedByOrder).forEach(([groupNumber, orders]) => {
+        // Create template format data
+        const templateData: any[][] = [
+          ["order number :", groupNumber],
+          ["", "שם לקוח", "רוחב כנף", "R/L", "גובה כנף", "ניקוב 100+ 100-", "HOSEM KATIF RESHAFIM mosdit", "צבע", "הדלת", "משקוף בנייה", "גובה משקוף", "משקוף כיסוי", "מנעול חשמלי", "חור לידית 2צדדים 1/2. 2/2.", "חורים לחובק", "כמות", "מחיר", "מחיר מתקין"]
+        ];
+
+        orders.forEach((order, index) => {
+          templateData.push([
+            order.sub_number || index + 1,
+            order.partner_name || "",
+            order.active_door_width || "",
+            order.active_door_direction || "",
+            order.active_door_height || "",
+            order.drilling || "",
+            order.clamp_holes || "",
+            order.door_color || "",
+            order.active_door_type || "",
+            order.construction_frame || "",
+            order.frame_height || "",
+            order.cover_frame || "",
+            order.electric_lock ? "כן" : "",
+            order.handle_hole ? "כן" : "",
+            "", // Extra clamp holes column
+            order.quantity || 1,
+            order.price || 0,
+            order.installer_price || 0
+          ]);
+        });
+
+        const ws = XLSX.utils.aoa_to_sheet(templateData);
+        // Set column widths
+        ws['!cols'] = [
+          { wch: 5 }, { wch: 15 }, { wch: 10 }, { wch: 5 }, { wch: 10 }, { wch: 15 }, { wch: 25 }, 
+          { wch: 10 }, { wch: 10 }, { wch: 12 }, { wch: 12 }, { wch: 12 }, { wch: 12 }, { wch: 20 }, 
+          { wch: 12 }, { wch: 8 }, { wch: 10 }, { wch: 12 }
+        ];
+        XLSX.utils.book_append_sheet(wb, ws, groupNumber.substring(0, 31)); // Sheet name max 31 chars
+      });
       
       XLSX.writeFile(wb, `הזמנות_${format(new Date(), "yyyy-MM-dd")}.xlsx`);
       toast({ title: "הייצוא הושלם בהצלחה" });
