@@ -47,6 +47,57 @@ export type Database = {
         }
         Relationships: []
       }
+      customer_payments: {
+        Row: {
+          created_at: string
+          customer_id: string | null
+          customer_name: string
+          due_date: string | null
+          id: string
+          notes: string | null
+          open_debt: number | null
+          paid_amount: number
+          payment_date: string | null
+          payment_method: string | null
+          payment_reference: string | null
+          status: string
+          total_amount: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          customer_id?: string | null
+          customer_name: string
+          due_date?: string | null
+          id?: string
+          notes?: string | null
+          open_debt?: number | null
+          paid_amount?: number
+          payment_date?: string | null
+          payment_method?: string | null
+          payment_reference?: string | null
+          status?: string
+          total_amount?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          customer_id?: string | null
+          customer_name?: string
+          due_date?: string | null
+          id?: string
+          notes?: string | null
+          open_debt?: number | null
+          paid_amount?: number
+          payment_date?: string | null
+          payment_method?: string | null
+          payment_reference?: string | null
+          status?: string
+          total_amount?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       doors_d_rhk: {
         Row: {
           created_at: string
@@ -770,6 +821,57 @@ export type Database = {
         }
         Relationships: []
       }
+      stock_movements: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          movement_date: string
+          movement_type: string
+          notes: string | null
+          order_id: string | null
+          partner_name: string | null
+          partner_type: string | null
+          product_id: string | null
+          product_name: string
+          product_type: string
+          quantity: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          movement_date?: string
+          movement_type: string
+          notes?: string | null
+          order_id?: string | null
+          partner_name?: string | null
+          partner_type?: string | null
+          product_id?: string | null
+          product_name: string
+          product_type: string
+          quantity: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          movement_date?: string
+          movement_type?: string
+          notes?: string | null
+          order_id?: string | null
+          partner_name?: string | null
+          partner_type?: string | null
+          product_id?: string | null
+          product_name?: string
+          product_type?: string
+          quantity?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       sub_orders: {
         Row: {
           active_door_direction: string | null
@@ -873,6 +975,68 @@ export type Database = {
             columns: ["order_group_id"]
             isOneToOne: false
             referencedRelation: "order_groups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      supplier_payments: {
+        Row: {
+          created_at: string
+          due_date: string | null
+          id: string
+          invoice_number: string | null
+          notes: string | null
+          open_debt: number | null
+          paid_amount: number
+          payment_date: string | null
+          payment_method: string | null
+          payment_reference: string | null
+          status: string
+          supplier_id: string | null
+          supplier_name: string
+          total_amount: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          due_date?: string | null
+          id?: string
+          invoice_number?: string | null
+          notes?: string | null
+          open_debt?: number | null
+          paid_amount?: number
+          payment_date?: string | null
+          payment_method?: string | null
+          payment_reference?: string | null
+          status?: string
+          supplier_id?: string | null
+          supplier_name: string
+          total_amount?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          due_date?: string | null
+          id?: string
+          invoice_number?: string | null
+          notes?: string | null
+          open_debt?: number | null
+          paid_amount?: number
+          payment_date?: string | null
+          payment_method?: string | null
+          payment_reference?: string | null
+          status?: string
+          supplier_id?: string | null
+          supplier_name?: string
+          total_amount?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "supplier_payments_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "suppliers"
             referencedColumns: ["id"]
           },
         ]

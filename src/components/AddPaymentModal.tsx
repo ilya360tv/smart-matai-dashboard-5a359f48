@@ -50,25 +50,32 @@ export const AddPaymentModal = ({
 }: AddPaymentModalProps) => {
   const [formData, setFormData] = useState({
     partner: "",
+    newPartner: "",
     date: new Date(),
     amount: "",
     notes: "",
   });
+  const [useNewPartner, setUseNewPartner] = useState(false);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    const partnerName = useNewPartner ? formData.newPartner : formData.partner;
+    if (!partnerName) return;
+    
     onAdd({
-      partner: formData.partner,
+      partner: partnerName,
       date: formData.date,
       amount: Number(formData.amount),
       notes: formData.notes,
     });
     setFormData({
       partner: "",
+      newPartner: "",
       date: new Date(),
       amount: "",
       notes: "",
     });
+    setUseNewPartner(false);
     onClose();
   };
 
@@ -84,24 +91,57 @@ export const AddPaymentModal = ({
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="partner">שם {type}</Label>
-            <Select
-              value={formData.partner}
-              onValueChange={(value) =>
-                setFormData({ ...formData, partner: value })
-              }
-              required
-            >
-              <SelectTrigger className="h-11">
-                <SelectValue placeholder={`בחר ${type}`} />
-              </SelectTrigger>
-              <SelectContent>
-                {partners.map((partner) => (
-                  <SelectItem key={partner} value={partner}>
-                    {partner}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            {partners.length > 0 && !useNewPartner ? (
+              <div className="space-y-2">
+                <Select
+                  value={formData.partner}
+                  onValueChange={(value) =>
+                    setFormData({ ...formData, partner: value })
+                  }
+                >
+                  <SelectTrigger className="h-11">
+                    <SelectValue placeholder={`בחר ${type}`} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {partners.map((partner) => (
+                      <SelectItem key={partner} value={partner}>
+                        {partner}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Button
+                  type="button"
+                  variant="link"
+                  className="p-0 h-auto text-sm"
+                  onClick={() => setUseNewPartner(true)}
+                >
+                  או הוסף {type} חדש
+                </Button>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                <Input
+                  value={formData.newPartner}
+                  onChange={(e) =>
+                    setFormData({ ...formData, newPartner: e.target.value })
+                  }
+                  placeholder={`שם ${type} חדש`}
+                  className="h-11"
+                  required
+                />
+                {partners.length > 0 && (
+                  <Button
+                    type="button"
+                    variant="link"
+                    className="p-0 h-auto text-sm"
+                    onClick={() => setUseNewPartner(false)}
+                  >
+                    או בחר מרשימה קיימת
+                  </Button>
+                )}
+              </div>
+            )}
           </div>
 
           <div className="space-y-2">

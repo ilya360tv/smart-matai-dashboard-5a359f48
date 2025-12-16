@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import {
   Dialog,
   DialogContent,
@@ -14,12 +16,13 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 
 interface Product {
-  id: number;
+  id: string;
   name: string;
   sku: string;
   currentStock: number;
   minStock: number;
   supplier: string;
+  productType: string;
 }
 
 interface StockMovementModalProps {
@@ -27,6 +30,7 @@ interface StockMovementModalProps {
   onClose: () => void;
   product: Product;
   movementType: "in" | "out";
+  onSuccess?: () => void;
 }
 
 export const StockMovementModal = ({
@@ -34,9 +38,52 @@ export const StockMovementModal = ({
   onClose,
   product,
   movementType,
+  onSuccess,
 }: StockMovementModalProps) => {
   const [quantity, setQuantity] = useState("");
   const [notes, setNotes] = useState("");
+  const [partnerName, setPartnerName] = useState("");
+  const queryClient = useQueryClient();
+
+  const stockMovementMutation = useMutation({
+    mutationFn: async () => {
+      const { error } = await supabase.from("stock_movements").insert({
+        product_name: product.name,
+        product_type: product.productType,
+        product_id: product.id,
+        movement_type: movementType === "in" ? "כניסה" : "יציאה",
+        quantity: parseInt(quantity),
+        partner_name: partnerName || null,
+        partner_type: movementType === "in" ? "ספק" : "לקוח",
+        notes: notes || null,
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["stock-movements"] });
+      const qty = parseInt(quantity);
+      const newStock = movementType === "in" 
+        ? product.currentStock + qty 
+        : product.currentStock - qty;
+
+      toast.success(
+        `${movementType === "in" ? "כניסה" : "יציאה"} של ${qty} יחידות ${movementType === "in" ? "נרשמה" : "נרשמה"} בהצלחה`,
+        {
+          description: `מלאי חדש: ${newStock} יחידות`,
+        }
+      );
+      
+      // Reset and close
+      setQuantity("");
+      setNotes("");
+      setPartnerName("");
+      onClose();
+      onSuccess?.();
+    },
+    onError: () => {
+      toast.error("שגיאה בשמירת תנועת המלאי");
+    },
+  });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -52,22 +99,7 @@ export const StockMovementModal = ({
       return;
     }
 
-    // Simulate successful operation
-    const newStock = movementType === "in" 
-      ? product.currentStock + qty 
-      : product.currentStock - qty;
-
-    toast.success(
-      `${movementType === "in" ? "כניסה" : "יציאה"} של ${qty} יחידות ${movementType === "in" ? "נוספו" : "הוסרו"} בהצלחה`,
-      {
-        description: `מלאי חדש: ${newStock} יחידות`,
-      }
-    );
-
-    // Reset and close
-    setQuantity("");
-    setNotes("");
-    onClose();
+    stockMovementMutation.mutate();
   };
 
   return (
@@ -105,6 +137,17 @@ export const StockMovementModal = ({
               />
             </div>
             <div className="space-y-2">
+              <Label htmlFor="partner">
+                {movementType === "in" ? "שם ספק" : "שם לקוח"} (אופציונלי)
+              </Label>
+              <Input
+                id="partner"
+                placeholder={movementType === "in" ? "הזן שם ספק..." : "הזן שם לקוח..."}
+                value={partnerName}
+                onChange={(e) => setPartnerName(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
               <Label htmlFor="notes">הערות (אופציונלי)</Label>
               <Textarea
                 id="notes"
@@ -119,8 +162,10 @@ export const StockMovementModal = ({
             <Button type="button" variant="outline" onClick={onClose}>
               ביטול
             </Button>
-            <Button type="submit">
-              {movementType === "in" ? "הוסף למלאי" : "הסר מהמלאי"}
+            <Button type="submit" disabled={stockMovementMutation.isPending}>
+              {stockMovementMutation.isPending 
+                ? "שומר..." 
+                : movementType === "in" ? "הוסף למלאי" : "הסר מהמלאי"}
             </Button>
           </DialogFooter>
         </form>

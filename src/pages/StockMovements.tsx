@@ -1,7 +1,9 @@
 import { useState, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Search, Download, ArrowUp, ArrowDown, Calendar as CalendarIcon, Clock } from "lucide-react";
 import { format } from "date-fns";
 import { he } from "date-fns/locale";
+import { supabase } from "@/integrations/supabase/client";
 import { DashboardSidebar } from "@/components/DashboardSidebar";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -29,15 +31,17 @@ import {
 } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
+import * as XLSX from "xlsx";
 
 interface StockMovement {
-  id: number;
-  date: Date;
-  productName: string;
-  type: "כניסה" | "יציאה";
+  id: string;
+  movement_date: string;
+  product_name: string;
+  product_type: string;
+  movement_type: string;
   quantity: number;
-  partner: string;
-  notes: string;
+  partner_name: string | null;
+  notes: string | null;
 }
 
 const StockMovements = () => {
@@ -46,7 +50,19 @@ const StockMovements = () => {
   const [movementType, setMovementType] = useState<"הכל" | "כניסה" | "יציאה">("הכל");
   const [dateFrom, setDateFrom] = useState<Date | undefined>();
   const [dateTo, setDateTo] = useState<Date | undefined>();
-  const [movements] = useState<StockMovement[]>([]);
+
+  const { data: movements = [], isLoading } = useQuery({
+    queryKey: ["stock-movements"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("stock_movements")
+        .select("*")
+        .order("movement_date", { ascending: false });
+      
+      if (error) throw error;
+      return data as StockMovement[];
+    },
+  });
 
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
@@ -54,30 +70,42 @@ const StockMovements = () => {
   }, []);
 
   const handleExportToExcel = () => {
-    // Basic export functionality - can be enhanced with xlsx library
-    console.log("Exporting to Excel...");
+    const exportData = filteredMovements.map((m) => ({
+      תאריך: format(new Date(m.movement_date), "dd/MM/yyyy"),
+      "שם מוצר": m.product_name,
+      "סוג תנועה": m.movement_type,
+      כמות: m.quantity,
+      "ספק / לקוח": m.partner_name || "-",
+      הערות: m.notes || "-",
+    }));
+
+    const ws = XLSX.utils.json_to_sheet(exportData);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "תנועות מלאי");
+    XLSX.writeFile(wb, `stock_movements_${format(new Date(), "yyyy-MM-dd")}.xlsx`);
   };
 
   const filteredMovements = movements.filter((movement) => {
     const matchesSearch =
-      movement.productName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      movement.partner.toLowerCase().includes(searchQuery.toLowerCase());
+      movement.product_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (movement.partner_name?.toLowerCase() || "").includes(searchQuery.toLowerCase());
 
-    const matchesType = movementType === "הכל" || movement.type === movementType;
+    const matchesType = movementType === "הכל" || movement.movement_type === movementType;
 
-    const matchesDateFrom = !dateFrom || movement.date >= dateFrom;
-    const matchesDateTo = !dateTo || movement.date <= dateTo;
+    const movementDate = new Date(movement.movement_date);
+    const matchesDateFrom = !dateFrom || movementDate >= dateFrom;
+    const matchesDateTo = !dateTo || movementDate <= dateTo;
 
     return matchesSearch && matchesType && matchesDateFrom && matchesDateTo;
   });
 
-  const getMovementBadge = (type: StockMovement["type"]) => {
+  const getMovementBadge = (type: string) => {
     return type === "כניסה"
       ? "bg-success/10 text-success border-success/20"
       : "bg-destructive/10 text-destructive border-destructive/20";
   };
 
-  const getMovementIcon = (type: StockMovement["type"]) => {
+  const getMovementIcon = (type: string) => {
     return type === "כניסה" ? (
       <ArrowUp className="h-4 w-4" />
     ) : (
@@ -233,7 +261,13 @@ const StockMovements = () => {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {filteredMovements.length === 0 ? (
+                      {isLoading ? (
+                        <TableRow>
+                          <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                            טוען נתונים...
+                          </TableCell>
+                        </TableRow>
+                      ) : filteredMovements.length === 0 ? (
                         <TableRow>
                           <TableCell
                             colSpan={6}
@@ -249,28 +283,28 @@ const StockMovements = () => {
                             className="hover:bg-muted/30 transition-colors"
                           >
                             <TableCell className="font-medium">
-                              {format(movement.date, "dd/MM/yyyy")}
+                              {format(new Date(movement.movement_date), "dd/MM/yyyy")}
                             </TableCell>
                             <TableCell className="font-medium">
-                              {movement.productName}
+                              {movement.product_name}
                             </TableCell>
                             <TableCell>
                               <Badge
                                 variant="outline"
                                 className={cn(
                                   "gap-1",
-                                  getMovementBadge(movement.type)
+                                  getMovementBadge(movement.movement_type)
                                 )}
                               >
-                                {getMovementIcon(movement.type)}
-                                {movement.type}
+                                {getMovementIcon(movement.movement_type)}
+                                {movement.movement_type}
                               </Badge>
                             </TableCell>
                             <TableCell className="font-semibold">
                               {movement.quantity}
                             </TableCell>
                             <TableCell className="text-muted-foreground">
-                              {movement.partner}
+                              {movement.partner_name || "-"}
                             </TableCell>
                             <TableCell className="text-muted-foreground">
                               {movement.notes || "-"}
@@ -284,7 +318,11 @@ const StockMovements = () => {
 
                 {/* Mobile Cards */}
                 <div className="md:hidden p-3 space-y-3">
-                  {filteredMovements.length === 0 ? (
+                  {isLoading ? (
+                    <div className="text-center py-8 text-muted-foreground">
+                      טוען נתונים...
+                    </div>
+                  ) : filteredMovements.length === 0 ? (
                     <div className="text-center py-8 text-muted-foreground">
                       לא נמצאו תנועות מלאי
                     </div>
@@ -297,18 +335,18 @@ const StockMovements = () => {
                         <div className="flex items-start justify-between mb-3">
                           <div className="flex-1">
                             <h3 className="font-semibold text-base mb-1">
-                              {movement.productName}
+                              {movement.product_name}
                             </h3>
                             <p className="text-sm text-muted-foreground">
-                              {format(movement.date, "dd/MM/yyyy")}
+                              {format(new Date(movement.movement_date), "dd/MM/yyyy")}
                             </p>
                           </div>
                           <Badge
                             variant="outline"
-                            className={cn("gap-1", getMovementBadge(movement.type))}
+                            className={cn("gap-1", getMovementBadge(movement.movement_type))}
                           >
-                            {getMovementIcon(movement.type)}
-                            {movement.type}
+                            {getMovementIcon(movement.movement_type)}
+                            {movement.movement_type}
                           </Badge>
                         </div>
 
@@ -319,9 +357,9 @@ const StockMovements = () => {
                           </div>
                           <div className="flex justify-between">
                             <span className="text-muted-foreground">
-                              {movement.type === "כניסה" ? "ספק:" : "לקוח:"}
+                              {movement.movement_type === "כניסה" ? "ספק:" : "לקוח:"}
                             </span>
-                            <span className="font-medium">{movement.partner}</span>
+                            <span className="font-medium">{movement.partner_name || "-"}</span>
                           </div>
                           {movement.notes && (
                             <div className="flex justify-between">
