@@ -371,64 +371,72 @@ const Orders = () => {
 
       <div className="flex-1 flex flex-col">
         {/* Header */}
-        <header className="flex h-10 items-center gap-2 border-b bg-card px-3 sticky top-0 z-10 shadow-sm">
-          <h1 className="text-base lg:text-lg font-bold flex-1">ניהול הזמנות</h1>
-          <div className="flex items-center gap-1 text-muted-foreground text-xs">
-            <Clock className="h-3 w-3" />
-            <span className="font-medium">{format(currentTime, "HH:mm:ss")}</span>
+        <header className="flex h-14 items-center gap-2 border-b bg-card px-3 lg:h-[60px] lg:px-6 sticky top-0 z-10 shadow-sm">
+          <h1 className="text-lg lg:text-2xl font-bold flex-1">ניהול הזמנות</h1>
+          <div className="flex items-center gap-1.5 lg:gap-2 text-muted-foreground">
+            <Clock className="h-3.5 w-3.5 lg:h-4 lg:w-4" />
+            <div className="flex flex-col items-end">
+              <span className="font-medium text-xs lg:text-base">
+                {format(currentTime, "HH:mm:ss")}
+              </span>
+              <span className="text-[10px] lg:text-xs hidden sm:block">
+                {format(currentTime, "d MMMM yyyy", { locale: he })}
+              </span>
+            </div>
           </div>
         </header>
 
         {/* Main Content */}
-        <main className="flex-1 overflow-y-auto p-2 lg:p-3">
-          <div className="space-y-2 lg:space-y-3">
+        <main className="flex-1 overflow-y-auto p-3 lg:p-6">
+          <div className="mx-auto max-w-7xl space-y-4 lg:space-y-6">
             {/* Toolbar */}
             <Card className="shadow-sm">
-              <CardContent className="p-2 lg:p-3">
-                <div className="flex flex-col sm:flex-row gap-2">
+              <CardContent className="p-4">
+                <div className="flex flex-col sm:flex-row gap-3">
                   <div className="relative flex-1">
                     <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
                       placeholder="חיפוש הזמנה..."
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
-                      className="pr-10 h-9"
+                      className="pr-10 h-11"
                     />
                   </div>
-                  <div className="flex gap-1.5 flex-wrap">
+                  <div className="flex gap-2 flex-wrap">
                     <Button
                       onClick={() => setIsAddModalOpen(true)}
-                      className="gap-1.5 h-9"
-                      size="sm"
+                      className="gap-2 h-11"
+                      size="lg"
+                      variant="default"
                     >
-                      <Plus className="h-4 w-4" />
-                      תת-הזמנה
+                      <Plus className="h-5 w-5" />
+                      תת-הזמנה חדשה
                     </Button>
                     <Button
                       onClick={handleCreateNewGroup}
-                      className="gap-1.5 h-9"
-                      size="sm"
+                      className="gap-2 h-11"
+                      size="lg"
                       variant="outline"
                     >
-                      <PackagePlus className="h-4 w-4" />
+                      <PackagePlus className="h-5 w-5" />
                       הזמנה חדשה
                     </Button>
                     <Button
                       onClick={exportToExcel}
-                      className="gap-1.5 h-9"
-                      size="sm"
+                      className="gap-2 h-11"
+                      size="lg"
                       variant="outline"
                     >
-                      <Download className="h-4 w-4" />
+                      <Download className="h-5 w-5" />
                       ייצוא
                     </Button>
                     <Button
                       onClick={() => fileInputRef.current?.click()}
-                      className="gap-1.5 h-9"
-                      size="sm"
+                      className="gap-2 h-11"
+                      size="lg"
                       variant="outline"
                     >
-                      <Upload className="h-4 w-4" />
+                      <Upload className="h-5 w-5" />
                       ייבוא
                     </Button>
                     <input
@@ -462,39 +470,42 @@ const Orders = () => {
                         filteredGroupedOrders.map((group) => (
                           <div key={group.id} className="border-b last:border-b-0">
                             {/* Group Header */}
-                            <div className="flex items-center justify-between p-2 hover:bg-muted/30 transition-colors">
-                              <div className="flex items-center gap-2 flex-1 cursor-pointer" onClick={() => toggleGroup(group.id)}>
+                            <div className="flex items-center justify-between p-4 hover:bg-muted/30 transition-colors">
+                              <div className="flex items-center gap-3 flex-1 cursor-pointer" onClick={() => toggleGroup(group.id)}>
                                 {expandedGroups.has(group.id) ? (
-                                  <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                                  <ChevronDown className="h-5 w-5 text-muted-foreground" />
                                 ) : (
-                                  <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                                  <ChevronRight className="h-5 w-5 text-muted-foreground" />
                                 )}
-                                <div className="flex items-center gap-3">
-                                  <h3 className="font-bold text-base flex items-center gap-2">
+                                <div>
+                                  <h3 className="font-bold text-xl flex items-center gap-2">
                                     {group.group_number}
                                     <Badge 
                                       variant={group.status === "פעיל" ? "default" : "destructive"}
-                                      className={`text-xs ${group.status === "פעיל" ? "bg-blue-500 hover:bg-blue-600" : "bg-red-500 hover:bg-red-600"}`}
+                                      className={group.status === "פעיל" ? "bg-blue-500 hover:bg-blue-600" : "bg-red-500 hover:bg-red-600"}
                                     >
                                       {group.status}
                                     </Badge>
                                   </h3>
-                                  <span className="text-xs text-muted-foreground">
-                                    {group.subOrders.length} תת-הזמנות | {format(new Date(group.created_at), "dd/MM/yy")}
-                                  </span>
+                                  <p className="text-sm text-muted-foreground">
+                                    {group.subOrders.length} תת-הזמנות | נוצר: {format(new Date(group.created_at), "dd/MM/yyyy HH:mm")}
+                                    {group.status === "סגור" && ` | סגור: ${format(new Date(group.updated_at), "dd/MM/yyyy HH:mm")}`}
+                                  </p>
                                 </div>
                               </div>
-                              {group.status === "פעיל" && (
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  className="gap-1 h-7 text-xs"
-                                  onClick={() => setCloseGroupDialog({ open: true, groupId: group.id })}
-                                >
-                                  <Lock className="h-3 w-3" />
-                                  סגור
-                                </Button>
-                              )}
+                              <div className="flex gap-2">
+                                {group.status === "פעיל" && (
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    className="gap-2"
+                                    onClick={() => setCloseGroupDialog({ open: true, groupId: group.id })}
+                                  >
+                                    <Lock className="h-4 w-4" />
+                                    סגור
+                                  </Button>
+                                )}
+                              </div>
                             </div>
 
                             {/* Sub-orders Table */}
@@ -505,43 +516,52 @@ const Orders = () => {
                                     אין תת-הזמנות בקבוצה זו
                                   </div>
                                 ) : (
-                                  <Table className="text-xs">
+                                  <Table>
                                     <TableHeader>
                                       <TableRow className="bg-muted/30">
-                                        <TableHead className="text-right font-bold border-l p-1 w-8">#</TableHead>
-                                        <TableHead className="text-right font-bold border-l p-1">לקוח</TableHead>
-                                        <TableHead className="text-right font-bold border-l p-1">רוחב</TableHead>
-                                        <TableHead className="text-right font-bold border-l p-1">כיוון</TableHead>
-                                        <TableHead className="text-right font-bold border-l p-1">גובה</TableHead>
-                                        <TableHead className="text-right font-bold border-l p-1">ניקוב</TableHead>
-                                        <TableHead className="text-right font-bold border-l p-1">סוג</TableHead>
-                                        <TableHead className="text-center border-l p-1">
-                                          <div>צבע</div>
-                                          <div className="flex justify-center gap-1 mt-1">
-                                            <img src={doorColorRight} alt="R" className="h-4 w-auto" />
-                                            <img src={doorColorLeft} alt="L" className="h-4 w-auto" />
+                                        <TableHead className="text-right font-bold border-l">#</TableHead>
+                                        <TableHead className="text-right font-bold border-l">שם לקוח</TableHead>
+                                        <TableHead className="text-right font-bold border-l">רוחב כנף</TableHead>
+                                        <TableHead className="text-right font-bold border-l">
+                                          <div>כיוון</div>
+                                          <div className="text-xs text-muted-foreground font-normal">R / L</div>
+                                        </TableHead>
+                                        <TableHead className="text-right font-bold border-l">גובה כנף</TableHead>
+                                        <TableHead className="text-right font-bold border-l">
+                                          <div>ניקוב</div>
+                                          <div className="text-xs text-muted-foreground font-normal">+100 / -100</div>
+                                        </TableHead>
+                                        <TableHead className="text-right font-bold border-l">
+                                          <div>סוג</div>
+                                          <div className="text-xs text-muted-foreground font-normal">HOSEM/KATIF/RESHAFIM</div>
+                                        </TableHead>
+                                        <TableHead className="text-center min-w-[150px] border-l">
+                                          <div>צבע הדלת</div>
+                                          <div className="flex justify-center gap-3 mt-2">
+                                            <img src={doorColorRight} alt="R" className="h-8 w-auto" />
+                                            <img src={doorColorLeft} alt="L" className="h-8 w-auto" />
                                           </div>
                                         </TableHead>
-                                        <TableHead className="text-center border-l p-1">
-                                          <div>בנייה</div>
-                                          <div className="flex justify-center mt-1">
-                                            <img src={constructionFrame} alt="בנייה" className="h-6 w-auto" />
+                                        <TableHead className="text-center min-w-[120px] border-l">
+                                          <div>משקוף בנייה</div>
+                                          <div className="flex justify-center mt-2">
+                                            <img src={constructionFrame} alt="משקוף בנייה" className="h-14 w-auto" />
                                           </div>
                                         </TableHead>
-                                        <TableHead className="text-right font-bold border-l p-1">גובה מש'</TableHead>
-                                        <TableHead className="text-center border-l p-1">
-                                          <div>כיסוי</div>
-                                          <div className="flex justify-center mt-1">
-                                            <img src={coverFrame} alt="כיסוי" className="h-6 w-auto" />
+                                        <TableHead className="text-right font-bold border-l">גובה משקוף</TableHead>
+                                        <TableHead className="text-center min-w-[120px] border-l">
+                                          <div>משקוף כיסוי</div>
+                                          <div className="flex justify-center mt-2">
+                                            <img src={coverFrame} alt="משקוף כיסוי" className="h-14 w-auto" />
                                           </div>
                                         </TableHead>
-                                        <TableHead className="text-right font-bold border-l p-1">מנעול</TableHead>
-                                        <TableHead className="text-right font-bold border-l p-1">ידית</TableHead>
-                                        <TableHead className="text-right font-bold border-l p-1">חובק</TableHead>
-                                        <TableHead className="text-right font-bold border-l p-1">כמות</TableHead>
-                                        <TableHead className="text-right font-bold border-l p-1">מחיר</TableHead>
-                                        <TableHead className="text-right font-bold border-l p-1">מתקין</TableHead>
-                                        <TableHead className="text-right font-bold p-1">פעולות</TableHead>
+                                        <TableHead className="text-right font-bold border-l">מנעול חשמלי</TableHead>
+                                        <TableHead className="text-right font-bold border-l">חור לידית</TableHead>
+                                        <TableHead className="text-right font-bold border-l">חורים לחובק</TableHead>
+                                        <TableHead className="text-right font-bold border-l">כמות</TableHead>
+                                        <TableHead className="text-right font-bold border-l">מחיר</TableHead>
+                                        <TableHead className="text-right font-bold border-l">מחיר מתקין</TableHead>
+                                        <TableHead className="text-right font-bold">פעולות</TableHead>
                                       </TableRow>
                                     </TableHeader>
                                     <TableBody>
@@ -550,53 +570,53 @@ const Orders = () => {
                                           key={order.id} 
                                           className={`hover:bg-muted/20 ${order.status === "בוטל" ? "opacity-50" : ""}`}
                                         >
-                                          <TableCell className="border-l p-1">{index + 1}</TableCell>
-                                          <TableCell className={`border-l p-1 font-medium ${order.status === "בוטל" ? "line-through" : ""}`}>
+                                          <TableCell className="border-l">{index + 1}</TableCell>
+                                          <TableCell className={`border-l font-medium ${order.status === "בוטל" ? "line-through" : ""}`}>
                                             {order.partner_name}
                                           </TableCell>
-                                          <TableCell className="border-l p-1">{order.active_door_width || '-'}</TableCell>
-                                          <TableCell className="border-l p-1">{order.active_door_direction || '-'}</TableCell>
-                                          <TableCell className="border-l p-1">{order.active_door_height || '-'}</TableCell>
-                                          <TableCell className="border-l p-1">{order.drilling || '-'}</TableCell>
-                                          <TableCell className="border-l p-1">{order.active_door_type || '-'}</TableCell>
-                                          <TableCell className="border-l p-1 text-center">{order.door_color || '-'}</TableCell>
-                                          <TableCell className="border-l p-1 text-center">{order.construction_frame || '-'}</TableCell>
-                                          <TableCell className="border-l p-1">{order.frame_height || '-'}</TableCell>
-                                          <TableCell className="border-l p-1 text-center">{order.cover_frame || '-'}</TableCell>
-                                          <TableCell className="border-l p-1">{order.electric_lock ? '✓' : '-'}</TableCell>
-                                          <TableCell className="border-l p-1">{order.handle_hole ? '✓' : '-'}</TableCell>
-                                          <TableCell className="border-l p-1">{order.clamp_holes || '-'}</TableCell>
-                                          <TableCell className="border-l p-1 font-semibold">{order.quantity}</TableCell>
-                                          <TableCell className="border-l p-1">₪{order.price.toLocaleString()}</TableCell>
-                                          <TableCell className="border-l p-1 font-bold text-primary">₪{order.installer_price.toLocaleString()}</TableCell>
-                                          <TableCell className="p-1">
-                                            <div className="flex gap-0.5">
+                                          <TableCell className="border-l">{order.active_door_width || '-'}</TableCell>
+                                          <TableCell className="border-l">{order.active_door_direction || '-'}</TableCell>
+                                          <TableCell className="border-l">{order.active_door_height || '-'}</TableCell>
+                                          <TableCell className="border-l">{order.drilling || '-'}</TableCell>
+                                          <TableCell className="border-l">{order.active_door_type || '-'}</TableCell>
+                                          <TableCell className="border-l text-center">{order.door_color || '-'}</TableCell>
+                                          <TableCell className="border-l text-center">{order.construction_frame || '-'}</TableCell>
+                                          <TableCell className="border-l">{order.frame_height || '-'}</TableCell>
+                                          <TableCell className="border-l text-center">{order.cover_frame || '-'}</TableCell>
+                                          <TableCell className="border-l">{order.electric_lock ? 'כן' : '-'}</TableCell>
+                                          <TableCell className="border-l">{order.handle_hole ? 'כן' : '-'}</TableCell>
+                                          <TableCell className="border-l">{order.clamp_holes || '-'}</TableCell>
+                                          <TableCell className="border-l font-semibold">{order.quantity}</TableCell>
+                                          <TableCell className="border-l">₪{order.price.toLocaleString()}</TableCell>
+                                          <TableCell className="border-l font-bold text-primary">₪{order.installer_price.toLocaleString()}</TableCell>
+                                          <TableCell>
+                                            <div className="flex gap-1">
                                               <Button
-                                                size="icon"
+                                                size="sm"
                                                 variant="ghost"
-                                                className="h-6 w-6 hover:bg-primary/10"
+                                                className="h-8 w-8 p-0 hover:bg-primary/10"
                                                 onClick={() => handleEditSubOrder(order)}
                                                 disabled={order.status === "בוטל"}
                                               >
-                                                <Pencil className="h-3 w-3" />
+                                                <Pencil className="h-3.5 w-3.5" />
                                               </Button>
                                               {order.status === "פעיל" && (
                                                 <Button
-                                                  size="icon"
+                                                  size="sm"
                                                   variant="ghost"
-                                                  className="h-6 w-6 hover:bg-orange-500/10 hover:text-orange-600"
+                                                  className="h-8 w-8 p-0 hover:bg-orange-500/10 hover:text-orange-600"
                                                   onClick={() => setCancelSubOrderDialog({ open: true, subOrderId: order.id, groupId: group.id })}
                                                 >
-                                                  <X className="h-3 w-3" />
+                                                  <X className="h-3.5 w-3.5" />
                                                 </Button>
                                               )}
                                               <Button
-                                                size="icon"
+                                                size="sm"
                                                 variant="ghost"
-                                                className="h-6 w-6 hover:bg-destructive/10 hover:text-destructive"
+                                                className="h-8 w-8 p-0 hover:bg-destructive/10 hover:text-destructive"
                                                 onClick={() => handleDeleteSubOrder(order.id, group.id)}
                                               >
-                                                <Trash2 className="h-3 w-3" />
+                                                <Trash2 className="h-3.5 w-3.5" />
                                               </Button>
                                             </div>
                                           </TableCell>
