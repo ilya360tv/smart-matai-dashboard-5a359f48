@@ -137,17 +137,93 @@ const Orders = () => {
     try {
       const data = await file.arrayBuffer();
       const wb = XLSX.read(data);
+      const sheetName = wb.SheetNames[0];
+      const sheet = wb.Sheets[sheetName];
       
-      const subOrdersSheet = wb.Sheets["תת-הזמנות"];
-      if (subOrdersSheet) {
-        const rows = XLSX.utils.sheet_to_json(subOrdersSheet) as any[];
-        for (const row of rows) {
-          const { id, created_at, updated_at, ...rest } = row;
-          await supabase.from("sub_orders").insert(rest);
+      // Read as array of arrays to handle the specific format
+      const rows = XLSX.utils.sheet_to_json(sheet, { header: 1 }) as any[][];
+      
+      if (rows.length < 3) {
+        toast({ title: "קובץ ריק או לא תקין", variant: "destructive" });
+        return;
+      }
+
+      // Get order number from first row (cell B1)
+      const orderNumber = rows[0]?.[1]?.toString() || "";
+      
+      // Find or create order group
+      let orderGroupId: string;
+      
+      if (orderNumber) {
+        const { data: existingGroup } = await supabase
+          .from("order_groups")
+          .select("id")
+          .eq("group_number", orderNumber)
+          .maybeSingle();
+        
+        if (existingGroup) {
+          orderGroupId = existingGroup.id;
+        } else {
+          const { data: newGroup, error: groupError } = await supabase
+            .from("order_groups")
+            .insert({ group_number: orderNumber, status: "פעיל" })
+            .select("id")
+            .single();
+          
+          if (groupError) throw groupError;
+          orderGroupId = newGroup.id;
         }
+      } else if (activeGroup) {
+        orderGroupId = activeGroup.id;
+      } else {
+        toast({ title: "אין קבוצת הזמנה פעילה", variant: "destructive" });
+        return;
+      }
+
+      // Column mapping (row 1 = headers, starting from column B)
+      // B=שם לקוח, C=רוחב כנף, D=R/L, E=גובה כנף, F=ניקוב, G=HOSEM, H=צבע, I=הדלת, 
+      // J=משקוף בנייה, K=גובה משקוף, L=משקוף כיסוי, M=מנעול חשמלי, N=חור לידית, O=חורים לחובק, P=כמות, Q=מחיר, R=מחיר מתקין
+
+      let importedCount = 0;
+      // Start from row 2 (index 2) - data rows
+      for (let i = 2; i < rows.length; i++) {
+        const row = rows[i];
+        const rowNum = row[0]; // First column is row number
+        const partnerName = row[1]?.toString()?.trim();
+        
+        // Skip empty rows
+        if (!partnerName) continue;
+        
+        const subOrder = {
+          order_group_id: orderGroupId,
+          full_order_number: `${orderNumber || activeGroup?.group_number || 'NEW'}-${rowNum || (i - 1)}`,
+          sub_number: rowNum || (i - 1),
+          partner_type: "מתקין",
+          partner_name: partnerName,
+          product_category: "דלת",
+          active_door_width: row[2] ? Number(row[2]) : null,
+          active_door_direction: row[3]?.toString()?.trim() || null,
+          active_door_height: row[4] ? Number(row[4]) : null,
+          drilling: row[5]?.toString()?.trim() || null,
+          clamp_holes: row[6]?.toString()?.trim() || null, // HOSEM KATIF column
+          door_color: row[7]?.toString()?.trim() || null,
+          active_door_type: row[8]?.toString()?.trim() || null,
+          construction_frame: row[9]?.toString()?.trim() || null,
+          frame_height: row[10] ? Number(row[10]) : null,
+          cover_frame: row[11]?.toString()?.trim() || null,
+          electric_lock: row[12]?.toString()?.toLowerCase() === 'yes' || row[12]?.toString() === 'כן' || row[12] === true,
+          handle_hole: row[13]?.toString()?.toLowerCase() === 'yes' || row[13]?.toString() === 'כן' || row[13] === true,
+          quantity: row[15] ? Number(row[15]) : 1,
+          price: row[16] ? Number(row[16]) : 0,
+          installer_price: row[17] ? Number(row[17]) : 0,
+          status: "פעיל"
+        };
+
+        const { error } = await supabase.from("sub_orders").insert(subOrder);
+        if (!error) importedCount++;
       }
       
-      toast({ title: "הייבוא הושלם בהצלחה" });
+      toast({ title: `יובאו ${importedCount} הזמנות בהצלחה` });
       fetchGroupedOrders();
     } catch (error) {
       console.error("Import error:", error);
