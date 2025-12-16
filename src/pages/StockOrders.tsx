@@ -134,41 +134,41 @@ const StockOrders = () => {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead className="text-right">#</TableHead>
-                      <TableHead className="text-right">רוחב כנף</TableHead>
-                      <TableHead className="text-right">
+                      <TableHead className="text-right border-l">#</TableHead>
+                      <TableHead className="text-right border-l">רוחב כנף</TableHead>
+                      <TableHead className="text-right border-l">
                         <div>כיוון</div>
                         <div className="text-xs text-muted-foreground font-normal">R / L</div>
                       </TableHead>
-                      <TableHead className="text-right">גובה כנף</TableHead>
-                      <TableHead className="text-right">
+                      <TableHead className="text-right border-l">גובה כנף</TableHead>
+                      <TableHead className="text-right border-l">
                         <div>ניקוב</div>
                         <div className="text-xs text-muted-foreground font-normal">+100 -100</div>
                       </TableHead>
-                      <TableHead className="text-center min-w-[150px]">
+                      <TableHead className="text-center min-w-[150px] border-l">
                         <div>צבע</div>
                         <div className="flex justify-center gap-3 mt-2">
                           <img src={doorColorRight} alt="R" className="h-8 w-auto" />
                           <img src={doorColorLeft} alt="L" className="h-8 w-auto" />
                         </div>
                       </TableHead>
-                      <TableHead className="text-center min-w-[120px]">
+                      <TableHead className="text-center min-w-[120px] border-l">
                         <div>משקוף בנייה</div>
                         <div className="flex justify-center mt-2">
                           <img src={constructionFrame} alt="משקוף בנייה" className="h-14 w-auto" />
                         </div>
                       </TableHead>
-                      <TableHead className="text-right">גובה משקוף</TableHead>
-                      <TableHead className="text-center min-w-[120px]">
+                      <TableHead className="text-right border-l">גובה משקוף</TableHead>
+                      <TableHead className="text-center min-w-[120px] border-l">
                         <div>משקוף כיסוי</div>
                         <div className="flex justify-center mt-2">
                           <img src={coverFrame} alt="משקוף כיסוי" className="h-14 w-auto" />
                         </div>
                       </TableHead>
-                      <TableHead className="text-right">כמות</TableHead>
-                      <TableHead className="text-right">מחיר</TableHead>
-                      <TableHead className="text-right">מחיר מתקין</TableHead>
-                      <TableHead className="text-right">סטטוס</TableHead>
+                      <TableHead className="text-right border-l">כמות</TableHead>
+                      <TableHead className="text-right border-l">מחיר</TableHead>
+                      <TableHead className="text-right border-l">מחיר מתקין</TableHead>
+                      <TableHead className="text-right border-l">סטטוס</TableHead>
                       <TableHead className="text-right">פעולות</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -182,19 +182,19 @@ const StockOrders = () => {
                     ) : (
                       filteredOrders.map((order) => (
                         <TableRow key={order.id}>
-                          <TableCell>{order.row_number}</TableCell>
-                          <TableCell>{order.wing_width || '-'}</TableCell>
-                          <TableCell>{order.direction || '-'}</TableCell>
-                          <TableCell>{order.wing_height || '-'}</TableCell>
-                          <TableCell>{order.drilling || '-'}</TableCell>
-                          <TableCell className="min-w-[150px] text-center">{order.door_color || '-'}</TableCell>
-                          <TableCell>{order.construction_frame || '-'}</TableCell>
-                          <TableCell>{order.frame_height || '-'}</TableCell>
-                          <TableCell>{order.cover_frame || '-'}</TableCell>
-                          <TableCell>{order.quantity}</TableCell>
-                          <TableCell>₪{order.price.toLocaleString()}</TableCell>
-                          <TableCell>₪{order.installer_price.toLocaleString()}</TableCell>
-                          <TableCell>
+                          <TableCell className="border-l">{order.row_number}</TableCell>
+                          <TableCell className="border-l">{order.wing_width || '-'}</TableCell>
+                          <TableCell className="border-l">{order.direction || '-'}</TableCell>
+                          <TableCell className="border-l">{order.wing_height || '-'}</TableCell>
+                          <TableCell className="border-l">{order.drilling || '-'}</TableCell>
+                          <TableCell className="min-w-[150px] text-center border-l">{order.door_color || '-'}</TableCell>
+                          <TableCell className="border-l">{order.construction_frame || '-'}</TableCell>
+                          <TableCell className="border-l">{order.frame_height || '-'}</TableCell>
+                          <TableCell className="border-l">{order.cover_frame || '-'}</TableCell>
+                          <TableCell className="border-l">{order.quantity}</TableCell>
+                          <TableCell className="border-l">₪{order.price.toLocaleString()}</TableCell>
+                          <TableCell className="border-l">₪{order.installer_price.toLocaleString()}</TableCell>
+                          <TableCell className="border-l">
                             <Badge className={getStatusColor(order.status)}>
                               {order.status}
                             </Badge>
