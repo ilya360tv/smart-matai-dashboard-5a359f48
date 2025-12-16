@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { Search, Plus, Pencil, Trash2, Clock, ChevronDown, ChevronRight, PackagePlus, Lock, X } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { Search, Plus, Pencil, Trash2, Clock, ChevronDown, ChevronRight, PackagePlus, Lock, X, Download, Upload } from "lucide-react";
 import { format } from "date-fns";
 import { he } from "date-fns/locale";
 import { DashboardSidebar } from "@/components/DashboardSidebar";
@@ -29,6 +29,7 @@ import { AddOrderModal } from "@/components/AddOrderModal";
 import { EditSubOrderModal } from "@/components/EditSubOrderModal";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import * as XLSX from "xlsx";
 
 // Import diagram images
 import doorColorRight from "@/assets/diagrams/door_color_right.png";
@@ -102,7 +103,59 @@ const Orders = () => {
   // Alert dialogs state
   const [closeGroupDialog, setCloseGroupDialog] = useState<{ open: boolean; groupId: string | null }>({ open: false, groupId: null });
   const [cancelSubOrderDialog, setCancelSubOrderDialog] = useState<{ open: boolean; subOrderId: string | null; groupId: string | null }>({ open: false, subOrderId: null, groupId: null });
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const exportToExcel = async () => {
+    try {
+      const { data: subOrders } = await supabase.from("sub_orders").select("*").order("created_at", { ascending: false });
+      const { data: orderGroups } = await supabase.from("order_groups").select("*").order("created_at", { ascending: false });
+      
+      const wb = XLSX.utils.book_new();
+      
+      if (subOrders && subOrders.length > 0) {
+        const ws = XLSX.utils.json_to_sheet(subOrders);
+        XLSX.utils.book_append_sheet(wb, ws, "תת-הזמנות");
+      }
+      
+      if (orderGroups && orderGroups.length > 0) {
+        const ws2 = XLSX.utils.json_to_sheet(orderGroups);
+        XLSX.utils.book_append_sheet(wb, ws2, "קבוצות הזמנה");
+      }
+      
+      XLSX.writeFile(wb, `הזמנות_${format(new Date(), "yyyy-MM-dd")}.xlsx`);
+      toast({ title: "הייצוא הושלם בהצלחה" });
+    } catch (error) {
+      console.error("Export error:", error);
+      toast({ title: "שגיאה בייצוא", variant: "destructive" });
+    }
+  };
+
+  const handleImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      const data = await file.arrayBuffer();
+      const wb = XLSX.read(data);
+      
+      const subOrdersSheet = wb.Sheets["תת-הזמנות"];
+      if (subOrdersSheet) {
+        const rows = XLSX.utils.sheet_to_json(subOrdersSheet) as any[];
+        for (const row of rows) {
+          const { id, created_at, updated_at, ...rest } = row;
+          await supabase.from("sub_orders").insert(rest);
+        }
+      }
+      
+      toast({ title: "הייבוא הושלם בהצלחה" });
+      fetchGroupedOrders();
+    } catch (error) {
+      console.error("Import error:", error);
+      toast({ title: "שגיאה בייבוא", variant: "destructive" });
+    }
+    
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
     return () => clearInterval(timer);
@@ -349,10 +402,10 @@ const Orders = () => {
                       className="pr-10 h-11"
                     />
                   </div>
-                  <div className="flex gap-2">
+                  <div className="flex gap-2 flex-wrap">
                     <Button
                       onClick={() => setIsAddModalOpen(true)}
-                      className="gap-2 h-11 flex-1 sm:flex-initial"
+                      className="gap-2 h-11"
                       size="lg"
                       variant="default"
                     >
@@ -361,13 +414,38 @@ const Orders = () => {
                     </Button>
                     <Button
                       onClick={handleCreateNewGroup}
-                      className="gap-2 h-11 flex-1 sm:flex-initial"
+                      className="gap-2 h-11"
                       size="lg"
                       variant="outline"
                     >
                       <PackagePlus className="h-5 w-5" />
                       הזמנה חדשה
                     </Button>
+                    <Button
+                      onClick={exportToExcel}
+                      className="gap-2 h-11"
+                      size="lg"
+                      variant="outline"
+                    >
+                      <Download className="h-5 w-5" />
+                      ייצוא
+                    </Button>
+                    <Button
+                      onClick={() => fileInputRef.current?.click()}
+                      className="gap-2 h-11"
+                      size="lg"
+                      variant="outline"
+                    >
+                      <Upload className="h-5 w-5" />
+                      ייבוא
+                    </Button>
+                    <input
+                      type="file"
+                      ref={fileInputRef}
+                      onChange={handleImport}
+                      accept=".xlsx,.xls"
+                      className="hidden"
+                    />
                   </div>
                 </div>
               </CardContent>
