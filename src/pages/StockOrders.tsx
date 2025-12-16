@@ -1,16 +1,17 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { DashboardSidebar } from "@/components/DashboardSidebar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Search, Trash2, Check, X } from "lucide-react";
+import { Plus, Search, Trash2, Check, X, Download, Upload } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { AddStockOrderModal } from "@/components/AddStockOrderModal";
+import * as XLSX from "xlsx";
 import doorColorRight from "@/assets/diagrams/door_color_right.png";
 import doorColorLeft from "@/assets/diagrams/door_color_left.png";
 import constructionFrame from "@/assets/diagrams/construction_frame.png";
@@ -42,6 +43,52 @@ const StockOrders = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const queryClient = useQueryClient();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const exportToExcel = async () => {
+    try {
+      const { data: stockOrders } = await supabase.from("stock_orders").select("*").order("created_at", { ascending: false });
+      
+      const wb = XLSX.utils.book_new();
+      if (stockOrders && stockOrders.length > 0) {
+        const ws = XLSX.utils.json_to_sheet(stockOrders);
+        XLSX.utils.book_append_sheet(wb, ws, "הזמנות מלאי");
+      }
+      
+      XLSX.writeFile(wb, `הזמנות_מלאי_${format(new Date(), "yyyy-MM-dd")}.xlsx`);
+      toast.success("הייצוא הושלם בהצלחה");
+    } catch (error) {
+      console.error("Export error:", error);
+      toast.error("שגיאה בייצוא");
+    }
+  };
+
+  const handleImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      const data = await file.arrayBuffer();
+      const wb = XLSX.read(data);
+      
+      const sheet = wb.Sheets[wb.SheetNames[0]];
+      if (sheet) {
+        const rows = XLSX.utils.sheet_to_json(sheet) as any[];
+        for (const row of rows) {
+          const { id, created_at, updated_at, ...rest } = row;
+          await supabase.from("stock_orders").insert(rest);
+        }
+      }
+      
+      toast.success("הייבוא הושלם בהצלחה");
+      queryClient.invalidateQueries({ queryKey: ['stock-orders'] });
+    } catch (error) {
+      console.error("Import error:", error);
+      toast.error("שגיאה בייבוא");
+    }
+    
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
 
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
@@ -157,10 +204,27 @@ const StockOrders = () => {
                   className="pr-10"
                 />
               </div>
-              <Button onClick={() => setIsAddModalOpen(true)}>
-                <Plus className="h-4 w-4 ml-2" />
-                הזמנה חדשה
-              </Button>
+              <div className="flex gap-2 flex-wrap">
+                <Button onClick={() => setIsAddModalOpen(true)}>
+                  <Plus className="h-4 w-4 ml-2" />
+                  הזמנה חדשה
+                </Button>
+                <Button variant="outline" onClick={exportToExcel}>
+                  <Download className="h-4 w-4 ml-2" />
+                  ייצוא
+                </Button>
+                <Button variant="outline" onClick={() => fileInputRef.current?.click()}>
+                  <Upload className="h-4 w-4 ml-2" />
+                  ייבוא
+                </Button>
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  onChange={handleImport}
+                  accept=".xlsx,.xls"
+                  className="hidden"
+                />
+              </div>
             </div>
           </CardHeader>
           <CardContent>
