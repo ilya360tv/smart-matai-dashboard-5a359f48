@@ -20,7 +20,6 @@ const DRILLING_OPTIONS = ['100+', '100-', 'HOSEM', 'KATIF', 'RESHAFIM'];
 const COLOR_OPTIONS = ['9016t', '9001t', '7126d', '0096d', 'mr09'];
 
 export const AddStockOrderModal = ({ isOpen, onClose, onSuccess }: AddStockOrderModalProps) => {
-  const [partnerType, setPartnerType] = useState<'supplier' | 'contractor'>('contractor');
   const [partnerName, setPartnerName] = useState('');
   const [wingWidth, setWingWidth] = useState('');
   const [direction, setDirection] = useState<'R' | 'L'>('R');
@@ -48,22 +47,7 @@ export const AddStockOrderModal = ({ isOpen, onClose, onSuccess }: AddStockOrder
     }
   });
 
-  const { data: suppliers = [] } = useQuery({
-    queryKey: ['suppliers-active'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('suppliers')
-        .select('*')
-        .eq('active', 'פעיל');
-      if (error) throw error;
-      return data;
-    }
-  });
-
-  const partners = partnerType === 'contractor' ? contractors : suppliers;
-
   const resetForm = () => {
-    setPartnerType('contractor');
     setPartnerName('');
     setWingWidth('');
     setDirection('R');
@@ -81,7 +65,7 @@ export const AddStockOrderModal = ({ isOpen, onClose, onSuccess }: AddStockOrder
 
   const handleSubmit = async () => {
     if (!partnerName) {
-      toast.error('יש לבחור שותף');
+      toast.error('יש לבחור משווק');
       return;
     }
 
@@ -102,7 +86,7 @@ export const AddStockOrderModal = ({ isOpen, onClose, onSuccess }: AddStockOrder
         .from('stock_orders')
         .insert({
           row_number: nextRowNumber,
-          partner_type: partnerType === 'contractor' ? 'משווק' : 'ספק',
+          partner_type: 'משווק',
           partner_name: partnerName,
           wing_width: wingWidth ? parseFloat(wingWidth) : null,
           direction: direction,
@@ -140,35 +124,14 @@ export const AddStockOrderModal = ({ isOpen, onClose, onSuccess }: AddStockOrder
 
         <div className="space-y-4">
           <div className="space-y-2">
-            <Label>סוג שותף</Label>
-            <RadioGroup
-              value={partnerType}
-              onValueChange={(v) => {
-                setPartnerType(v as 'supplier' | 'contractor');
-                setPartnerName('');
-              }}
-              className="flex gap-4"
-            >
-              <div className="flex items-center gap-2">
-                <RadioGroupItem value="contractor" id="contractor" />
-                <Label htmlFor="contractor">משווק</Label>
-              </div>
-              <div className="flex items-center gap-2">
-                <RadioGroupItem value="supplier" id="supplier" />
-                <Label htmlFor="supplier">ספק</Label>
-              </div>
-            </RadioGroup>
-          </div>
-
-          <div className="space-y-2">
-            <Label>שם השותף</Label>
+            <Label>שם המשווק</Label>
             <Select value={partnerName} onValueChange={setPartnerName}>
               <SelectTrigger>
-                <SelectValue placeholder="בחר שותף" />
+                <SelectValue placeholder="בחר משווק" />
               </SelectTrigger>
               <SelectContent>
-                {partners.map((p) => (
-                  <SelectItem key={p.id} value={p.name}>{p.name}</SelectItem>
+                {contractors.map((c) => (
+                  <SelectItem key={c.id} value={c.name}>{c.name}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
