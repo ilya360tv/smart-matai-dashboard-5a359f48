@@ -147,22 +147,22 @@ const StockOrders = () => {
                       </TableHead>
                       <TableHead className="text-center min-w-[150px]">
                         <div>צבע</div>
-                        <div className="flex justify-center gap-2 mt-1">
-                          <img src={doorColorRight} alt="R" className="h-6" />
-                          <img src={doorColorLeft} alt="L" className="h-6" />
+                        <div className="flex justify-center gap-3 mt-2">
+                          <img src={doorColorRight} alt="R" className="h-12 w-auto" />
+                          <img src={doorColorLeft} alt="L" className="h-12 w-auto" />
                         </div>
                       </TableHead>
-                      <TableHead className="text-right">
+                      <TableHead className="text-center min-w-[120px]">
                         <div>משקוף בנייה</div>
-                        <div className="flex justify-center mt-1">
-                          <img src={constructionFrame} alt="משקוף בנייה" className="h-8" />
+                        <div className="flex justify-center mt-2">
+                          <img src={constructionFrame} alt="משקוף בנייה" className="h-14 w-auto" />
                         </div>
                       </TableHead>
                       <TableHead className="text-right">גובה משקוף</TableHead>
-                      <TableHead className="text-right">
+                      <TableHead className="text-center min-w-[120px]">
                         <div>משקוף כיסוי</div>
-                        <div className="flex justify-center mt-1">
-                          <img src={coverFrame} alt="משקוף כיסוי" className="h-8" />
+                        <div className="flex justify-center mt-2">
+                          <img src={coverFrame} alt="משקוף כיסוי" className="h-14 w-auto" />
                         </div>
                       </TableHead>
                       <TableHead className="text-right">כמות</TableHead>
