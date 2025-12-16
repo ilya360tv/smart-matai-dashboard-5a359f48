@@ -148,8 +148,8 @@ const StockOrders = () => {
                       <TableHead className="text-center min-w-[150px]">
                         <div>צבע</div>
                         <div className="flex justify-center gap-3 mt-2">
-                          <img src={doorColorRight} alt="R" className="h-12 w-auto" />
-                          <img src={doorColorLeft} alt="L" className="h-12 w-auto" />
+                          <img src={doorColorRight} alt="R" className="h-8 w-auto" />
+                          <img src={doorColorLeft} alt="L" className="h-8 w-auto" />
                         </div>
                       </TableHead>
                       <TableHead className="text-center min-w-[120px]">
