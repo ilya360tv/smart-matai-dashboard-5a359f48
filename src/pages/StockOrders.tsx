@@ -125,8 +125,6 @@ const StockOrders = () => {
           <CardContent>
             {isLoading ? (
               <div className="text-center py-8 text-muted-foreground">טוען...</div>
-            ) : filteredOrders.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground">לא נמצאו הזמנות</div>
             ) : (
               <div className="overflow-x-auto">
                 <Table>
@@ -150,40 +148,48 @@ const StockOrders = () => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {filteredOrders.map((order) => (
-                      <TableRow key={order.id}>
-                        <TableCell>{order.row_number}</TableCell>
-                        <TableCell>
-                          <div className="font-medium">{order.partner_name}</div>
-                          <div className="text-xs text-muted-foreground">{order.partner_type}</div>
-                        </TableCell>
-                        <TableCell>{order.wing_width || '-'}</TableCell>
-                        <TableCell>{order.direction || '-'}</TableCell>
-                        <TableCell>{order.wing_height || '-'}</TableCell>
-                        <TableCell>{order.drilling || '-'}</TableCell>
-                        <TableCell>{order.door_color || '-'}</TableCell>
-                        <TableCell>{order.construction_frame || '-'}</TableCell>
-                        <TableCell>{order.frame_height || '-'}</TableCell>
-                        <TableCell>{order.cover_frame || '-'}</TableCell>
-                        <TableCell>{order.quantity}</TableCell>
-                        <TableCell>₪{order.price.toLocaleString()}</TableCell>
-                        <TableCell>₪{order.installer_price.toLocaleString()}</TableCell>
-                        <TableCell>
-                          <Badge className={getStatusColor(order.status)}>
-                            {order.status}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => deleteMutation.mutate(order.id)}
-                          >
-                            <Trash2 className="h-4 w-4 text-destructive" />
-                          </Button>
+                    {filteredOrders.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={15} className="text-center py-8 text-muted-foreground">
+                          לא נמצאו הזמנות
                         </TableCell>
                       </TableRow>
-                    ))}
+                    ) : (
+                      filteredOrders.map((order) => (
+                        <TableRow key={order.id}>
+                          <TableCell>{order.row_number}</TableCell>
+                          <TableCell>
+                            <div className="font-medium">{order.partner_name}</div>
+                            <div className="text-xs text-muted-foreground">{order.partner_type}</div>
+                          </TableCell>
+                          <TableCell>{order.wing_width || '-'}</TableCell>
+                          <TableCell>{order.direction || '-'}</TableCell>
+                          <TableCell>{order.wing_height || '-'}</TableCell>
+                          <TableCell>{order.drilling || '-'}</TableCell>
+                          <TableCell>{order.door_color || '-'}</TableCell>
+                          <TableCell>{order.construction_frame || '-'}</TableCell>
+                          <TableCell>{order.frame_height || '-'}</TableCell>
+                          <TableCell>{order.cover_frame || '-'}</TableCell>
+                          <TableCell>{order.quantity}</TableCell>
+                          <TableCell>₪{order.price.toLocaleString()}</TableCell>
+                          <TableCell>₪{order.installer_price.toLocaleString()}</TableCell>
+                          <TableCell>
+                            <Badge className={getStatusColor(order.status)}>
+                              {order.status}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => deleteMutation.mutate(order.id)}
+                            >
+                              <Trash2 className="h-4 w-4 text-destructive" />
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    )}
                   </TableBody>
                 </Table>
               </div>
