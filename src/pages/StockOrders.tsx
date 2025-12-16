@@ -132,10 +132,16 @@ const StockOrders = () => {
                     <TableRow>
                       <TableHead className="text-right">#</TableHead>
                       <TableHead className="text-right">רוחב כנף</TableHead>
-                      <TableHead className="text-right">כיוון</TableHead>
+                      <TableHead className="text-right">
+                        <div>כיוון</div>
+                        <div className="text-xs text-muted-foreground font-normal">R / L</div>
+                      </TableHead>
                       <TableHead className="text-right">גובה כנף</TableHead>
-                      <TableHead className="text-right">ניקוב</TableHead>
-                      <TableHead className="text-right">צבע</TableHead>
+                      <TableHead className="text-right">
+                        <div>ניקוב</div>
+                        <div className="text-xs text-muted-foreground font-normal">+100 -100</div>
+                      </TableHead>
+                      <TableHead className="text-right min-w-[150px]">צבע</TableHead>
                       <TableHead className="text-right">משקוף בנייה</TableHead>
                       <TableHead className="text-right">גובה משקוף</TableHead>
                       <TableHead className="text-right">משקוף כיסוי</TableHead>
@@ -161,7 +167,7 @@ const StockOrders = () => {
                           <TableCell>{order.direction || '-'}</TableCell>
                           <TableCell>{order.wing_height || '-'}</TableCell>
                           <TableCell>{order.drilling || '-'}</TableCell>
-                          <TableCell>{order.door_color || '-'}</TableCell>
+                          <TableCell className="min-w-[150px]">{order.door_color || '-'}</TableCell>
                           <TableCell>{order.construction_frame || '-'}</TableCell>
                           <TableCell>{order.frame_height || '-'}</TableCell>
                           <TableCell>{order.cover_frame || '-'}</TableCell>
