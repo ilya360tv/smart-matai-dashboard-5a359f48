@@ -75,9 +75,9 @@ const StockOrders = () => {
   });
 
   const filteredOrders = stockOrders.filter(order =>
-    order.partner_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     order.door_color?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    order.drilling?.toLowerCase().includes(searchQuery.toLowerCase())
+    order.drilling?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    order.row_number.toString().includes(searchQuery)
   );
 
   const getStatusColor = (status: string) => {
@@ -110,7 +110,7 @@ const StockOrders = () => {
               <div className="relative flex-1 max-w-md">
                 <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
                 <Input
-                  placeholder="חיפוש לפי שם שותף, צבע, ניקוב..."
+                  placeholder="חיפוש לפי צבע, ניקוב, מספר שורה..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="pr-10"
@@ -131,7 +131,6 @@ const StockOrders = () => {
                   <TableHeader>
                     <TableRow>
                       <TableHead className="text-right">#</TableHead>
-                      <TableHead className="text-right">שותף</TableHead>
                       <TableHead className="text-right">רוחב כנף</TableHead>
                       <TableHead className="text-right">כיוון</TableHead>
                       <TableHead className="text-right">גובה כנף</TableHead>
@@ -150,7 +149,7 @@ const StockOrders = () => {
                   <TableBody>
                     {filteredOrders.length === 0 ? (
                       <TableRow>
-                        <TableCell colSpan={15} className="text-center py-8 text-muted-foreground">
+                        <TableCell colSpan={14} className="text-center py-8 text-muted-foreground">
                           לא נמצאו הזמנות
                         </TableCell>
                       </TableRow>
@@ -158,10 +157,6 @@ const StockOrders = () => {
                       filteredOrders.map((order) => (
                         <TableRow key={order.id}>
                           <TableCell>{order.row_number}</TableCell>
-                          <TableCell>
-                            <div className="font-medium">{order.partner_name}</div>
-                            <div className="text-xs text-muted-foreground">{order.partner_type}</div>
-                          </TableCell>
                           <TableCell>{order.wing_width || '-'}</TableCell>
                           <TableCell>{order.direction || '-'}</TableCell>
                           <TableCell>{order.wing_height || '-'}</TableCell>

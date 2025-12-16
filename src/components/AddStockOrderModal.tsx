@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,7 +8,6 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { useQuery } from "@tanstack/react-query";
 
 interface AddStockOrderModalProps {
   isOpen: boolean;
@@ -20,7 +19,6 @@ const DRILLING_OPTIONS = ['100+', '100-', 'HOSEM', 'KATIF', 'RESHAFIM'];
 const COLOR_OPTIONS = ['9016t', '9001t', '7126d', '0096d', 'mr09'];
 
 export const AddStockOrderModal = ({ isOpen, onClose, onSuccess }: AddStockOrderModalProps) => {
-  const [partnerName, setPartnerName] = useState('');
   const [wingWidth, setWingWidth] = useState('');
   const [direction, setDirection] = useState<'R' | 'L'>('R');
   const [wingHeight, setWingHeight] = useState('');
@@ -35,20 +33,7 @@ export const AddStockOrderModal = ({ isOpen, onClose, onSuccess }: AddStockOrder
   const [notes, setNotes] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const { data: contractors = [] } = useQuery({
-    queryKey: ['contractors-active'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('contractors')
-        .select('*')
-        .eq('active', 'פעיל');
-      if (error) throw error;
-      return data;
-    }
-  });
-
   const resetForm = () => {
-    setPartnerName('');
     setWingWidth('');
     setDirection('R');
     setWingHeight('');
@@ -64,10 +49,6 @@ export const AddStockOrderModal = ({ isOpen, onClose, onSuccess }: AddStockOrder
   };
 
   const handleSubmit = async () => {
-    if (!partnerName) {
-      toast.error('יש לבחור משווק');
-      return;
-    }
 
     setIsSubmitting(true);
     try {
@@ -86,8 +67,8 @@ export const AddStockOrderModal = ({ isOpen, onClose, onSuccess }: AddStockOrder
         .from('stock_orders')
         .insert({
           row_number: nextRowNumber,
-          partner_type: 'משווק',
-          partner_name: partnerName,
+          partner_type: '-',
+          partner_name: '-',
           wing_width: wingWidth ? parseFloat(wingWidth) : null,
           direction: direction,
           wing_height: wingHeight ? parseFloat(wingHeight) : null,
@@ -123,20 +104,6 @@ export const AddStockOrderModal = ({ isOpen, onClose, onSuccess }: AddStockOrder
         </DialogHeader>
 
         <div className="space-y-4">
-          <div className="space-y-2">
-            <Label>שם המשווק</Label>
-            <Select value={partnerName} onValueChange={setPartnerName}>
-              <SelectTrigger>
-                <SelectValue placeholder="בחר משווק" />
-              </SelectTrigger>
-              <SelectContent>
-                {contractors.map((c) => (
-                  <SelectItem key={c.id} value={c.name}>{c.name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>רוחב כנף (מ"מ)</Label>
