@@ -30,6 +30,12 @@ import { EditSubOrderModal } from "@/components/EditSubOrderModal";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
+// Import diagram images
+import doorColorRight from "@/assets/diagrams/door_color_right.png";
+import doorColorLeft from "@/assets/diagrams/door_color_left.png";
+import constructionFrame from "@/assets/diagrams/construction_frame.png";
+import coverFrame from "@/assets/diagrams/cover_frame.png";
+
 interface OrderGroup {
   id: string;
   group_number: string;
@@ -61,12 +67,21 @@ interface SubOrder {
   insert_height: number | null;
   insert_color_1: string | null;
   insert_color_2: string | null;
+  drilling: string | null;
+  door_color: string | null;
+  construction_frame: string | null;
+  frame_height: number | null;
+  cover_frame: string | null;
+  electric_lock: boolean | null;
+  handle_hole: boolean | null;
+  clamp_holes: string | null;
   quantity: number;
   price: number;
   installer_price: number;
   notes: string | null;
   status: string;
   created_at: string;
+  sub_number: number;
 }
 
 interface GroupedOrder extends OrderGroup {
@@ -426,83 +441,76 @@ const Orders = () => {
                                   <Table>
                                     <TableHeader>
                                       <TableRow className="bg-muted/30">
-                                        <TableHead className="text-right font-bold">מספר</TableHead>
-                                        <TableHead className="text-right font-bold">סטטוס</TableHead>
-                                        <TableHead className="text-right font-bold">שותף</TableHead>
-                                        <TableHead className="text-right font-bold">מוצר</TableHead>
-                                        <TableHead className="text-right font-bold">R/L</TableHead>
-                                        <TableHead className="text-right font-bold">כמות</TableHead>
-                                        <TableHead className="text-right font-bold">מחיר</TableHead>
-                                        <TableHead className="text-right font-bold">מתקין</TableHead>
-                                        <TableHead className="text-right font-bold">תאריך</TableHead>
+                                        <TableHead className="text-right font-bold border-l">#</TableHead>
+                                        <TableHead className="text-right font-bold border-l">שם לקוח</TableHead>
+                                        <TableHead className="text-right font-bold border-l">רוחב כנף</TableHead>
+                                        <TableHead className="text-right font-bold border-l">
+                                          <div>כיוון</div>
+                                          <div className="text-xs text-muted-foreground font-normal">R / L</div>
+                                        </TableHead>
+                                        <TableHead className="text-right font-bold border-l">גובה כנף</TableHead>
+                                        <TableHead className="text-right font-bold border-l">
+                                          <div>ניקוב</div>
+                                          <div className="text-xs text-muted-foreground font-normal">+100 / -100</div>
+                                        </TableHead>
+                                        <TableHead className="text-right font-bold border-l">
+                                          <div>סוג</div>
+                                          <div className="text-xs text-muted-foreground font-normal">HOSEM/KATIF/RESHAFIM</div>
+                                        </TableHead>
+                                        <TableHead className="text-center min-w-[150px] border-l">
+                                          <div>צבע הדלת</div>
+                                          <div className="flex justify-center gap-3 mt-2">
+                                            <img src={doorColorRight} alt="R" className="h-8 w-auto" />
+                                            <img src={doorColorLeft} alt="L" className="h-8 w-auto" />
+                                          </div>
+                                        </TableHead>
+                                        <TableHead className="text-center min-w-[120px] border-l">
+                                          <div>משקוף בנייה</div>
+                                          <div className="flex justify-center mt-2">
+                                            <img src={constructionFrame} alt="משקוף בנייה" className="h-14 w-auto" />
+                                          </div>
+                                        </TableHead>
+                                        <TableHead className="text-right font-bold border-l">גובה משקוף</TableHead>
+                                        <TableHead className="text-center min-w-[120px] border-l">
+                                          <div>משקוף כיסוי</div>
+                                          <div className="flex justify-center mt-2">
+                                            <img src={coverFrame} alt="משקוף כיסוי" className="h-14 w-auto" />
+                                          </div>
+                                        </TableHead>
+                                        <TableHead className="text-right font-bold border-l">מנעול חשמלי</TableHead>
+                                        <TableHead className="text-right font-bold border-l">חור לידית</TableHead>
+                                        <TableHead className="text-right font-bold border-l">חורים לחובק</TableHead>
+                                        <TableHead className="text-right font-bold border-l">כמות</TableHead>
+                                        <TableHead className="text-right font-bold border-l">מחיר</TableHead>
+                                        <TableHead className="text-right font-bold border-l">מחיר מתקין</TableHead>
                                         <TableHead className="text-right font-bold">פעולות</TableHead>
                                       </TableRow>
                                     </TableHeader>
                                     <TableBody>
-                                      {group.subOrders.map((order) => (
+                                      {group.subOrders.map((order, index) => (
                                         <TableRow 
                                           key={order.id} 
                                           className={`hover:bg-muted/20 ${order.status === "בוטל" ? "opacity-50" : ""}`}
                                         >
-                                          <TableCell className={`font-bold ${order.status === "בוטל" ? "line-through text-muted-foreground" : "text-primary"}`}>
-                                            {order.full_order_number}
-                                          </TableCell>
-                                          <TableCell>
-                                            <Badge 
-                                              variant={order.status === "פעיל" ? "default" : "secondary"}
-                                              className={order.status === "בוטל" ? "bg-gray-400" : ""}
-                                            >
-                                              {order.status}
-                                            </Badge>
-                                          </TableCell>
-                                          <TableCell className={`font-medium ${order.status === "בוטל" ? "line-through" : ""}`}>
+                                          <TableCell className="border-l">{index + 1}</TableCell>
+                                          <TableCell className={`border-l font-medium ${order.status === "בוטל" ? "line-through" : ""}`}>
                                             {order.partner_name}
                                           </TableCell>
-                                          <TableCell className={`text-muted-foreground text-sm ${order.status === "בוטל" ? "line-through" : ""}`}>
-                                            {order.frame_option && (
-                                              <Badge variant="outline" className="text-xs ml-1">
-                                                {order.frame_option}
-                                              </Badge>
-                                            )}
-                                            {order.product_category}
-                                            {order.product_category === "אינסרט" ? (
-                                              order.insert_width && order.insert_height 
-                                                ? ` - ${order.insert_width}×${order.insert_height}מ"מ | ${order.insert_color_1}${order.insert_color_2 ? ` + ${order.insert_color_2}` : ''}`
-                                                : ''
-                                            ) : (
-                                              order.active_door_width ? ` - ${order.active_door_width}מ"מ` : ''
-                                            )}
-                                          </TableCell>
-                                           <TableCell>
-                                            {order.product_category === "אינסרט" ? (
-                                              <Badge variant="secondary" className="text-xs">
-                                                -
-                                              </Badge>
-                                            ) : (
-                                              <div className="flex flex-col gap-1">
-                                                <Badge variant="secondary" className="text-xs">
-                                                  {order.active_door_direction || "-"}
-                                                </Badge>
-                                                {order.opening_direction && (
-                                                  <Badge variant="outline" className="text-xs">
-                                                    {order.opening_direction}
-                                                  </Badge>
-                                                )}
-                                              </div>
-                                            )}
-                                          </TableCell>
-                                          <TableCell className={`font-semibold ${order.status === "בוטל" ? "line-through" : ""}`}>
-                                            {order.quantity}
-                                          </TableCell>
-                                          <TableCell className={`font-medium ${order.status === "בוטל" ? "line-through" : ""}`}>
-                                            ₪{order.price.toFixed(2)}
-                                          </TableCell>
-                                          <TableCell className={`font-bold ${order.status === "בוטל" ? "line-through text-muted-foreground" : "text-primary"}`}>
-                                            ₪{order.installer_price.toFixed(2)}
-                                          </TableCell>
-                                          <TableCell className="text-muted-foreground text-xs">
-                                            {format(new Date(order.created_at), "dd/MM HH:mm")}
-                                          </TableCell>
+                                          <TableCell className="border-l">{order.active_door_width || '-'}</TableCell>
+                                          <TableCell className="border-l">{order.active_door_direction || '-'}</TableCell>
+                                          <TableCell className="border-l">{order.active_door_height || '-'}</TableCell>
+                                          <TableCell className="border-l">{order.drilling || '-'}</TableCell>
+                                          <TableCell className="border-l">{order.active_door_type || '-'}</TableCell>
+                                          <TableCell className="border-l text-center">{order.door_color || '-'}</TableCell>
+                                          <TableCell className="border-l text-center">{order.construction_frame || '-'}</TableCell>
+                                          <TableCell className="border-l">{order.frame_height || '-'}</TableCell>
+                                          <TableCell className="border-l text-center">{order.cover_frame || '-'}</TableCell>
+                                          <TableCell className="border-l">{order.electric_lock ? 'כן' : '-'}</TableCell>
+                                          <TableCell className="border-l">{order.handle_hole ? 'כן' : '-'}</TableCell>
+                                          <TableCell className="border-l">{order.clamp_holes || '-'}</TableCell>
+                                          <TableCell className="border-l font-semibold">{order.quantity}</TableCell>
+                                          <TableCell className="border-l">₪{order.price.toLocaleString()}</TableCell>
+                                          <TableCell className="border-l font-bold text-primary">₪{order.installer_price.toLocaleString()}</TableCell>
                                           <TableCell>
                                             <div className="flex gap-1">
                                               <Button

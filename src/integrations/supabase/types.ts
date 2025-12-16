@@ -945,14 +945,22 @@ export type Database = {
           active_door_type: string | null
           active_door_width: number | null
           active_louvre_type: string | null
+          clamp_holes: string | null
+          construction_frame: string | null
+          cover_frame: string | null
           created_at: string
+          door_color: string | null
+          drilling: string | null
+          electric_lock: boolean | null
           fixed_door_direction: string | null
           fixed_door_height: number | null
           fixed_door_type: string | null
           fixed_door_width: number | null
           fixed_louvre_type: string | null
+          frame_height: number | null
           frame_option: string | null
           full_order_number: string
+          handle_hole: boolean | null
           id: string
           insert_color_1: string | null
           insert_color_2: string | null
@@ -977,14 +985,22 @@ export type Database = {
           active_door_type?: string | null
           active_door_width?: number | null
           active_louvre_type?: string | null
+          clamp_holes?: string | null
+          construction_frame?: string | null
+          cover_frame?: string | null
           created_at?: string
+          door_color?: string | null
+          drilling?: string | null
+          electric_lock?: boolean | null
           fixed_door_direction?: string | null
           fixed_door_height?: number | null
           fixed_door_type?: string | null
           fixed_door_width?: number | null
           fixed_louvre_type?: string | null
+          frame_height?: number | null
           frame_option?: string | null
           full_order_number: string
+          handle_hole?: boolean | null
           id?: string
           insert_color_1?: string | null
           insert_color_2?: string | null
@@ -1009,14 +1025,22 @@ export type Database = {
           active_door_type?: string | null
           active_door_width?: number | null
           active_louvre_type?: string | null
+          clamp_holes?: string | null
+          construction_frame?: string | null
+          cover_frame?: string | null
           created_at?: string
+          door_color?: string | null
+          drilling?: string | null
+          electric_lock?: boolean | null
           fixed_door_direction?: string | null
           fixed_door_height?: number | null
           fixed_door_type?: string | null
           fixed_door_width?: number | null
           fixed_louvre_type?: string | null
+          frame_height?: number | null
           frame_option?: string | null
           full_order_number?: string
+          handle_hole?: boolean | null
           id?: string
           insert_color_1?: string | null
           insert_color_2?: string | null
