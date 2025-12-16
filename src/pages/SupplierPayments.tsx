@@ -1,7 +1,9 @@
 import { useState, useEffect } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Search, Plus, AlertCircle, Eye, CreditCard, Clock } from "lucide-react";
 import { format } from "date-fns";
 import { he } from "date-fns/locale";
+import { supabase } from "@/integrations/supabase/client";
 import { DashboardSidebar } from "@/components/DashboardSidebar";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -17,21 +19,79 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AddPaymentModal } from "@/components/AddPaymentModal";
+import { toast } from "sonner";
 
-interface Payment {
-  id: number;
-  name: string;
-  totalAmount: number;
-  openDebt: number;
-  lastPaymentDate: Date;
-  status: "שולם" | "באיחור" | "בהמתנה";
+interface SupplierPayment {
+  id: string;
+  supplier_name: string;
+  total_amount: number;
+  paid_amount: number;
+  open_debt: number;
+  payment_date: string | null;
+  due_date: string | null;
+  status: string;
+  invoice_number: string | null;
+  notes: string | null;
 }
 
 const SupplierPayments = () => {
   const [currentTime, setCurrentTime] = useState(new Date());
   const [searchQuery, setSearchQuery] = useState("");
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [payments] = useState<Payment[]>([]);
+  const queryClient = useQueryClient();
+
+  const { data: payments = [], isLoading } = useQuery({
+    queryKey: ["supplier-payments"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("supplier_payments")
+        .select("*")
+        .order("created_at", { ascending: false });
+      
+      if (error) throw error;
+      return data as SupplierPayment[];
+    },
+  });
+
+  const { data: suppliers = [] } = useQuery({
+    queryKey: ["suppliers"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("suppliers")
+        .select("name")
+        .eq("active", "פעיל");
+      
+      if (error) throw error;
+      return data.map((s) => s.name);
+    },
+  });
+
+  const addPaymentMutation = useMutation({
+    mutationFn: async (payment: {
+      partner: string;
+      date: Date;
+      amount: number;
+      notes: string;
+    }) => {
+      const { error } = await supabase.from("supplier_payments").insert({
+        supplier_name: payment.partner,
+        total_amount: payment.amount,
+        paid_amount: 0,
+        payment_date: payment.date.toISOString(),
+        due_date: payment.date.toISOString(),
+        status: "בהמתנה",
+        notes: payment.notes || null,
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["supplier-payments"] });
+      toast.success("התשלום נוסף בהצלחה");
+    },
+    onError: () => {
+      toast.error("שגיאה בהוספת התשלום");
+    },
+  });
 
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
@@ -44,26 +104,48 @@ const SupplierPayments = () => {
     amount: number;
     notes: string;
   }) => {
-    console.log("Adding payment:", payment);
+    addPaymentMutation.mutate(payment);
   };
 
-  const handleViewDetails = (payment: Payment) => {
-    console.log("Viewing payment details:", payment);
-    // TODO: Open details modal or navigate to details page
-    alert(`פרטי תשלום: ${payment.name}\nסכום כולל: ₪${payment.totalAmount.toLocaleString()}\nחוב פתוח: ₪${payment.openDebt.toLocaleString()}`);
+  const handleViewDetails = (payment: SupplierPayment) => {
+    alert(`פרטי תשלום: ${payment.supplier_name}\nסכום כולל: ₪${payment.total_amount.toLocaleString()}\nחוב פתוח: ₪${payment.open_debt.toLocaleString()}`);
   };
 
-  const handleUpdatePayment = (payment: Payment) => {
-    console.log("Updating payment:", payment);
-    // TODO: Open update payment modal
-    alert(`עדכון תשלום עבור: ${payment.name}`);
+  const handleUpdatePayment = async (payment: SupplierPayment) => {
+    const newPaidAmount = prompt("הזן סכום תשלום חדש:", "0");
+    if (newPaidAmount === null) return;
+    
+    const amount = parseFloat(newPaidAmount);
+    if (isNaN(amount) || amount < 0) {
+      toast.error("סכום לא תקין");
+      return;
+    }
+
+    const totalPaid = payment.paid_amount + amount;
+    const newStatus = totalPaid >= payment.total_amount ? "שולם" : "בהמתנה";
+
+    const { error } = await supabase
+      .from("supplier_payments")
+      .update({
+        paid_amount: totalPaid,
+        status: newStatus,
+        payment_date: new Date().toISOString(),
+      })
+      .eq("id", payment.id);
+
+    if (error) {
+      toast.error("שגיאה בעדכון התשלום");
+    } else {
+      queryClient.invalidateQueries({ queryKey: ["supplier-payments"] });
+      toast.success("התשלום עודכן בהצלחה");
+    }
   };
 
   const filteredPayments = payments.filter((payment) =>
-    payment.name.toLowerCase().includes(searchQuery.toLowerCase())
+    payment.supplier_name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const getStatusVariant = (status: Payment["status"]) => {
+  const getStatusVariant = (status: string) => {
     switch (status) {
       case "שולם":
         return "bg-success/10 text-success border-success/20";
@@ -71,6 +153,8 @@ const SupplierPayments = () => {
         return "bg-warning/10 text-warning border-warning/20";
       case "באיחור":
         return "bg-destructive/10 text-destructive border-destructive/20";
+      default:
+        return "bg-muted/10 text-muted-foreground border-muted/20";
     }
   };
 
@@ -162,7 +246,13 @@ const SupplierPayments = () => {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {filteredPayments.length === 0 ? (
+                      {isLoading ? (
+                        <TableRow>
+                          <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                            טוען נתונים...
+                          </TableCell>
+                        </TableRow>
+                      ) : filteredPayments.length === 0 ? (
                         <TableRow>
                           <TableCell
                             colSpan={6}
@@ -177,23 +267,25 @@ const SupplierPayments = () => {
                             key={payment.id}
                             className="hover:bg-muted/30 transition-colors"
                           >
-                            <TableCell className="font-medium">{payment.name}</TableCell>
+                            <TableCell className="font-medium">{payment.supplier_name}</TableCell>
                             <TableCell className="font-semibold">
-                              ₪{payment.totalAmount.toLocaleString()}
+                              ₪{payment.total_amount.toLocaleString()}
                             </TableCell>
                             <TableCell>
                               <span
                                 className={
-                                  payment.openDebt > 0
+                                  payment.open_debt > 0
                                     ? "font-semibold text-destructive"
                                     : "font-semibold text-success"
                                 }
                               >
-                                ₪{payment.openDebt.toLocaleString()}
+                                ₪{payment.open_debt.toLocaleString()}
                               </span>
                             </TableCell>
                             <TableCell className="text-muted-foreground">
-                              {payment.lastPaymentDate.toLocaleDateString("he-IL")}
+                              {payment.due_date
+                                ? new Date(payment.due_date).toLocaleDateString("he-IL")
+                                : "-"}
                             </TableCell>
                             <TableCell>
                               <Badge
@@ -234,7 +326,11 @@ const SupplierPayments = () => {
 
                 {/* Mobile Cards */}
                 <div className="md:hidden p-3 space-y-3">
-                  {filteredPayments.length === 0 ? (
+                  {isLoading ? (
+                    <div className="text-center py-8 text-muted-foreground">
+                      טוען נתונים...
+                    </div>
+                  ) : filteredPayments.length === 0 ? (
                     <div className="text-center py-8 text-muted-foreground">
                       לא נמצאו רשומות
                     </div>
@@ -246,9 +342,11 @@ const SupplierPayments = () => {
                       >
                         <div className="flex items-start justify-between mb-3">
                           <div className="flex-1">
-                            <h3 className="font-semibold text-base mb-1">{payment.name}</h3>
+                            <h3 className="font-semibold text-base mb-1">{payment.supplier_name}</h3>
                             <p className="text-sm text-muted-foreground">
-                              {payment.lastPaymentDate.toLocaleDateString("he-IL")}
+                              {payment.due_date
+                                ? new Date(payment.due_date).toLocaleDateString("he-IL")
+                                : "-"}
                             </p>
                           </div>
                           <Badge
@@ -263,19 +361,19 @@ const SupplierPayments = () => {
                           <div className="flex justify-between">
                             <span className="text-muted-foreground">סכום כולל:</span>
                             <span className="font-semibold">
-                              ₪{payment.totalAmount.toLocaleString()}
+                              ₪{payment.total_amount.toLocaleString()}
                             </span>
                           </div>
                           <div className="flex justify-between">
                             <span className="text-muted-foreground">חוב פתוח:</span>
                             <span
                               className={
-                                payment.openDebt > 0
+                                payment.open_debt > 0
                                   ? "font-semibold text-destructive"
                                   : "font-semibold text-success"
                               }
                             >
-                              ₪{payment.openDebt.toLocaleString()}
+                              ₪{payment.open_debt.toLocaleString()}
                             </span>
                           </div>
                         </div>
@@ -316,7 +414,7 @@ const SupplierPayments = () => {
         onClose={() => setIsAddModalOpen(false)}
         onAdd={handleAddPayment}
         type="ספק"
-        partners={payments.map((p) => p.name)}
+        partners={suppliers}
       />
     </div>
   );
