@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Search, Trash2, Edit } from "lucide-react";
+import { Plus, Search, Trash2, Check, X } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -78,6 +78,42 @@ const StockOrders = () => {
     }
   });
 
+  const confirmReceiptMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from('stock_orders')
+        .update({ status: 'התקבל' })
+        .eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['stock-orders'] });
+      queryClient.invalidateQueries({ queryKey: ['stock-movements'] });
+      toast.success('ההזמנה אושרה והמוצרים נכנסו למלאי');
+    },
+    onError: () => {
+      toast.error('שגיאה באישור קבלת ההזמנה');
+    }
+  });
+
+  const cancelOrderMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from('stock_orders')
+        .update({ status: 'מבוטל' })
+        .eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['stock-orders'] });
+      queryClient.invalidateQueries({ queryKey: ['stock-movements'] });
+      toast.success('ההזמנה בוטלה');
+    },
+    onError: () => {
+      toast.error('שגיאה בביטול ההזמנה');
+    }
+  });
+
   const filteredOrders = stockOrders.filter(order =>
     order.door_color?.toLowerCase().includes(searchQuery.toLowerCase()) ||
     order.drilling?.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -86,9 +122,10 @@ const StockOrders = () => {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'פעיל': return 'bg-green-100 text-green-800';
-      case 'בוטל': return 'bg-red-100 text-red-800';
-      case 'הושלם': return 'bg-blue-100 text-blue-800';
+      case 'בהזמנה': return 'bg-yellow-100 text-yellow-800';
+      case 'התקבל': return 'bg-green-100 text-green-800';
+      case 'מבוטל': return 'bg-red-100 text-red-800';
+      case 'פעיל': return 'bg-blue-100 text-blue-800';
       default: return 'bg-gray-100 text-gray-800';
     }
   };
@@ -200,13 +237,36 @@ const StockOrders = () => {
                             </Badge>
                           </TableCell>
                           <TableCell>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => deleteMutation.mutate(order.id)}
-                            >
-                              <Trash2 className="h-4 w-4 text-destructive" />
-                            </Button>
+                            <div className="flex gap-1">
+                              {order.status === 'בהזמנה' && (
+                                <>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() => confirmReceiptMutation.mutate(order.id)}
+                                    title="אישור קבלה"
+                                  >
+                                    <Check className="h-4 w-4 text-green-600" />
+                                  </Button>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() => cancelOrderMutation.mutate(order.id)}
+                                    title="ביטול"
+                                  >
+                                    <X className="h-4 w-4 text-red-600" />
+                                  </Button>
+                                </>
+                              )}
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => deleteMutation.mutate(order.id)}
+                                title="מחיקה"
+                              >
+                                <Trash2 className="h-4 w-4 text-destructive" />
+                              </Button>
+                            </div>
                           </TableCell>
                         </TableRow>
                       ))
