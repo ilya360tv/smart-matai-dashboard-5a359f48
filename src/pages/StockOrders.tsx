@@ -11,6 +11,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { AddStockOrderModal } from "@/components/AddStockOrderModal";
+import doorColorRight from "@/assets/diagrams/door_color_right.png";
+import doorColorLeft from "@/assets/diagrams/door_color_left.png";
+import constructionFrame from "@/assets/diagrams/construction_frame.png";
+import coverFrame from "@/assets/diagrams/cover_frame.png";
 
 interface StockOrder {
   id: string;
@@ -141,10 +145,26 @@ const StockOrders = () => {
                         <div>ניקוב</div>
                         <div className="text-xs text-muted-foreground font-normal">+100 -100</div>
                       </TableHead>
-                      <TableHead className="text-right min-w-[150px]">צבע</TableHead>
-                      <TableHead className="text-right">משקוף בנייה</TableHead>
+                      <TableHead className="text-center min-w-[150px]">
+                        <div>צבע</div>
+                        <div className="flex justify-center gap-2 mt-1">
+                          <img src={doorColorRight} alt="R" className="h-6" />
+                          <img src={doorColorLeft} alt="L" className="h-6" />
+                        </div>
+                      </TableHead>
+                      <TableHead className="text-right">
+                        <div>משקוף בנייה</div>
+                        <div className="flex justify-center mt-1">
+                          <img src={constructionFrame} alt="משקוף בנייה" className="h-8" />
+                        </div>
+                      </TableHead>
                       <TableHead className="text-right">גובה משקוף</TableHead>
-                      <TableHead className="text-right">משקוף כיסוי</TableHead>
+                      <TableHead className="text-right">
+                        <div>משקוף כיסוי</div>
+                        <div className="flex justify-center mt-1">
+                          <img src={coverFrame} alt="משקוף כיסוי" className="h-8" />
+                        </div>
+                      </TableHead>
                       <TableHead className="text-right">כמות</TableHead>
                       <TableHead className="text-right">מחיר</TableHead>
                       <TableHead className="text-right">מחיר מתקין</TableHead>
@@ -167,7 +187,7 @@ const StockOrders = () => {
                           <TableCell>{order.direction || '-'}</TableCell>
                           <TableCell>{order.wing_height || '-'}</TableCell>
                           <TableCell>{order.drilling || '-'}</TableCell>
-                          <TableCell className="min-w-[150px]">{order.door_color || '-'}</TableCell>
+                          <TableCell className="min-w-[150px] text-center">{order.door_color || '-'}</TableCell>
                           <TableCell>{order.construction_frame || '-'}</TableCell>
                           <TableCell>{order.frame_height || '-'}</TableCell>
                           <TableCell>{order.cover_frame || '-'}</TableCell>
