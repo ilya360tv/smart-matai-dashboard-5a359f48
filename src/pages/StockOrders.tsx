@@ -47,13 +47,41 @@ const StockOrders = () => {
 
   const exportToExcel = async () => {
     try {
-      const { data: stockOrders } = await supabase.from("stock_orders").select("*").order("created_at", { ascending: false });
+      const { data: stockOrders } = await supabase.from("stock_orders").select("*").order("row_number", { ascending: true });
       
       const wb = XLSX.utils.book_new();
-      if (stockOrders && stockOrders.length > 0) {
-        const ws = XLSX.utils.json_to_sheet(stockOrders);
-        XLSX.utils.book_append_sheet(wb, ws, "הזמנות מלאי");
-      }
+      
+      // Create template format data
+      const templateData: any[][] = [
+        ["order number :", ""],
+        ["", "רוחב כנף", "R/L", "גובה כנף", "ניקוב 100+ 100-", "HOSEM KATIF RESHAFIM", "צבע", "הדלת", "משקוף בנייה", "גובה משקוף", "משקוף כיסוי", "כמות", "מחיר", "מחיר מתקין"]
+      ];
+
+      stockOrders?.forEach((order) => {
+        templateData.push([
+          order.row_number,
+          order.wing_width || "",
+          order.direction || "",
+          order.wing_height || "",
+          order.drilling || "",
+          order.notes || "",
+          order.door_color || "",
+          "", // הדלת column
+          order.construction_frame || "",
+          order.frame_height || "",
+          order.cover_frame || "",
+          order.quantity || 1,
+          order.price || 0,
+          order.installer_price || 0
+        ]);
+      });
+
+      const ws = XLSX.utils.aoa_to_sheet(templateData);
+      ws['!cols'] = [
+        { wch: 5 }, { wch: 10 }, { wch: 5 }, { wch: 10 }, { wch: 15 }, { wch: 20 }, 
+        { wch: 10 }, { wch: 10 }, { wch: 12 }, { wch: 12 }, { wch: 12 }, { wch: 8 }, { wch: 10 }, { wch: 12 }
+      ];
+      XLSX.utils.book_append_sheet(wb, ws, "הזמנות מלאי");
       
       XLSX.writeFile(wb, `הזמנות_מלאי_${format(new Date(), "yyyy-MM-dd")}.xlsx`);
       toast.success("הייצוא הושלם בהצלחה");
@@ -70,17 +98,50 @@ const StockOrders = () => {
     try {
       const data = await file.arrayBuffer();
       const wb = XLSX.read(data);
-      
       const sheet = wb.Sheets[wb.SheetNames[0]];
-      if (sheet) {
-        const rows = XLSX.utils.sheet_to_json(sheet) as any[];
-        for (const row of rows) {
-          const { id, created_at, updated_at, ...rest } = row;
-          await supabase.from("stock_orders").insert(rest);
-        }
+      
+      // Read as array of arrays to handle the specific format
+      const rows = XLSX.utils.sheet_to_json(sheet, { header: 1 }) as any[][];
+      
+      if (rows.length < 3) {
+        toast.error("קובץ ריק או לא תקין");
+        return;
+      }
+
+      // Column mapping: A=#, B=רוחב כנף, C=R/L, D=גובה כנף, E=ניקוב, F=HOSEM, G=צבע, H=הדלת, I=משקוף בנייה, J=גובה משקוף, K=משקוף כיסוי, L=כמות, M=מחיר, N=מחיר מתקין
+      let importedCount = 0;
+      
+      for (let i = 2; i < rows.length; i++) {
+        const row = rows[i];
+        const rowNum = row[0];
+        
+        // Skip empty rows
+        if (!rowNum && !row[1]) continue;
+        
+        const stockOrder = {
+          row_number: rowNum || (i - 1),
+          partner_type: "משווק",
+          partner_name: "ייבוא מאקסל",
+          wing_width: row[1] ? Number(row[1]) : null,
+          direction: row[2]?.toString()?.trim() || null,
+          wing_height: row[3] ? Number(row[3]) : null,
+          drilling: row[4]?.toString()?.trim() || null,
+          notes: row[5]?.toString()?.trim() || null,
+          door_color: row[6]?.toString()?.trim() || null,
+          construction_frame: row[8]?.toString()?.trim() || null,
+          frame_height: row[9] ? Number(row[9]) : null,
+          cover_frame: row[10]?.toString()?.trim() || null,
+          quantity: row[11] ? Number(row[11]) : 1,
+          price: row[12] ? Number(row[12]) : 0,
+          installer_price: row[13] ? Number(row[13]) : 0,
+          status: "בהזמנה"
+        };
+
+        const { error } = await supabase.from("stock_orders").insert(stockOrder);
+        if (!error) importedCount++;
       }
       
-      toast.success("הייבוא הושלם בהצלחה");
+      toast.success(`יובאו ${importedCount} הזמנות בהצלחה`);
       queryClient.invalidateQueries({ queryKey: ['stock-orders'] });
     } catch (error) {
       console.error("Import error:", error);
